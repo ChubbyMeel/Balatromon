@@ -1,0 +1,448 @@
+local BM = Balatromon
+
+BM.joker_defs = BM.joker_defs or {}
+BM.shop_joker_keys = BM.shop_joker_keys or {}
+BM.last_sold_joker_key = BM.last_sold_joker_key or nil
+
+BM.RANKS = {2,3,4,5,6,7,8,9,10,11,12,13,14}
+BM.SUITS = {'Hearts','Diamonds','Clubs','Spades'}
+BM.HANDS = {'High Card','Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush'}
+
+function BM.slug(name)
+    return string.lower(name):gsub('[^%w]+','_'):gsub('^_+',''):gsub('_+$','')
+end
+
+function BM.center_key(slug)
+    return 'j_' .. BM.PREFIX .. '_' .. slug
+end
+
+function BM.is_digimon(card)
+    local c = card and card.config and card.config.center
+    return c and c.balatromon == true
+end
+
+function BM.get_stage(card)
+    if not BM.is_digimon(card) then return nil end
+    return card.config.center.balatromon_stage
+end
+
+function BM.bond_max_for_stage(stage)
+    if stage == 'Fresh'
+    or stage == 'In-Training' then
+        return 1
+    end
+
+    if stage == 'Rookie' then
+        return 3
+    end
+
+    return 5
+end
+
+function BM.get_bond_max(card)
+    return BM.bond_max_for_stage(BM.get_stage(card))
+end
+
+function BM.care_status_text(stage)
+    return '{C:attention}Hunger{} #1#/5  {C:green}Bond{} #2#/'
+        .. tostring(BM.bond_max_for_stage(stage))
+end
+
+function BM.is_boss()
+    return G and G.GAME and G.GAME.blind and G.GAME.blind.boss
+end
+
+function BM.has_room(area)
+    return area and (#area.cards < area.config.card_limit)
+end
+
+function BM.get_rank(card)
+    if not card then return nil end
+    if card.get_id then return card:get_id() end
+    return nil
+end
+
+
+function BM.rank_name(rank)
+    local names = {[11]='Jack', [12]='Queen', [13]='King', [14]='Ace'}
+    return names[rank] or tostring(rank or '?')
+end
+
+function BM.is_face(card)
+    return card and card.is_face and card:is_face()
+end
+
+function BM.has_enhancement(card, key)
+    return card and SMODS.has_enhancement and SMODS.has_enhancement(card, key)
+end
+
+function BM.is_unenhanced(card)
+    if not card then return false end
+    if not card.config or not card.config.center then return true end
+    return card.config.center == G.P_CENTERS.c_base or card.config.center.key == 'c_base'
+end
+
+function BM.set_enhancement(card, key)
+    if card and G.P_CENTERS[key] then
+        local changed = not BM.has_enhancement(card, key)
+        card:set_ability(G.P_CENTERS[key], nil, true)
+
+        -- Enhancement-changing Digimon should visibly affect the playing card,
+        -- not only change its center silently. Centralising the juice here means
+        -- Patamon, Salamon, DemiDevimon, Sakumon, Zubamon, Megadramon, etc.
+        -- all get the same feedback automatically.
+        if changed and card.juice_up then
+            card:juice_up(0.8, 0.5)
+        end
+
+        return true
+    end
+    return false
+end
+
+function BM.remember_digi_item(card)
+    if not (G and G.GAME and card and card.config and card.config.center) then return end
+    if card.config.center.set == 'DigiItem' then
+        -- Vanilla Fool already tracks Tarot/Planet through this value. Reusing
+        -- it lets our revised Fool naturally include the last Digi Item too.
+        G.GAME.last_tarot_planet = card.config.center.key
+    end
+end
+
+function BM.contains_hand(context, hand)
+    return context and context.poker_hands and context.poker_hands[hand] and next(context.poker_hands[hand]) ~= nil
+end
+
+function BM.contains_rank(cards, rank)
+    if not cards then return false end
+    for _, c in ipairs(cards) do if BM.get_rank(c) == rank then return true end end
+    return false
+end
+
+function BM.contains_suit(cards, suit)
+    if not cards then return false end
+    for _, c in ipairs(cards) do
+        if c.is_suit and c:is_suit(suit) then return true end
+    end
+    return false
+end
+
+function BM.all_four_suits(cards)
+    for _, s in ipairs(BM.SUITS) do if not BM.contains_suit(cards, s) then return false end end
+    return true
+end
+
+function BM.highest_card(cards, only_unenhanced)
+    local best, best_rank = nil, -math.huge
+    for _, c in ipairs(cards or {}) do
+        local r = BM.get_rank(c) or -1
+        if r > best_rank and (not only_unenhanced or BM.is_unenhanced(c)) then
+            best, best_rank = c, r
+        end
+    end
+    return best, best_rank
+end
+
+function BM.lowest_card(cards)
+    local best, best_rank = nil, math.huge
+    for _, c in ipairs(cards or {}) do
+        local r = BM.get_rank(c) or math.huge
+        if r < best_rank then best, best_rank = c, r end
+    end
+    return best, best_rank
+end
+
+function BM.random_element(list, seed)
+    return pseudorandom_element(list, pseudoseed(seed))
+end
+
+function BM.ensure_target(card, field, list, seed)
+    card.ability.extra[field] = card.ability.extra[field] or BM.random_element(list, seed .. tostring(card.sort_id or ''))
+    return card.ability.extra[field]
+end
+
+function BM.reroll_target(card, field, list, seed)
+    local e = card.ability.extra
+    e._target_rerolls = e._target_rerolls or {}
+    e._target_rerolls[field] = (e._target_rerolls[field] or 0) + 1
+
+    local old_value = e[field]
+    local roll_seed = seed
+        .. ':' .. tostring(e._target_rerolls[field])
+        .. ':' .. tostring(card.sort_id or '')
+
+    local new_value = BM.random_element(list, roll_seed)
+
+    -- A "changes every round/hand" target should visibly change. If the
+    -- seeded roll lands on the same value, advance to the next entry instead.
+    if old_value ~= nil and #list > 1 and new_value == old_value then
+        for i, value in ipairs(list) do
+            if value == old_value then
+                new_value = list[(i % #list) + 1]
+                break
+            end
+        end
+    end
+
+    e[field] = new_value
+    return new_value, old_value
+end
+
+function BM.target_change_return(card, message, colour)
+    if card and card.juice_up then
+        card:juice_up(0.8, 0.5)
+    end
+
+    return {
+        message = message or 'Changed!',
+        colour = colour or (G and G.C and G.C.FILTER),
+    }
+end
+
+function BM.get_poker_hand_name(cards)
+    if not cards or #cards == 0 then return nil end
+    if G.FUNCS and G.FUNCS.get_poker_hand_info then
+        local text = G.FUNCS.get_poker_hand_info(cards)
+        return text
+    end
+    return nil
+end
+
+function BM.count_deck_enhancement(key)
+    local n = 0
+    for _, c in ipairs(G.playing_cards or {}) do if BM.has_enhancement(c, key) then n = n + 1 end end
+    return n
+end
+
+function BM.add_consumable(set, key, edition)
+    if not G.consumeables or not BM.has_room(G.consumeables) then return nil end
+    local args = {set = set, area = G.consumeables, key_append = 'balatromon'}
+    if key and G.P_CENTERS[key] then args.key = key end
+    if edition then args.edition = edition end
+    return SMODS.add_card(args)
+end
+
+function BM.add_food(count)
+    count = count or 1
+    local made = 0
+    for _ = 1, count do
+        if not BM.has_room(G.consumeables) then break end
+        if G.P_CENTERS['c_' .. BM.PREFIX .. '_food'] then
+            SMODS.add_card{set='DigiItem', area=G.consumeables, key='c_' .. BM.PREFIX .. '_food'}
+            made = made + 1
+        end
+    end
+    return made
+end
+
+function BM.add_playing_card(args)
+    args = args or {}
+    args.set = args.set or 'Playing Card'
+    args.area = args.area or G.deck
+    return SMODS.add_card(args)
+end
+
+function BM.feed(card, amount)
+    if not BM.is_digimon(card) then return end
+    local e = card.ability.extra
+    if e.permanently_disabled then return end
+    e.hunger = math.max(1, (e.hunger or 1) - (amount or 1))
+end
+
+function BM.care_tick(card, context)
+    -- Re-establish the ready-to-Digivolve shake whenever this card is evaluated.
+    -- This also makes full-Bond cards resume shaking after loading a save.
+    if BM.is_bond_full and BM.is_bond_full(card) then
+        BM.start_bond_shake(card)
+    end
+
+    if not (context.end_of_round and context.main_eval and not context.blueprint) then return end
+    local e = card.ability.extra
+    if e._care_ticked_this_round then return end
+    e._care_ticked_this_round = true
+    G.E_MANAGER:add_event(Event({trigger='after', delay=0, func=function()
+        e._care_ticked_this_round = nil
+        return true
+    end}))
+
+    if e.permanently_disabled then return end
+    e.care_rounds = (e.care_rounds or 0) + 1
+
+    -- Hunger rises by 1 every two rounds. Hunger uses 1..5.
+    if e.care_rounds % 2 == 0 then e.hunger = math.min(5, (e.hunger or 1) + 1) end
+
+    if (e.hunger or 1) > 3 then
+        e.care_mistakes = math.min(3, (e.care_mistakes or 0) + 1)
+        -- No Bond while too hungry.
+    else
+        local max_bond = BM.get_bond_max(card)
+        e.bond = math.min(max_bond, (e.bond or 0) + 1)
+    end
+
+    if BM.is_bond_full(card) then
+        BM.start_bond_shake(card)
+    end
+
+    if (e.care_mistakes or 0) >= 3 then
+        -- The Digivice system resolves this into de-Digivolution or a bad path.
+        e.care_crisis = true
+    end
+
+    if (e.hunger or 1) >= 5 then
+        e.permanently_disabled = true
+        SMODS.debuff_card(card, true, 'balatromon_hunger')
+    end
+end
+
+function BM.is_bond_full(card)
+    if not BM.is_digimon(card) then
+        return false
+    end
+
+    local e = card.ability.extra
+
+    if e.permanently_disabled then
+        return false
+    end
+
+    local max_bond = BM.get_bond_max(card)
+
+    return (e.bond or 0) >= max_bond
+end
+
+
+function BM.start_bond_shake(card)
+    if not BM.is_bond_full(card) then return end
+
+    local e = card.ability.extra
+    if e._bond_shaking then return end
+
+    e._bond_shaking = true
+
+    -- Pokermon uses this same pattern for Pokemon that are ready to evolve:
+    -- keep juicing the card while the condition remains true.
+    local eval = function(c)
+        local extra = c and c.ability and c.ability.extra
+        local keep_shaking = c and not c.REMOVED and BM.is_bond_full(c)
+            and extra and extra._bond_shaking
+
+        if not keep_shaking and extra then
+            extra._bond_shaking = nil
+        end
+
+        return keep_shaking or false
+    end
+
+    juice_card_until(card, eval, true)
+end
+
+function BM.card_ready_for_digivolution(card)
+    if not BM.is_digimon(card) then
+        return false
+    end
+
+    if card.ability.extra.permanently_disabled then
+        return false
+    end
+
+    local max_bond = BM.get_bond_max(card)
+
+    return (card.ability.extra.bond or 0) >= max_bond
+end
+
+function BM.joker_index(card)
+    if not G.jokers then return nil end
+    for i,c in ipairs(G.jokers.cards) do if c == card then return i end end
+end
+
+function BM.leftmost_digimon(exclude)
+    for _,c in ipairs(G.jokers and G.jokers.cards or {}) do if c ~= exclude and BM.is_digimon(c) then return c end end
+end
+
+function BM.random_other_joker(card, seed)
+    local t = {}
+    for _,c in ipairs(G.jokers and G.jokers.cards or {}) do if c ~= card then t[#t+1] = c end end
+    if #t == 0 then return nil end
+    return BM.random_element(t, seed)
+end
+
+function BM.copy_joker(target, strip_negative)
+    if not target or not BM.has_room(G.jokers) then return nil end
+    local should_strip = strip_negative and target.edition and target.edition.negative
+    return SMODS.copy_card(target, {area=G.jokers, strip_edition=should_strip})
+end
+
+function BM.apply_blind_reduction(card, context, amount, bosses)
+    if not (context.setting_blind and context.main_eval and not context.blueprint) then return end
+    if BM.is_boss() and not bosses then return end
+    if not G.GAME.blind or not G.GAME.blind.chips then return end
+    local mark = tostring(G.GAME.round_resets.ante) .. ':' .. tostring(G.GAME.blind.name)
+    if card.ability.extra.last_reduced_blind == mark then return end
+    card.ability.extra.last_reduced_blind = mark
+    G.GAME.blind.chips = math.max(1, math.floor(G.GAME.blind.chips * (1 - amount)))
+    G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
+    SMODS.juice_up_blind()
+end
+
+function BM.add_sell_value_to_all(amount)
+    for _, area in ipairs({G.jokers, G.consumeables}) do
+        if area then
+            for _, c in ipairs(area.cards) do
+                c.ability.extra_value = (c.ability.extra_value or 0) + amount
+                c:set_cost()
+            end
+        end
+    end
+end
+
+function BM.find_least_played_hand()
+    local best, plays = nil, math.huge
+    for hand, data in pairs(G.GAME.hands or {}) do
+        if data.visible ~= false and (data.played or 0) < plays then best, plays = hand, (data.played or 0) end
+    end
+    return best
+end
+
+function BM.stage_shop_weight(stage)
+    if stage == 'Fresh' then return 12 end
+    if stage == 'In-Training' then return 12 end
+    if stage == 'Rookie' then return 10 end
+    if stage == 'Champion' then return 1 end
+    if stage == 'Rare' then return 1 end
+    return 0
+end
+
+function BM.stage_rarity(stage)
+    -- src/rarities.lua stores the fully registered SMODS rarity key here.
+    -- Falling back to Common keeps startup survivable if a stage is mistyped.
+    return (BM.stage_rarity_keys and BM.stage_rarity_keys[stage]) or 1
+end
+
+function BM.on_add(card, slug)
+    if slug == 'vikemon' then G.hand:change_size(-3) end
+    if slug == 'pururumon' then G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1 end
+    if slug == 'poromon' then SMODS.change_discard_limit(1) end
+    if slug == 'hawkmon' then SMODS.change_discard_limit(1) end
+    if slug == 'aquilamon' then G.hand:change_size(2); G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1 end
+    if slug == 'halsemon' then G.GAME.round_resets.discards = G.GAME.round_resets.discards + 3; G.hand:change_size(-1) end
+    if slug == 'digitamamon' then card.ability.rental = true end
+end
+
+function BM.on_remove(card, slug)
+    if slug == 'vikemon' then G.hand:change_size(3) end
+    if slug == 'pururumon' then G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1 end
+    if slug == 'poromon' then SMODS.change_discard_limit(-1) end
+    if slug == 'hawkmon' then
+        SMODS.change_discard_limit(-1)
+        local gained = card.ability.extra.hawk_hand_size or 0
+        if gained ~= 0 then G.hand:change_size(-gained) end
+    end
+    if slug == 'aquilamon' then G.hand:change_size(-2); G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1 end
+    if slug == 'halsemon' then G.GAME.round_resets.discards = G.GAME.round_resets.discards - 3; G.hand:change_size(1) end
+end
+
+function BM.can_sell(card, slug)
+    if slug == 'espimon' then return (card.ability.extra.sell_rounds or 0) >= 2 end
+    if slug == 'hoverespimon' then return (card.ability.extra.sell_rounds or 0) >= 3 end
+    return true
+end
