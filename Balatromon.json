@@ -4,7 +4,7 @@
   "author": [
     "ChubbyMeel"
   ],
-  "description": "Play balatro as you try to take care of these digital pets.",
+  "description": "Play balatro as you try to take care of these digital monsters.",
   "prefix": "DigiMeel",
   "main_file": "main.lua",
   "version": "0.3.3"
