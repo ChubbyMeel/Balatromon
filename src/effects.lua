@@ -261,7 +261,18 @@ H.devimon = function(card,context)
 end
 H.ladydevimon = function(card,context) if context.discard and BM.has_enhancement(context.other_card,'m_steel') then return {dollars=2} end end
 H.myotismon = function(card,context) if context.joker_main then local n=BM.count_deck_enhancement('m_steel'); if n>0 then return {xmult=1+0.25*n} end end end
-H.malomyotismon = function(card,context) if context.individual and context.cardarea==G.hand and BM.get_rank(context.other_card)==13 then return {xmult=1.5} end end
+H.malomyotismon = function(card, context)
+    if context.individual
+    and context.cardarea == G.hand
+    and not context.end_of_round
+    and not context.playing_card_end_of_round
+    and BM.get_rank(context.other_card) == 13 then
+
+        return {
+            xmult = 1.5
+        }
+    end
+end
 H.piedmon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
     if context.remove_playing_cards and not context.blueprint then local n=0; for _,c in ipairs(context.removed or {}) do if BM.is_face(c) then n=n+1 end end; if n>0 then e.xmult=e.xmult+n; return {message='XMult Up!'} end end
@@ -333,7 +344,24 @@ H.sakuyamon = function(card,context)
     if context.discard and BM.get_rank(context.other_card)==e.target_rank then return {dollars=5} end
     if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end
 end
-H.zerimon = function(card,context) if context.individual and context.cardarea==G.hand and BM.is_face(context.other_card) and SMODS.pseudorandom_probability(card,'zerimon',1,2) then return {dollars=1} end end
+H.zerimon = function(card, context)
+    if context.individual
+    and context.cardarea == G.hand
+    and not context.end_of_round
+    and not context.playing_card_end_of_round
+    and BM.is_face(context.other_card)
+    and SMODS.pseudorandom_probability(
+        card,
+        'zerimon',
+        1,
+        2
+    ) then
+
+        return {
+            dollars = 1
+        }
+    end
+end
 H.gummymon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then BM.add_sell_value_to_all(1); return {message='+$1 Sell Value'} end end
 H.terriermon = function(card,context)
     local r=context.other_card and BM.get_rank(context.other_card)

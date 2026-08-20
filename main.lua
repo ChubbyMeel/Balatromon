@@ -74,3 +74,14 @@ assert(SMODS.load_file('src/enhancements.lua'))()
 assert(SMODS.load_file('src/seals.lua'))()
 assert(SMODS.load_file('src/tags.lua'))()
 assert(SMODS.load_file('src/vouchers.lua'))()
+
+SMODS.current_mod.process_loc_text = function()
+    G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {
+        name = 'Renamon Effect',
+        text = {
+            'Earn {C:money}$5{} for each',
+            'discarded {C:attention}#1#{}',
+            '{C:inactive}(rank changes at end of round){}'
+        }
+    }
+end

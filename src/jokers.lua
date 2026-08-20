@@ -778,6 +778,7 @@ do
         loc_txt = {name='Gigadramon', text={
             'Add to Mult double the lowest valued card held',
             'in hand',
+            '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -790,7 +791,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Machinedramon, BlackWarGreymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local current = 0; if G.hand and G.hand.cards then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then current=r*2 end end
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1261,6 +1263,7 @@ do
         loc_txt = {name='Tsunomon', text={
             '{C:chips}+90{} Chips',
             '{C:inactive}(-5 Chips per discard used){}',
+            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -1273,7 +1276,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gabumon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local current = 90 - 5 * (e.discards or 0)
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1428,6 +1432,7 @@ do
         loc_txt = {name='MadLeomon', text={
             '{C:chips}+1000{} Chips',
             '{C:inactive}(-100 Chips for each card of hand size){}',
+            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -1440,7 +1445,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'LoaderLeomon, Knightmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local current = 1000 - 100 * (G.hand and G.hand.config and G.hand.config.card_limit or 0)
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2082,6 +2088,7 @@ do
         loc_txt = {name='MarineBullmon', text={
             'Gives {C:chips}+25{} Chips for each Stone Card in your',
             'full deck',
+            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -2094,7 +2101,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Hydramon, Vikemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local current = 25 * BM.count_deck_enhancement('m_stone')
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2993,6 +3001,7 @@ do
         key = slug,
         loc_txt = {name='Myotismon', text={
             'Each Steel card in deck gives {X:mult,C:white}X0.25{} Mult',
+            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -3005,7 +3014,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MaloMyotismon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local current = 1 + 0.25 * BM.count_deck_enhancement('m_steel')
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4141,6 +4151,7 @@ do
         key = slug,
         loc_txt = {name='Taomon', text={
             '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
+            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -4153,7 +4164,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Sakuyamon, Piedmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local current = math.max(1,math.floor((G.GAME and G.GAME.dollars or 0)/10))
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4175,41 +4187,148 @@ end
 do
     local slug = 'sakuyamon'
     local stage = 'Mega'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+
+    local extra = {
+        hunger = 1,
+        bond = 0,
+        care_mistakes = 0,
+        care_rounds = 0
+    }
+
     SMODS.Joker {
         key = slug,
-        loc_txt = {name='Sakuyamon', text={
-            '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned, apply Renamon',
-            'effect',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
-        }},
-        config = {extra=extra},
+
+        loc_txt = {
+            name = 'Sakuyamon',
+            text = {
+                '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
+                'Also has the {C:attention}Renamon{} effect',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+                BM.care_status_text(stage),
+                '{C:red}Care Mistakes{} #3#/3',
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+
+        atlas = 'Joker',
+        pos = {x = 0, y = 0},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = '-',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+        balatromon_stage = stage,
+        balatromon_evolves_to = '-',
+
+        loc_vars = function(self, info_queue, card)
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            local target_rank =
+                card
+                and BM.ensure_target(
+                    card,
+                    'target_rank',
+                    BM.RANKS,
+                    'sakuyamon_rank'
+                )
+                or e.target_rank
+                or 14
+
+            -- Current Sakuyamon money-based XMult.
+            local current_xmult =
+                math.max(
+                    1,
+                    math.floor(
+                        (G.GAME and G.GAME.dollars or 0) / 10
+                    )
+                )
+
+
+            info_queue[#info_queue + 1] = {
+                set = 'Other',
+                key = 'DigiMeel_sakuyamon_renamon_effect',
+                vars = {
+                    BM.rank_name(target_rank)
+                }
+            }
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    current_xmult
+                }
+            }
         end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+
+        in_pool = function(self, args)
+            return stage == 'Fresh'
+                or stage == 'In-Training'
+                or stage == 'Rookie'
+                or stage == 'Champion'
+                or stage == 'Rare'
         end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
+
+        add_to_deck = function(self, card, from_debuff)
+            if not from_debuff then
+                BM.on_add(card, slug)
+            end
+        end,
+
+        remove_from_deck = function(self, card, from_debuff)
+            if not from_debuff then
+                BM.on_remove(card, slug)
+            end
+        end,
+
+        can_sell = function(self, card, context)
+            return BM.can_sell(card, slug)
+        end,
+
+        calculate = function(self, card, context)
+            BM.care_tick(card, context)
+
+            if card.ability.extra.permanently_disabled then
+                return
+            end
+
+            return BM.run_effect(
+                slug,
+                card,
+                context
+            )
         end,
     }
-    BM.joker_defs[slug] = {name='Sakuyamon', stage=stage, evolves_to='-', effect='X1 Mult for every $10 owned, apply Renamon effect'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+
+    BM.joker_defs[slug] = {
+        name = 'Sakuyamon',
+        stage = stage,
+        evolves_to = '-',
+        effect = 'X1 Mult for every $10 owned, apply Renamon effect'
+    }
+
+    local weight =
+        BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {
+            key = BM.center_key(slug),
+            weight = weight,
+            stage = stage
+        }
+    end
 end
 
 do
