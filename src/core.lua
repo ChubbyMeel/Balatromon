@@ -446,3 +446,29 @@ function BM.can_sell(card, slug)
     if slug == 'hoverespimon' then return (card.ability.extra.sell_rounds or 0) >= 3 end
     return true
 end
+
+local function getEnhancements()
+    -- Rebuild every time so enhancements registered
+    -- by other mods are always included.
+    enhancements = {"c_base"}
+
+    local pool = {}
+
+    for _, v in pairs(G.P_CENTER_POOLS["Enhanced"]) do
+        table.insert(pool, v)
+    end
+
+    -- Keep approximately the normal enhancement order.
+    table.sort(pool, function(a, b)
+        return (a.order or 0) < (b.order or 0)
+    end)
+
+    -- IMPORTANT:
+    -- table.insert makes the array contiguous,
+    -- so ipairs will not stop at an order gap.
+    for _, v in ipairs(pool) do
+        table.insert(enhancements, v.key)
+    end
+
+    return enhancements
+end

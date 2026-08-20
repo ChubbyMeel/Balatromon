@@ -77,5 +77,5 @@ local function digital_pack_def(key, kind, weight, no_collection)
     }
 end
 
-digital_pack_def('digital_pack_arcana', 'Arcana', 4.0, false)
-digital_pack_def('digital_pack_celestial', 'Celestial', 4.0, true)
+digital_pack_def('digital_pack_arcana', 'Arcana', 1.0, false)
+digital_pack_def('digital_pack_celestial', 'Celestial', 2.0, true)

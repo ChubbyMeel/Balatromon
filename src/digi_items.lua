@@ -428,3 +428,105 @@ SMODS.Consumable {
     can_use = function(self, card) return BM.has_room(G.jokers) end,
     use = function(self, card, area, copier) create_random_stage('Ultimate', 1, 'golden_digitama') end,
 }
+
+
+-- ============================================================
+-- DIGI SENSES
+-- Turn up to 2 selected playing cards into Calumon Cards
+-- ============================================================
+
+SMODS.Consumable {
+    set = COMMON_CARD.set,
+    key = 'digi_senses',
+
+    atlas = COMMON_CARD.atlas,
+    pos = COMMON_CARD.pos,
+
+    discovered = true,
+    unlocked = true,
+
+    cost = 4,
+
+    loc_txt = {
+        name = 'Digi Senses',
+        text = {
+            'Enhances up to {C:attention}2{} selected cards',
+            'into {C:attention}Calumon Cards{}'
+        }
+    },
+
+    config = {
+        max_highlighted = 2
+    },
+
+    can_use = function(self, card)
+        if not G.hand then
+            return false
+        end
+
+        local selected = #G.hand.highlighted
+
+        return selected >= 1
+            and selected <= 2
+    end,
+
+    use = function(self, card, area, copier)
+        BM.remember_digi_item(card)
+
+        local targets = {}
+
+        for _, playing_card in ipairs(G.hand.highlighted) do
+            targets[#targets + 1] = playing_card
+        end
+
+        for i, playing_card in ipairs(targets) do
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.15 * (i - 1),
+
+                func = function()
+                    if playing_card and not playing_card.REMOVED then
+
+                        playing_card:juice_up(0.5, 0.5)
+                        play_sound('tarot1')
+
+                        playing_card:set_ability(
+                            G.P_CENTERS['m_DigiMeel_calumon'],
+                            nil,
+                            true
+                        )
+
+                        playing_card:juice_up(0.8, 0.6)
+
+                        card_eval_status_text(
+                            playing_card,
+                            'extra',
+                            nil,
+                            nil,
+                            nil,
+                            {
+                                message = 'Calumon!',
+                                colour = G.C.ATTENTION
+                            }
+                        )
+                    end
+
+                    return true
+                end
+            }))
+        end
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.4,
+
+            func = function()
+                if G.hand then
+                    G.hand:unhighlight_all()
+                end
+
+                return true
+            end
+        }))
+    end,
+}

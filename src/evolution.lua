@@ -1,21 +1,5 @@
 local BM = Balatromon
 
--- ============================================================
--- Balatromon Digivolution engine
--- ============================================================
--- Branching philosophy:
---   * Full Bond is required for ordinary Digivolution.
---   * The first / core route is generally always viable.
---   * Hunger and Care Mistakes unlock additional alternate routes.
---   * D-3 unlocks Armor-style routes where listed below.
---   * At 3 Care Mistakes, ordinary routes are suppressed:
---       - if the current form has a marked bad path, only bad paths are valid;
---       - otherwise a compatible Digivice De-Digivolves the Digimon to a
---         Fresh form from its own history (or a reachable Fresh ancestor).
---   * Resolving a Care Crisis consumes the 3 Care Mistakes and resets them to 0.
---
--- The 131 Joker definitions stay data-only. All route logic lives here.
--- ============================================================
 
 BM.evolution_rules = {
     agumon = {
@@ -421,7 +405,9 @@ function BM.get_care_crisis_baby_options(card)
     return {}
 end
 
-function BM.get_valid_evolutions(card, device_key)
+function BM.get_valid_evolutions(card, device_key, opts)
+    opts = opts or {}
+
     if not BM.is_digimon(card) then return {} end
     local e = card.ability and card.ability.extra or {}
     if e.permanently_disabled then return {} end
@@ -430,7 +416,7 @@ function BM.get_valid_evolutions(card, device_key)
 
     -- Normal Digivolution requires full Bond. A Care Crisis is an exception:
     -- the Digivice is being used to resolve the crisis, so Bond is ignored.
-    if not crisis and not BM.card_ready_for_digivolution(card) then return {} end
+    if not crisis and not opts.ignore_bond and not BM.card_ready_for_digivolution(card) then return {} end
 
     local source_slug = BM.get_card_slug(card)
     local options = {}
@@ -468,22 +454,99 @@ function BM.can_digivolve_with(card, device_key)
     return #BM.get_valid_evolutions(card, device_key) > 0
 end
 
+
+function BM.get_evolution_card_candidates()
+    local candidates = {}
+
+    if not (G.jokers and G.jokers.cards) then
+        return candidates
+    end
+
+    for _, digimon in ipairs(G.jokers.cards) do
+
+        if BM.is_digimon(digimon) then
+
+            -- Evolution Cards ignore Bond, but all other
+            -- evolution-route rules still apply.
+            local options = BM.get_valid_evolutions(
+                digimon,
+                'evolution_card',
+                {
+                    ignore_bond = true
+                }
+            )
+
+            if #options > 0 then
+                candidates[#candidates + 1] = {
+                    card = digimon,
+                    options = options
+                }
+            end
+
+        end
+    end
+
+    return candidates
+end
+
+
+function BM.trigger_evolution_card(source_card)
+    local candidates = BM.get_evolution_card_candidates()
+
+    if #candidates == 0 then
+        return false
+    end
+
+    -- Pick a random Digimon.
+    local target = BM.random_element(
+        candidates,
+        'balatromon_evolution_card_target_'
+            .. tostring(source_card and source_card.sort_id or 0)
+    )
+
+    if not target then
+        return false
+    end
+
+    -- Then randomly choose one of that Digimon's
+    -- currently viable branches.
+    local option = BM.random_element(
+        target.options,
+        'balatromon_evolution_card_branch_'
+            .. tostring(source_card and source_card.sort_id or 0)
+    )
+
+    if not option then
+        return false
+    end
+
+    return BM.perform_digivolution(
+        target.card,
+        option,
+        'evolution_card',
+        {
+            ignore_bond = true
+        }
+    )
+end
+
 local function copy_evolution_history(history)
     local out = {}
     for i, value in ipairs(history or {}) do out[i] = value end
     return out
 end
 
-function BM.perform_digivolution(card, option, device_key)
+function BM.perform_digivolution(card, option, device_key, opts)
+    opts = opts or {}
     if not (card and option and option.center) then return false end
 
     local crisis = BM.is_care_crisis(card)
-    if not crisis and not BM.card_ready_for_digivolution(card) then return false end
+    if not crisis and not opts.ignore_bond and not BM.card_ready_for_digivolution(card) then return false end
 
     -- Make sure the selected branch is still valid when the player clicks it.
     local still_valid = false
     device_key = device_key or (BM.pending_evolution and BM.pending_evolution.device_key)
-    for _, candidate in ipairs(BM.get_valid_evolutions(card, device_key)) do
+    for _, candidate in ipairs(BM.get_valid_evolutions(card, device_key, opts)) do
         if candidate.key == option.key then
             still_valid = true
             option = candidate

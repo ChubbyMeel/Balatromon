@@ -26,6 +26,13 @@ SMODS.Atlas {
     py = 95,
 }
 
+SMODS.Atlas {
+    key = 'Enhancement',
+    path = 'DigiMeel_Enhancement.png',
+    px = 71,
+    py = 95,
+}
+
 assert(SMODS.load_file('src/core.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()
 assert(SMODS.load_file('src/evolution.lua'))()
@@ -35,3 +42,4 @@ assert(SMODS.load_file('src/jokers.lua'))()
 assert(SMODS.load_file('src/boosters.lua'))()
 assert(SMODS.load_file('src/tarot_revisions.lua'))()
 assert(SMODS.load_file('src/shop.lua'))()
+assert(SMODS.load_file('src/enhancements.lua'))()

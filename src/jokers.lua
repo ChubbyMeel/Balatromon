@@ -1,8 +1,5 @@
 local BM = Balatromon
 
--- All Digimon Jokers from the design database.
--- Tooltip formatting uses Balatro/SMODS colour codes and dynamic target localization.
-
 do
     local slug = 'botamon'
     local stage = 'Fresh'
@@ -868,7 +865,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=1,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'WarGreymon, BlackWarGreymon, HeavyLeomon',
@@ -909,7 +906,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=2,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -949,7 +946,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=3,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Kakkinmon',
@@ -989,7 +986,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=4,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Ludomon',
@@ -1029,7 +1026,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=5,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'TiaLudomon',
@@ -1069,7 +1066,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=6,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'RaijiLudomon, Knightmon',
@@ -1109,7 +1106,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=7,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'BryweLudramon',
@@ -1150,7 +1147,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=8,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Gallantmon',
@@ -1189,7 +1186,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=9,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -3575,7 +3572,7 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Flamedramon', text={
-            '{C:green}1 in 5{} chance to upgrade played poker hand',
+            '{C:green}1 in 5{} chance to upgrade played poker hand after it is scored',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
