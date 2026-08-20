@@ -27,6 +27,13 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
+    key = 'Consumable',
+    path = 'DigiMeel_Consumable.png',
+    px = 71,
+    py = 95,
+}
+
+SMODS.Atlas {
     key = 'Enhancement',
     path = 'DigiMeel_Enhancement.png',
     px = 71,
@@ -47,6 +54,13 @@ SMODS.Atlas {
     py = 34,
 }
 
+SMODS.Atlas {
+    key = 'Voucher',
+    path = 'DigiMeel_Voucher.png',
+    px = 71,
+    py = 95
+}
+
 assert(SMODS.load_file('src/core.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()
 assert(SMODS.load_file('src/evolution.lua'))()
@@ -59,3 +73,4 @@ assert(SMODS.load_file('src/shop.lua'))()
 assert(SMODS.load_file('src/enhancements.lua'))()
 assert(SMODS.load_file('src/seals.lua'))()
 assert(SMODS.load_file('src/tags.lua'))()
+assert(SMODS.load_file('src/vouchers.lua'))()

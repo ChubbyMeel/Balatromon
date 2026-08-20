@@ -267,7 +267,7 @@ local COMMON_CARD = {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'food', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'food', atlas = 'Consumable', pos = {x=0,y=0},
     discovered = true, unlocked = true, cost = 3,
     loc_txt = {name='Food', text={
         'Reduce {C:attention}Hunger{} by {C:attention}1{}',
@@ -298,7 +298,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'hefty_food', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'hefty_food', atlas = 'Consumable', pos = {x=1,y=0},
     discovered = true, unlocked = true, cost = 4,
     loc_txt = {name='Hefty Food', text={
         'Reduce {C:attention}Hunger{} by {C:attention}2{}',
@@ -313,7 +313,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'playball', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'playball', atlas = 'Consumable', pos = {x=2,y=0},
     discovered = true, unlocked = true, cost = 3,
     loc_txt = {name='PlayBall', text={
         'Increase {C:green}Bond{} of',
@@ -328,7 +328,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'bandaid', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'bandaid', atlas = 'Consumable', pos = {x=3,y=0},
     discovered = true, unlocked = true, cost = 3,
     loc_txt = {name='Bandaid', text={
         'Remove {C:red}1 Care Mistake{}',
@@ -346,7 +346,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'digivice', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'digivice', atlas = 'Consumable', pos = {x=4,y=0},
     discovered = true, unlocked = true, cost = 4,
     loc_txt = {name='Digivice', text={
         'Digivolve the leftmost {C:attention}Fresh{},',
@@ -361,7 +361,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'd_3', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'd_3', atlas = 'Consumable', pos = {x=0,y=1},
     discovered = true, unlocked = true, cost = 5,
     loc_txt = {name='D-3', text={
         'Digivolve {C:attention}2 random{}',
@@ -376,7 +376,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'd_ark', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'd_ark', atlas = 'Consumable', pos = {x=1,y=1},
     discovered = true, unlocked = true, cost = 5,
     loc_txt = {name='D-Ark', text={
         'Digivolve the leftmost {C:attention}Rookie{}',
@@ -391,7 +391,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'digitama', atlas = COMMON_CARD.atlas, pos = COMMON_CARD.pos,
+    set = COMMON_CARD.set, key = 'digitama', atlas = 'Consumable', pos = {x=2,y=1},
     discovered = true, unlocked = true, cost = 5,
     loc_txt = {name='Digitama', text={
         'Create {C:attention}2 random Rookie{} Digimon',
@@ -404,10 +404,9 @@ SMODS.Consumable {
     end,
 }
 
--- New Spectral cards from the design database. Placeholder visuals intentionally
--- reuse the same Joker atlas until dedicated item art is drawn.
+
 SMODS.Consumable {
-    set = 'Spectral', key = 'golden_d_ark', atlas = 'Joker', pos = {x=0,y=0},
+    set = 'Spectral', key = 'golden_d_ark', atlas = 'Consumable', pos = {x=1,y=2},
     discovered = true, unlocked = true, cost = 4,
     loc_txt = {name='Golden D-Ark', text={
         'Digivolve the leftmost {C:attention}Ultimate{}',
@@ -419,7 +418,7 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
-    set = 'Spectral', key = 'golden_digitama', atlas = 'Joker', pos = {x=0,y=0},
+    set = 'Spectral', key = 'golden_digitama', atlas = 'Consumable', pos = {x=2,y=2},
     discovered = true, unlocked = true, cost = 4,
     loc_txt = {name='Golden Digitama', text={
         'Create {C:attention}1 random Ultimate{} Digimon',
@@ -437,8 +436,7 @@ SMODS.Consumable {
     unlocked = true,
 
     -- Placeholder art
-    atlas = 'Joker',
-    pos = {x = 0, y = 0},
+    atlas = 'Consumable', pos = {x=3,y=2},
 
     cost = 4,
 
@@ -529,10 +527,6 @@ SMODS.Consumable {
 }
 
 
--- ============================================================
--- ERROR404
--- Add Glitch Seal to 1 selected card
--- ============================================================
 
 SMODS.Consumable {
     key = 'error404',
@@ -541,9 +535,7 @@ SMODS.Consumable {
     discovered = true,
     unlocked = true,
 
-    -- Placeholder art
-    atlas = 'Joker',
-    pos = {x = 0, y = 0},
+    atlas = 'Consumable', pos = {x=4,y=2},
 
     cost = 4,
 
@@ -643,8 +635,7 @@ SMODS.Consumable {
     set = COMMON_CARD.set,
     key = 'digi_senses',
 
-    atlas = COMMON_CARD.atlas,
-    pos = COMMON_CARD.pos,
+    atlas = 'Consumable', pos = {x=3,y=1},
 
     discovered = true,
     unlocked = true,
@@ -743,8 +734,7 @@ SMODS.Consumable {
     discovered = true,
     unlocked = true,
 
-    atlas = COMMON_CARD.atlas,
-    pos = COMMON_CARD.pos,
+    atlas = 'Consumable', pos = {x=4,y=1},
 
     cost = 4,
 
@@ -838,8 +828,7 @@ SMODS.Consumable {
     discovered = true,
     unlocked = true,
 
-    atlas = COMMON_CARD.atlas,
-    pos = COMMON_CARD.pos,
+    atlas = 'Consumable', pos = {x=0,y=2},
 
     cost = 4,
 
