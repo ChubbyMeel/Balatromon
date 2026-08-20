@@ -898,8 +898,8 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gallantmon', text={
-            'X[1/3 of the previous values of this card when',
-            'it was unevolved] Mult',
+            'Gives {X:mult,C:white}X#4#{} Mult',
+            "{C:inactive}(1/3 of its previous form\'s stored value)",
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -912,7 +912,9 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            local previous=e.previous_form_value
+            if previous == nil then previous = 3 end
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,previous/3}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1225,7 +1227,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=0,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Tsunomon',
@@ -1265,7 +1267,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=1,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Gabumon',
@@ -1307,7 +1309,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=2,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Garurumon, Numemon, Leomon, MadLeomon',
@@ -1349,7 +1351,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=3,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'WereGarurumon, Mammothmon',
@@ -1391,7 +1393,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=4,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'LoaderLeomon, Knightmon',
@@ -1432,7 +1434,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=5,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'LoaderLeomon, Knightmon',
@@ -1474,7 +1476,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=6,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'MetalGarurumon',
@@ -1516,7 +1518,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=7,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'HeavyLeomon',
@@ -1559,7 +1561,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=8,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -1602,7 +1604,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=9,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -1651,7 +1653,7 @@ do
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
         end,
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return true
         end,
         add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
         remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
@@ -1663,8 +1665,11 @@ do
         end,
     }
     BM.joker_defs[slug] = {name='Monzaemon', stage=stage, evolves_to='-', effect='Create a tarot card when blind is selected (must have room)'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+    local weight = 10
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+        key = BM.center_key(slug),
+        weight = weight,
+        stage = stage}
 end
 
 do
@@ -1691,7 +1696,7 @@ do
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
         end,
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return true
         end,
         add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
         remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
@@ -1703,8 +1708,11 @@ do
         end,
     }
     BM.joker_defs[slug] = {name='WaruMonzaemon', stage=stage, evolves_to='-', effect='Create 2 Food items at the end of a round (must have room)'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+    local weight = 4
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+        key = BM.center_key(slug),
+        weight = weight,
+        stage = stage}
 end
 
 do
@@ -1731,7 +1739,7 @@ do
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
         end,
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return true
         end,
         add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
         remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
@@ -1743,8 +1751,11 @@ do
         end,
     }
     BM.joker_defs[slug] = {name='PolarBearmon', stage=stage, evolves_to='-', effect='All planet cards and celestial booster packs cost $2 less'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+    local weight = 4
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+        key = BM.center_key(slug),
+        weight = weight,
+        stage = stage}
 end
 
 do

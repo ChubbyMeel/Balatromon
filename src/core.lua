@@ -472,3 +472,59 @@ local function getEnhancements()
 
     return enhancements
 end
+
+
+-- Evolution Tag support.
+-- Do NOT arm/consume this on the Blind-select screen. Instead, when the
+-- first hand is actually drawn inside a Blind, find the owned Evolution Tag,
+-- consume it, and create Calumon directly in the hand.
+local function balatromon_find_evolution_tag()
+    local wanted = 'tag_' .. BM.PREFIX .. '_evolution_tag'
+    for _, tag in ipairs((G.GAME and G.GAME.tags) or {}) do
+        if tag.key == wanted and not tag.triggered then
+            return tag
+        end
+    end
+    return nil
+end
+
+SMODS.current_mod.calculate = function(self, context)
+    if not (context.first_hand_drawn and context.main_eval) then return end
+
+    local tag = balatromon_find_evolution_tag()
+    if not tag then return end
+
+    local enhancement = 'm_' .. BM.PREFIX .. '_calumon'
+    if not G.P_CENTERS[enhancement] then
+        print('[Balatromon] Evolution Tag: Calumon enhancement center is missing: ' .. enhancement)
+        return
+    end
+
+    -- Mark it NOW so repeated calculate passes cannot trigger the same tag.
+    tag.triggered = true
+
+    local lock = tag.ID
+    G.CONTROLLER.locks[lock] = true
+
+    tag:yep('Calumon!', G.C.GREEN, function()
+        local card = SMODS.add_card {
+            set = 'Playing Card',
+            area = G.hand,
+            enhancement = enhancement,
+            key_append = 'balatromon_evolution_tag',
+        }
+
+        if card then
+            card:juice_up(0.8, 0.6)
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = 'Calumon!',
+                colour = G.C.GREEN,
+            })
+        else
+            print('[Balatromon] Evolution Tag: failed to create Calumon playing card')
+        end
+
+        G.CONTROLLER.locks[lock] = nil
+        return true
+    end)
+end

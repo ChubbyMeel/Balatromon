@@ -429,6 +429,210 @@ SMODS.Consumable {
     use = function(self, card, area, copier) create_random_stage('Ultimate', 1, 'golden_digitama') end,
 }
 
+SMODS.Consumable {
+    key = 'shooting_starmon',
+    set = 'Spectral',
+
+    discovered = true,
+    unlocked = true,
+
+    -- Placeholder art
+    atlas = 'Joker',
+    pos = {x = 0, y = 0},
+
+    cost = 4,
+
+    loc_txt = {
+        name = 'Shooting Starmon',
+        text = {
+            'Add a {C:attention}Silver Medal{}',
+            'to {C:attention}1{} selected card'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+
+    info_queue[#info_queue + 1] = {
+        key = 'digimeel_silver_medal_seal',
+        set = 'Other'
+    }
+
+    return {}
+    end,
+
+    can_use = function(self, card)
+        return G.hand
+            and #G.hand.highlighted == 1
+    end,
+
+    use = function(self, card, area, copier)
+
+        local target = G.hand.highlighted[1]
+
+        if not target then
+            return
+        end
+
+        target:juice_up(0.5, 0.5)
+
+        play_sound('tarot1')
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.15,
+
+            func = function()
+
+                if target and not target.REMOVED then
+
+                    target:set_seal(
+                        'DigiMeel_silver_medal',
+                        true,
+                        false
+                    )
+
+                    target:juice_up(0.9, 0.7)
+
+                    card_eval_status_text(
+                        target,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message = 'Silver Medal!',
+                            colour = G.C.ATTENTION
+                        }
+                    )
+
+                end
+
+                return true
+            end
+        }))
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.35,
+
+            func = function()
+
+                if G.hand then
+                    G.hand:unhighlight_all()
+                end
+
+                return true
+            end
+        }))
+
+    end,
+}
+
+
+-- ============================================================
+-- ERROR404
+-- Add Glitch Seal to 1 selected card
+-- ============================================================
+
+SMODS.Consumable {
+    key = 'error404',
+    set = 'Spectral',
+
+    discovered = true,
+    unlocked = true,
+
+    -- Placeholder art
+    atlas = 'Joker',
+    pos = {x = 0, y = 0},
+
+    cost = 4,
+
+    loc_txt = {
+        name = 'Error404',
+        text = {
+            'Add a {C:attention}Glitch Seal{}',
+            'to {C:attention}1{} selected card'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+
+    info_queue[#info_queue + 1] = {
+        key = 'digimeel_glitch_seal',
+        set = 'Other'
+    }
+
+    return {}
+    end,
+
+    can_use = function(self, card)
+        return G.hand
+            and #G.hand.highlighted == 1
+    end,
+
+    use = function(self, card, area, copier)
+
+        local target = G.hand.highlighted[1]
+
+        if not target then
+            return
+        end
+
+        target:juice_up(0.5, 0.5)
+
+        play_sound('tarot1')
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.15,
+
+            func = function()
+
+                if target and not target.REMOVED then
+
+                    target:set_seal(
+                        'DigiMeel_glitch',
+                        true,
+                        false
+                    )
+
+                    target:juice_up(1.0, 0.8)
+
+                    card_eval_status_text(
+                        target,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message = 'ERROR404',
+                            colour = G.C.PURPLE
+                        }
+                    )
+
+                end
+
+                return true
+            end
+        }))
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.35,
+
+            func = function()
+
+                if G.hand then
+                    G.hand:unhighlight_all()
+                end
+
+                return true
+            end
+        }))
+
+    end,
+}
+
 
 -- ============================================================
 -- DIGI SENSES
@@ -530,3 +734,193 @@ SMODS.Consumable {
         }))
     end,
 }
+
+
+SMODS.Consumable {
+    key = 'rosemons_blessing',
+    set = 'DigiItem',
+
+    discovered = true,
+    unlocked = true,
+
+    atlas = COMMON_CARD.atlas,
+    pos = COMMON_CARD.pos,
+
+    cost = 4,
+
+    loc_txt = {
+        name = "Rosemon's Blessing",
+        text = {
+            'Add a {C:attention}Farm Seal{}',
+            'to {C:attention}1{} selected card'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+
+    info_queue[#info_queue + 1] = {
+        key = 'digimeel_farm_seal',
+        set = 'Other'
+    }
+
+    return {}
+    end,
+
+    can_use = function(self, card)
+        return G.hand
+            and #G.hand.highlighted == 1
+    end,
+
+    use = function(self, card, area, copier)
+        BM.remember_digi_item(card)
+
+        local target = G.hand.highlighted[1]
+
+        if not target then
+            return
+        end
+
+        target:juice_up(0.5, 0.5)
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.15,
+
+            func = function()
+                if target and not target.REMOVED then
+
+                    target:set_seal(
+                        'DigiMeel_farm',
+                        true,
+                        false
+                    )
+
+                    target:juice_up(0.8, 0.6)
+
+                    card_eval_status_text(
+                        target,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message = 'Farm Seal!',
+                            colour = G.C.GREEN
+                        }
+                    )
+                end
+
+                return true
+            end
+        }))
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.35,
+
+            func = function()
+                if G.hand then
+                    G.hand:unhighlight_all()
+                end
+
+                return true
+            end
+        }))
+    end,
+}
+
+
+
+SMODS.Consumable {
+    key = 'digital_armor',
+    set = 'DigiItem',
+
+    discovered = true,
+    unlocked = true,
+
+    atlas = COMMON_CARD.atlas,
+    pos = COMMON_CARD.pos,
+
+    cost = 4,
+
+    loc_txt = {
+        name = 'Digital Armor',
+        text = {
+            'Add a {C:attention}Digital Seal{}',
+            'to {C:attention}1{} selected card'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+
+    info_queue[#info_queue + 1] = {
+        key = 'digimeel_digital_seal',
+        set = 'Other'
+    }
+
+    return {}
+    end,
+
+    can_use = function(self, card)
+        return G.hand
+            and #G.hand.highlighted == 1
+    end,
+
+    use = function(self, card, area, copier)
+        BM.remember_digi_item(card)
+
+        local target = G.hand.highlighted[1]
+
+        if not target then
+            return
+        end
+
+        target:juice_up(0.5, 0.5)
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.15,
+
+            func = function()
+                if target and not target.REMOVED then
+
+                    target:set_seal(
+                        'DigiMeel_digital',
+                        true,
+                        false
+                    )
+
+                    target:juice_up(0.8, 0.6)
+
+                    card_eval_status_text(
+                        target,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message = 'Digital Seal!',
+                            colour = G.C.BLUE
+                        }
+                    )
+                end
+
+                return true
+            end
+        }))
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.35,
+
+            func = function()
+                if G.hand then
+                    G.hand:unhighlight_all()
+                end
+
+                return true
+            end
+        }))
+    end,
+}
+

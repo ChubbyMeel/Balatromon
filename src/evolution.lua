@@ -565,12 +565,25 @@ function BM.perform_digivolution(card, option, device_key, opts)
         history[#history + 1] = old_slug
     end
 
+    -- Gallantmon inherits one third of the previous form's accumulated
+    -- numeric value. WarGrowlmon and Knightmon store that scaling as `mult`.
+    -- Forms with no accumulated numeric value fall back to 3 (X1 Mult).
+    local previous_form_value = 3
+    if type(e.mult) == 'number' then
+        previous_form_value = e.mult
+    elseif type(e.chips) == 'number' then
+        previous_form_value = e.chips
+    elseif type(e.xmult) == 'number' then
+        previous_form_value = e.xmult
+    end
+
     local carry = {
         hunger = e.hunger or 1,
         care_mistakes = e.care_mistakes or 0,
         care_rounds = e.care_rounds or 0,
         evolution_history = history,
         previous_form = option.is_dedigivolution and nil or old_slug,
+        previous_form_value = option.is_dedigivolution and nil or previous_form_value,
     }
 
     -- Give every form change a visible two-beat Digivolution animation, even
@@ -593,6 +606,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
     card.ability.extra.care_rounds = carry.care_rounds
     card.ability.extra.evolution_history = carry.evolution_history
     card.ability.extra.previous_form = carry.previous_form
+    card.ability.extra.previous_form_value = carry.previous_form_value
 
     -- Every form change starts the new form at 0 Bond.
     card.ability.extra.bond = 0
