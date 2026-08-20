@@ -2291,7 +2291,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=6,y=5},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Tokomon, Pagumon',
@@ -2331,7 +2331,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=7,y=5},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Patamon',
@@ -2371,7 +2371,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=8,y=5},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Angemon, Pegasusmon',
@@ -2411,7 +2411,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=9,y=5},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'MagnaAngemon',
@@ -2451,7 +2451,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=0,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'MagnaAngemon, HippoGryphonmon',
@@ -2492,7 +2492,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=1,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Seraphimon',
@@ -2531,7 +2531,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=2,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -2570,7 +2570,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=3,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Nyaromon, Pagumon',
@@ -2610,7 +2610,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=4,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Salamon',
@@ -2650,7 +2650,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=5,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Gatomon, Nefertimon',
@@ -2690,7 +2690,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=6,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Angewomon',
@@ -2730,7 +2730,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=7,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Angewomon, HippoGryphonmon',
@@ -2770,7 +2770,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=8,y=6},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Magnadramon',
@@ -2799,40 +2799,107 @@ do
     local slug = 'magnadramon'
     local stage = 'Mega'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+
     SMODS.Joker {
         key = slug,
-        loc_txt = {name='Magnadramon', text={
-            'Glass cards have a {C:green}1 in 2{} chance to {X:mult,C:white}X3{} Mult',
-            'additionally',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
-        }},
+
+        loc_txt = {
+            name='Magnadramon',
+            text={
+                'Glass cards have a {C:green}#4# in #5#{} chance to',
+                '{X:mult,C:white}X3{} Mult additionally',
+                BM.care_status_text(stage),
+                '{C:red}Care Mistakes{} #3#/3',
+            }
+        },
+
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        atlas = 'Joker',
+        pos = {x=9,y=6},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = '-',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+        balatromon_stage = stage,
+        balatromon_evolves_to = '-',
+
+        loc_vars = function(self, info_queue, card)
+            local e = card and card.ability and card.ability.extra or extra
+
+            local numerator, denominator =
+                SMODS.get_probability_vars(
+                    card,
+                    1,
+                    2,
+                    'magnadramon'
+                )
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    numerator,
+                    denominator
+                }
+            }
         end,
+
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return stage=='Fresh'
+                or stage=='In-Training'
+                or stage=='Rookie'
+                or stage=='Champion'
+                or stage=='Rare'
         end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+
+        add_to_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_add(card,slug)
+            end
+        end,
+
+        remove_from_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_remove(card,slug)
+            end
+        end,
+
+        can_sell = function(self,card,context)
+            return BM.can_sell(card,slug)
+        end,
+
         calculate = function(self,card,context)
             BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
+
+            if card.ability.extra.permanently_disabled then
+                return
+            end
+
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Magnadramon', stage=stage, evolves_to='-', effect='Glass cards have a 1 in 2 chance to X3 Mult additionally'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+
+    BM.joker_defs[slug] = {
+        name='Magnadramon',
+        stage=stage,
+        evolves_to='-',
+        effect='Glass cards have a 1 in 2 chance to X3 Mult additionally'
+    }
+
+    local weight = BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+            key=BM.center_key(slug),
+            weight=weight,
+            stage=stage
+        }
+    end
 end
 
 do
@@ -2850,7 +2917,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=0,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'DemiDevimon',
@@ -2890,7 +2957,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=1,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Devimon',
@@ -2929,7 +2996,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=2,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Myotismon, LadyDevimon, Kimeramon',
@@ -2968,7 +3035,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=3,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'MaloMyotismon',
@@ -3008,7 +3075,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=4,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'MaloMyotismon',
@@ -3048,7 +3115,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=5,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -3088,7 +3155,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=6,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -3128,7 +3195,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=7,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Sakuttomon',
@@ -3168,7 +3235,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=8,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Zubamon',
@@ -3207,7 +3274,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=9,y=7},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'ZubaEagermon',
@@ -3246,7 +3313,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=0,y=8},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Duramon',
@@ -3285,7 +3352,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=1,y=8},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Durandamon',
@@ -3324,7 +3391,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=2,y=8},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -3364,7 +3431,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=3,y=8},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Apocalymon',
@@ -3404,7 +3471,7 @@ do
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
+        atlas = 'Joker', pos = {x=4,y=8},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
@@ -3590,39 +3657,106 @@ do
     local slug = 'flamedramon'
     local stage = 'Champion'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+
     SMODS.Joker {
         key = slug,
-        loc_txt = {name='Flamedramon', text={
-            '{C:green}1 in 5{} chance to upgrade played poker hand after it is scored',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
-        }},
+
+        loc_txt = {
+            name='Flamedramon',
+            text={
+                '{C:green}#4# in #5#{} chance to upgrade played poker hand after it is scored',
+                BM.care_status_text(stage),
+                '{C:red}Care Mistakes{} #3#/3',
+            }
+        },
+
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        atlas = 'Joker',
+        pos = {x=0,y=0},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Wingdramon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+        balatromon_stage = stage,
+        balatromon_evolves_to = 'Wingdramon',
+
+        loc_vars = function(self, info_queue, card)
+            local e = card and card.ability and card.ability.extra or extra
+
+            local numerator, denominator =
+                SMODS.get_probability_vars(
+                    card,
+                    1,
+                    5,
+                    'flamedramon'
+                )
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    numerator,
+                    denominator
+                }
+            }
         end,
+
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return stage=='Fresh'
+                or stage=='In-Training'
+                or stage=='Rookie'
+                or stage=='Champion'
+                or stage=='Rare'
         end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+
+        add_to_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_add(card,slug)
+            end
+        end,
+
+        remove_from_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_remove(card,slug)
+            end
+        end,
+
+        can_sell = function(self,card,context)
+            return BM.can_sell(card,slug)
+        end,
+
         calculate = function(self,card,context)
             BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
+
+            if card.ability.extra.permanently_disabled then
+                return
+            end
+
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Flamedramon', stage=stage, evolves_to='Wingdramon', effect='1 in 5 chance to upgrade played poker hand'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+
+    BM.joker_defs[slug] = {
+        name='Flamedramon',
+        stage=stage,
+        evolves_to='Wingdramon',
+        effect='1 in 5 chance to upgrade played poker hand'
+    }
+
+    local weight = BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+            key=BM.center_key(slug),
+            weight=weight,
+            stage=stage
+        }
+    end
 end
 
 do
@@ -4334,40 +4468,107 @@ do
     local slug = 'zerimon'
     local stage = 'Fresh'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+
     SMODS.Joker {
         key = slug,
-        loc_txt = {name='Zerimon', text={
-            'Each face card held in hand has a {C:green}1 in 2{}',
-            'chance to give {C:money}$1{}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
-        }},
+
+        loc_txt = {
+            name='Zerimon',
+            text={
+                'Each face card held in hand has a {C:green}#4# in #5#{}',
+                'chance to give {C:money}$1{}',
+                BM.care_status_text(stage),
+                '{C:red}Care Mistakes{} #3#/3',
+            }
+        },
+
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        atlas = 'Joker',
+        pos = {x=0,y=0},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Gummymon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+        balatromon_stage = stage,
+        balatromon_evolves_to = 'Gummymon',
+
+        loc_vars = function(self, info_queue, card)
+            local e = card and card.ability and card.ability.extra or extra
+
+            local numerator, denominator =
+                SMODS.get_probability_vars(
+                    card,
+                    1,
+                    2,
+                    'zerimon'
+                )
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    numerator,
+                    denominator
+                }
+            }
         end,
+
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return stage=='Fresh'
+                or stage=='In-Training'
+                or stage=='Rookie'
+                or stage=='Champion'
+                or stage=='Rare'
         end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+
+        add_to_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_add(card,slug)
+            end
+        end,
+
+        remove_from_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_remove(card,slug)
+            end
+        end,
+
+        can_sell = function(self,card,context)
+            return BM.can_sell(card,slug)
+        end,
+
         calculate = function(self,card,context)
             BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
+
+            if card.ability.extra.permanently_disabled then
+                return
+            end
+
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Zerimon', stage=stage, evolves_to='Gummymon', effect='Each face card held in hand has a 1 in 2 chance to give $1'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+
+    BM.joker_defs[slug] = {
+        name='Zerimon',
+        stage=stage,
+        evolves_to='Gummymon',
+        effect='Each face card held in hand has a 1 in 2 chance to give $1'
+    }
+
+    local weight = BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+            key=BM.center_key(slug),
+            weight=weight,
+            stage=stage
+        }
+    end
 end
 
 do
@@ -4414,40 +4615,107 @@ do
     local slug = 'terriermon'
     local stage = 'Rookie'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+
     SMODS.Joker {
         key = slug,
-        loc_txt = {name='Terriermon', text={
-            '{C:green}1 in 4{} chance for each played 8, 10, and Jacks',
-            'to create a Tarot card when scored',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
-        }},
+
+        loc_txt = {
+            name='Terriermon',
+            text={
+                '{C:green}#4# in #5#{} chance for each played 8, 10, and Jacks',
+                'to create a Tarot card when scored',
+                BM.care_status_text(stage),
+                '{C:red}Care Mistakes{} #3#/3',
+            }
+        },
+
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=0,y=0},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        atlas = 'Joker',
+        pos = {x=0,y=0},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Gargomon, Guardromon, Machmon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+        balatromon_stage = stage,
+        balatromon_evolves_to = 'Gargomon, Guardromon, Machmon',
+
+        loc_vars = function(self, info_queue, card)
+            local e = card and card.ability and card.ability.extra or extra
+
+            local numerator, denominator =
+                SMODS.get_probability_vars(
+                    card,
+                    1,
+                    4,
+                    'terriermon'
+                )
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    numerator,
+                    denominator
+                }
+            }
         end,
+
         in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+            return stage=='Fresh'
+                or stage=='In-Training'
+                or stage=='Rookie'
+                or stage=='Champion'
+                or stage=='Rare'
         end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+
+        add_to_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_add(card,slug)
+            end
+        end,
+
+        remove_from_deck = function(self,card,from_debuff)
+            if not from_debuff then
+                BM.on_remove(card,slug)
+            end
+        end,
+
+        can_sell = function(self,card,context)
+            return BM.can_sell(card,slug)
+        end,
+
         calculate = function(self,card,context)
             BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
+
+            if card.ability.extra.permanently_disabled then
+                return
+            end
+
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Terriermon', stage=stage, evolves_to='Gargomon, Guardromon, Machmon', effect='1 in 4 chance for each played 8, 10, and Jacks to create a Tarot card when scored'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+
+    BM.joker_defs[slug] = {
+        name='Terriermon',
+        stage=stage,
+        evolves_to='Gargomon, Guardromon, Machmon',
+        effect='1 in 4 chance for each played 8, 10, and Jacks to create a Tarot card when scored'
+    }
+
+    local weight = BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
+            key=BM.center_key(slug),
+            weight=weight,
+            stage=stage
+        }
+    end
 end
 
 do

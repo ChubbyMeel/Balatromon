@@ -217,7 +217,21 @@ H.angemon = function(card,context)
         return {message='Lucky!'}
     end
 end
-H.pegasusmon = function(card,context) if context.mod_probability then return {numerator=context.numerator} end end
+H.pegasusmon = function(card, context)
+    if context.mod_probability then
+        return {
+            numerator = context.numerator * 2
+        }
+    end
+end
+
+H.nefertimon = function(card, context)
+    if context.mod_probability then
+        return {
+            numerator = context.numerator * 0.5
+        }
+    end
+end
 H.magnaangemon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
     if context.pseudorandom_result and context.result and context.trigger_obj and SMODS.is_playing_card(context.trigger_obj) and BM.has_enhancement(context.trigger_obj,'m_lucky') and not context.blueprint then e.xmult=e.xmult+0.3; return {message='XMult Up!'} end
@@ -242,7 +256,7 @@ H.gatomon = function(card,context)
         return {message='Changed!'}
     end
 end
-H.nefertimon = function(card,context) if context.mod_probability then return {numerator=-(context.numerator/2)} end end
+
 H.angewomon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
     if context.remove_playing_cards and not context.blueprint then local n=0; for _,c in ipairs(context.removed or {}) do if BM.has_enhancement(c,'m_glass') then n=n+1 end end; if n>0 then e.xmult=e.xmult+0.69*n; return {message='XMult Up!'} end end
