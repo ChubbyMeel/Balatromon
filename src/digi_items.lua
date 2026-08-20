@@ -383,10 +383,10 @@ SMODS.Consumable {
         'or {C:attention}Champion{} Digimon',
         '{C:inactive}(Choose a form if it branches){}'
     }},
-    can_use = function(self, card) return device_can_use({'Rookie','Champion'}, nil, 'd_ark') end,
+    can_use = function(self, card) return device_can_use({'Rookie','Champion','Rare'}, nil, 'd_ark') end,
     use = function(self, card, area, copier)
         BM.remember_digi_item(card)
-        device_use({'Rookie','Champion'}, nil, 'd_ark', 'd_ark')
+        device_use({'Rookie','Champion','Rare'}, nil, 'd_ark', 'd_ark')
     end,
 }
 
