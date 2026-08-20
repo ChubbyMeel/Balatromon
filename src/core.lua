@@ -8,6 +8,165 @@ BM.RANKS = {2,3,4,5,6,7,8,9,10,11,12,13,14}
 BM.SUITS = {'Hearts','Diamonds','Clubs','Spades'}
 BM.HANDS = {'High Card','Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush'}
 
+
+function BM.slug(name)
+    return string.lower(name)
+        :gsub('[^%w]+', '_')
+        :gsub('^_+', '')
+        :gsub('_+$', '')
+end
+
+
+function BM.center_key(slug)
+    return 'j_' .. BM.PREFIX .. '_' .. slug
+end
+
+
+function BM.is_digimon(card)
+    local center =
+        card
+        and card.config
+        and card.config.center
+
+    return center
+        and center.balatromon == true
+end
+
+
+
+function BM.get_card_slug(card)
+    if not card then
+        return nil
+    end
+
+    local center =
+        card.config
+        and card.config.center
+
+    if not center or not center.key then
+        return nil
+    end
+
+    local key = center.key
+
+
+
+    local prefix =
+        '^j_' .. BM.PREFIX .. '_'
+
+    key = key:gsub(prefix, '')
+
+    return key
+end
+
+
+
+function BM.is_digimon_display_card(card)
+
+    if not card or not BM.is_digimon(card) then
+        return false
+    end
+
+    if G.jokers and card.area == G.jokers then
+        return true
+    end
+
+    if card.area
+    and card.area.config
+    and card.area.config.collection then
+        return true
+    end
+
+    return false
+end
+
+
+
+
+-- ============================================================
+-- DOUBLE CLICK DIGIMON TO VIEW EVOLUTION PATHS
+-- ============================================================
+
+if not BM._digimon_double_click_hooked then
+    BM._digimon_double_click_hooked = true
+
+    local original_card_click = Card.click
+
+    BM._last_digimon_click = nil
+    BM._last_digimon_click_time = 0
+
+    Card.click = function(self, ...)
+
+        local result = original_card_click(self, ...)
+
+        if not BM.is_digimon_display_card(self) then
+            BM._last_digimon_click = nil
+            BM._last_digimon_click_time = 0
+            return result
+        end
+
+        local now = love.timer.getTime()
+
+        local same_card =
+            BM._last_digimon_click == self
+
+        local elapsed =
+            now - (BM._last_digimon_click_time or 0)
+
+        -- Balatro itself has a ~0.3 second click timeout.
+        -- Give the player a comfortable window beyond that.
+        local double_click =
+            same_card
+            and elapsed <= 0.85
+
+        if double_click then
+
+            BM._last_digimon_click = nil
+            BM._last_digimon_click_time = 0
+
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.05,
+
+                func = function()
+
+                    if not self or self.REMOVED then
+                        return true
+                    end
+
+                    if BM.open_evolution_display then
+                        BM.open_evolution_display(self)
+                    else
+                        print(
+                            '[Balatromon] ERROR: '
+                            .. 'BM.open_evolution_display is missing'
+                        )
+                    end
+
+                    return true
+                end
+            }))
+
+        else
+
+            BM._last_digimon_click = self
+            BM._last_digimon_click_time = now
+
+        end
+
+        return result
+    end
+end
+
+
+function BM.get_stage(card)
+    if not BM.is_digimon(card) then
+        return nil
+    end
+
+    return card.config.center.balatromon_stage
+end
+
 function BM.slug(name)
     return string.lower(name):gsub('[^%w]+','_'):gsub('^_+',''):gsub('_+$','')
 end
@@ -409,12 +568,13 @@ function BM.stage_shop_weight(stage)
     if stage == 'Rookie' then return 10 end
     if stage == 'Champion' then return 1 end
     if stage == 'Rare' then return 1 end
+
+    if stage == 'Ultimate' then return 1 end
+
     return 0
 end
 
 function BM.stage_rarity(stage)
-    -- src/rarities.lua stores the fully registered SMODS rarity key here.
-    -- Falling back to Common keeps startup survivable if a stage is mistyped.
     return (BM.stage_rarity_keys and BM.stage_rarity_keys[stage]) or 1
 end
 

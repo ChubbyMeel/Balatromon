@@ -119,6 +119,10 @@ BM.evolution_rules = {
     devimon = {
         myotismon = {note = 'Standard route'},
         ladydevimon = {min_hunger = 3, note = 'High-Hunger route'},
+        kimeramon = {note = 'Standard route'}
+    },
+    kimeramon = {
+        apocalymon = {note = 'Standard route'}
     },
     veemon = {
         exveemon = {note = 'Standard route'},
@@ -906,5 +910,490 @@ G.FUNCS.balatromon_choose_evolution = function(e)
         }))
     else
         BM._evolution_choice_busy = false
+    end
+end
+
+
+function BM.get_display_evolutions(card)
+    if not BM.is_digimon(card) then
+        return {}
+    end
+
+    local source_slug = BM.get_card_slug(card)
+    local options = {}
+
+    for _, name in ipairs(BM.parse_evolution_names(card)) do
+        local center, key, slug = BM.find_digimon_center(name)
+
+        if center then
+            local rule =
+                BM.evolution_rules
+                and BM.evolution_rules[source_slug]
+                and BM.evolution_rules[source_slug][slug]
+
+            local route_note = 'Standard route'
+            local bad_path = false
+
+            if type(rule) == 'table' then
+                route_note = rule.note or route_note
+                bad_path = rule.bad_path == true
+            end
+
+            local def =
+                BM.joker_defs
+                and BM.joker_defs[slug]
+
+            options[#options + 1] = {
+                name =
+                    (def and def.name)
+                    or name,
+
+                stage =
+                    (def and def.stage)
+                    or center.balatromon_stage
+                    or '',
+
+                slug = slug,
+                key = key,
+                center = center,
+
+                route_note = route_note,
+                bad_path = bad_path,
+            }
+        end
+    end
+
+    return options
+end
+
+
+
+BM.evolution_display = BM.evolution_display or nil
+
+
+local function make_display_preview(option)
+    local preview = Card(
+        0,
+        0,
+        G.CARD_W * 0.72,
+        G.CARD_H * 0.72,
+        nil,
+        option.center
+    )
+
+    preview.states.drag.can = false
+    preview.states.click.can = false
+    preview.states.hover.can = true
+
+    return preview
+end
+
+
+function BM.create_evolution_display_ui()
+
+    local display = BM.evolution_display
+
+    if not display then
+        return {
+            n = G.UIT.ROOT,
+            config = {
+                align = 'cm',
+                colour = G.C.CLEAR
+            },
+            nodes = {}
+        }
+    end
+
+
+    local source = display.card
+
+    local source_slug =
+        BM.get_card_slug(source)
+
+    local source_def =
+        source_slug
+        and BM.joker_defs[source_slug]
+
+    local source_center =
+        source
+        and source.config
+        and source.config.center
+
+    local source_name =
+        (source_def and source_def.name)
+        or (
+            source_center
+            and source_center.loc_txt
+            and source_center.loc_txt.name
+        )
+        or 'Digimon'
+
+
+
+    local option_nodes = {}
+
+    for _, option in ipairs(display.options or {}) do
+
+        local preview =
+            make_display_preview(option)
+
+        option_nodes[#option_nodes + 1] = {
+
+            n = G.UIT.C,
+
+            config = {
+                align = 'cm',
+                padding = 0.12,
+                minw = 2.5,
+                r = 0.08,
+                colour = lighten(
+                    G.C.BLACK,
+                    0.08
+                ),
+            },
+
+            nodes = {
+
+                
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm'
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = option.name,
+                                colour = G.C.UI.TEXT_LIGHT,
+                                scale = 0.42,
+                                shadow = true,
+                            }
+                        },
+                    }
+                },
+
+
+                
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.03
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = option.stage,
+                                colour =
+                                    G.C.UI.TEXT_INACTIVE,
+                                scale = 0.28,
+                            }
+                        },
+                    }
+                },
+
+
+                
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.02
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text =
+                                    option.route_note
+                                    or 'Standard route',
+
+                                colour =
+                                    option.bad_path
+                                    and G.C.RED
+                                    or G.C.UI.TEXT_INACTIVE,
+
+                                scale = 0.23,
+                            }
+                        },
+                    }
+                },
+
+
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.04
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.O,
+                            config = {
+                                object = preview
+                            }
+                        },
+                    }
+                },
+            }
+        }
+    end
+
+
+    local option_rows = {}
+
+    for i = 1, #option_nodes, 3 do
+
+        local row = {}
+
+        for j = i, math.min(
+            i + 2,
+            #option_nodes
+        ) do
+
+            row[#row + 1] =
+                option_nodes[j]
+        end
+
+        option_rows[#option_rows + 1] = {
+
+            n = G.UIT.R,
+
+            config = {
+                align = 'cm',
+                padding = 0.06,
+            },
+
+            nodes = row
+        }
+    end
+
+
+    local content = {
+
+        {
+            n = G.UIT.R,
+            config = {
+                align = 'cm',
+                padding = 0.05
+            },
+            nodes = {
+                {
+                    n = G.UIT.T,
+                    config = {
+                        text = 'Evolution Paths',
+                        colour = G.C.UI.TEXT_LIGHT,
+                        scale = 0.62,
+                        shadow = true,
+                    }
+                },
+            }
+        },
+
+
+
+        {
+            n = G.UIT.R,
+            config = {
+                align = 'cm',
+                padding = 0.03
+            },
+            nodes = {
+                {
+                    n = G.UIT.T,
+                    config = {
+                        text =
+                            source_name
+                            .. ' can evolve into:',
+
+                        colour =
+                            G.C.UI.TEXT_INACTIVE,
+
+                        scale = 0.34,
+                    }
+                },
+            }
+        },
+    }
+
+
+    if #option_rows == 0 then
+
+        content[#content + 1] = {
+
+            n = G.UIT.R,
+
+            config = {
+                align = 'cm',
+                padding = 0.25,
+            },
+
+            nodes = {
+                {
+                    n = G.UIT.T,
+                    config = {
+                        text =
+                            'No further evolutions',
+
+                        colour =
+                            G.C.UI.TEXT_INACTIVE,
+
+                        scale = 0.38,
+                    }
+                },
+            }
+        }
+
+    else
+
+        for _, row in ipairs(option_rows) do
+            content[#content + 1] = row
+        end
+
+    end
+
+
+
+    content[#content + 1] = {
+
+        n = G.UIT.R,
+
+        config = {
+            align = 'cm',
+            padding = 0.12
+        },
+
+        nodes = {
+
+            UIBox_button {
+                button =
+                    'balatromon_close_evolution_display',
+
+                label = {'CLOSE'},
+
+                minw = 2.3,
+                minh = 0.55,
+
+                colour =
+                    G.C.UI.BACKGROUND_INACTIVE,
+
+                scale = 0.35,
+
+                shadow = true,
+            }
+        }
+    }
+
+
+    return {
+
+        n = G.UIT.ROOT,
+
+        config = {
+            align = 'cm',
+            colour = G.C.CLEAR
+        },
+
+        nodes = {
+
+            {
+                n = G.UIT.C,
+
+                config = {
+                    align = 'cm',
+                    padding = 0.18,
+                    r = 0.12,
+                    colour = G.C.BLACK,
+                    emboss = 0.08,
+                },
+
+                nodes = content
+            }
+        }
+    }
+end
+
+
+function BM.open_evolution_display(card)
+    if not BM.is_digimon(card) then
+        return
+    end
+
+    local options = BM.get_display_evolutions(card)
+
+    local is_collection =
+        card.area
+        and card.area.config
+        and card.area.config.collection == true
+
+    BM.evolution_display = {
+        card = card,
+        options = options,
+        from_collection = is_collection
+    }
+
+    if is_collection then
+        if not G.OVERLAY_MENU then
+            BM.evolution_display = nil
+            return
+        end
+
+        G.OVERLAY_MENU:remove()
+
+        G.OVERLAY_MENU = UIBox {
+            definition = BM.create_evolution_display_ui(),
+            config = {
+                align = 'cm',
+                offset = {
+                    x = 0,
+                    y = 0
+                },
+                major = G.ROOM_ATTACH,
+                bond = 'Weak'
+            }
+        }
+
+        return
+    end
+
+    G.FUNCS.overlay_menu({
+        definition = BM.create_evolution_display_ui()
+    })
+end
+
+
+G.FUNCS.balatromon_close_evolution_display = function(e)
+    local from_collection =
+        BM.evolution_display
+        and BM.evolution_display.from_collection
+
+    BM.evolution_display = nil
+
+    if from_collection then
+        if G.OVERLAY_MENU then
+            G.OVERLAY_MENU:remove()
+            G.OVERLAY_MENU = nil
+        end
+
+        G.OVERLAY_MENU = UIBox {
+            definition = create_UIBox_your_collection_jokers(),
+            config = {
+                align = 'cm',
+                offset = {
+                    x = 0,
+                    y = 0
+                },
+                major = G.ROOM_ATTACH,
+                bond = 'Weak'
+            }
+        }
+
+        return
+    end
+
+    if G.FUNCS and G.FUNCS.exit_overlay_menu then
+        G.FUNCS.exit_overlay_menu(e)
     end
 end

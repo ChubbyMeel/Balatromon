@@ -2932,7 +2932,7 @@ do
         atlas = 'Joker', pos = {x=0,y=0},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Myotismon, LadyDevimon',
+        balatromon_stage = stage, balatromon_evolves_to = 'Myotismon, LadyDevimon, Kimeramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
@@ -2949,7 +2949,7 @@ do
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Devimon', stage=stage, evolves_to='Myotismon, LadyDevimon', effect='Ace and 2 held in hand turn into steel cards'}
+    BM.joker_defs[slug] = {name='Devimon', stage=stage, evolves_to='Myotismon, LadyDevimon, Kimeramon', effect='Ace and 2 held in hand turn into steel cards'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -4245,7 +4245,6 @@ do
                 or e.target_rank
                 or 14
 
-            -- Current Sakuyamon money-based XMult.
             local current_xmult =
                 math.max(
                     1,
