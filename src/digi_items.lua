@@ -27,9 +27,7 @@ local function selected_digimon(max_count)
     return selected
 end
 
--- Temporarily raise the Joker highlight limit while a multi-target Digi Item
--- is selected. This lets items such as Food target two Digimon at once without
--- permanently changing normal Joker selection behaviour.
+
 local function card_is_highlighted(card)
     if not card then return false end
     if card.highlighted then return true end
@@ -274,8 +272,6 @@ SMODS.Consumable {
         'for up to {C:attention}2{} selected Digimon'
     }},
 
-    -- While Food itself is highlighted, allow two Jokers to be highlighted.
-    -- Deselecting Food restores the normal Joker highlight limit.
     update = function(self, card, dt)
         update_multi_joker_targeting(card, 2)
     end,
@@ -285,14 +281,18 @@ SMODS.Consumable {
         return #t >= 1 and #t <= 2
     end,
     use = function(self, card, area, copier)
-        -- Capture the chosen targets before clearing the temporary selection.
+
         local targets = selected_digimon(2)
 
-        BM.remember_digi_item(card)
-        for _, target in ipairs(targets) do BM.feed(target, 1) end
+    BM.remember_digi_item(card)
+    for _, target in ipairs(targets) do
+        BM.feed(target, 1)
+    end
+    if BM.on_food_used then
+        BM.on_food_used()
+    end
 
-        -- The consumed card may disappear before its next update tick, so
-        -- explicitly restore normal Joker selection here as well.
+
         stop_multi_joker_targeting(card, true)
     end,
 }
@@ -306,7 +306,14 @@ SMODS.Consumable {
     }},
     can_use = function(self, card) return #selected_digimon(2) == 1 end,
     use = function(self, card, area, copier)
-        BM.remember_digi_item(card)
+    BM.remember_digi_item(card)
+    local t = selected_digimon(1)[1]
+    if t then
+        BM.feed(t, 2)
+    end
+    if BM.on_food_used then
+        BM.on_food_used()
+    end
         local t = selected_digimon(1)[1]
         if t then BM.feed(t, 2) end
     end,

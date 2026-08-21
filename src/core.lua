@@ -506,6 +506,74 @@ function BM.feed(card, amount)
     e.hunger = math.max(1, (e.hunger or 1) - (amount or 1))
 end
 
+function BM.is_active_digimon(card, slug)
+    if not BM.is_digimon(card) then return false end
+    if slug and BM.get_card_slug(card) ~= BM.slug(slug) then return false end
+    if card.debuff then return false end
+    local e = card.ability and card.ability.extra or {}
+    return not e.permanently_disabled
+end
+
+function BM.active_digimon(slug)
+    local out = {}
+    for _, card in ipairs(G.jokers and G.jokers.cards or {}) do
+        if BM.is_active_digimon(card, slug) then
+            out[#out + 1] = card
+        end
+    end
+    return out
+end
+
+function BM.has_active_digimon(slug)
+    return #BM.active_digimon(slug) > 0
+end
+
+function BM.is_food_card(card)
+    local center = card and card.config and card.config.center
+    local key = center and center.key
+    return key == 'c_' .. BM.PREFIX .. '_food'
+        or key == 'c_' .. BM.PREFIX .. '_hefty_food'
+end
+
+function BM.count_food()
+    local count = 0
+    for _, card in ipairs(G.consumeables and G.consumeables.cards or {}) do
+        if BM.is_food_card(card) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function BM.add_random_food(seed)
+    if not G.consumeables or not BM.has_room(G.consumeables) then return nil end
+
+    local slug = BM.random_element(
+        {'food', 'hefty_food'},
+        seed or 'balatromon_random_food'
+    )
+
+    if not slug then return nil end
+
+    return SMODS.add_card{
+        set = 'DigiItem',
+        area = G.consumeables,
+        key = 'c_' .. BM.PREFIX .. '_' .. slug,
+        key_append = 'balatromon_random_food'
+    }
+end
+
+function BM.add_digimon_tooltip(info_queue, slug)
+    if not info_queue then return end
+
+    local center = G.P_CENTERS
+        and G.P_CENTERS[BM.center_key(slug)]
+
+    if center then
+        info_queue[#info_queue + 1] = center
+    end
+end
+
 function BM.care_tick(card, context)
     if BM.should_bond_shake
     and BM.should_bond_shake(card) then
@@ -514,6 +582,10 @@ function BM.care_tick(card, context)
 
     if not (context.end_of_round and context.main_eval and not context.blueprint) then return end
     local e = card.ability.extra
+    local center = card.config and card.config.center
+    if center and center.balatromon_self_feed then
+        BM.feed(card, 1)
+    end
     if e._care_ticked_this_round then return end
     e._care_ticked_this_round = true
     G.E_MANAGER:add_event(Event({trigger='after', delay=0, func=function()
@@ -739,6 +811,29 @@ function BM.on_add(card, slug)
             end
         }))
     end
+    if slug == 'redvegiemon'
+    and BM.refresh_redvegiemon_shop_costs then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0,
+            func = function()
+                BM.refresh_redvegiemon_shop_costs()
+                return true
+            end
+        }))
+    end
+
+    if slug == 'sunflowmon'
+    and BM.refresh_sunflowmon_shop_packs then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0,
+            func = function()
+                BM.refresh_sunflowmon_shop_packs()
+                return true
+            end
+        }))
+    end
 end
 
 function BM.on_remove(card, slug)
@@ -754,6 +849,18 @@ function BM.on_remove(card, slug)
 
             func = function()
                 BM.refresh_polarbearmon_shop_costs()
+                return true
+            end
+        }))
+    end
+
+    if slug == 'redvegiemon'
+    and BM.refresh_redvegiemon_shop_costs then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0,
+            func = function()
+                BM.refresh_redvegiemon_shop_costs()
                 return true
             end
         }))

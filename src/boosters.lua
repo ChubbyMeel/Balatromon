@@ -42,6 +42,28 @@ function BM.random_digital_pack_key(size, seed)
     )
 end
 
+function BM.digital_pack_size(key)
+    for size, list in pairs(BM.digital_pack_keys or {}) do
+        for _, pack_key in ipairs(list or {}) do
+            if pack_key == key then
+                return size
+            end
+        end
+    end
+
+    return nil
+end
+
+function BM.mega_digital_pack_key(key, seed)
+    local size = BM.digital_pack_size(key)
+
+    if not size or size == 'mega' then
+        return key
+    end
+
+    return BM.random_digital_pack_key('mega', seed) or key
+end
+
 local function digiitem_keys()
     local keys = {}
 

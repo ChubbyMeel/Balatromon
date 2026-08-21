@@ -245,6 +245,99 @@ BM.evolution_rules = {
         },
     },
 
+    yuramon = {
+        tanemon = {
+            note = 'Standard route'
+        },
+    },
+
+    tanemon = {
+        palmon = {
+            note = 'Standard route'
+        },
+        lalamon = {
+            note = 'Standard route'
+        },
+        mushroomon = {
+            note = 'Standard route'
+        },
+    },
+
+    palmon = {
+        togemon = {
+            note = 'Standard route'
+        },
+        numemon = {
+            bad_path = true,
+            note = 'Care Crisis route'
+        },
+    },
+
+    lalamon = {
+        sunflowmon = {
+            note = 'Standard route'
+        },
+    },
+
+    mushroomon = {
+        redvegiemon = {
+            min_hunger = 2,
+            note = 'Hungry route'
+        },
+        woodmon = {
+            max_hunger = 1,
+            note = 'Well-fed route'
+        },
+    },
+
+    togemon = {
+        lillymon = {
+            note = 'Standard route'
+        },
+    },
+
+    sunflowmon = {
+        lilamon = {
+            note = 'Standard route'
+        },
+    },
+
+    redvegiemon = {
+        jagamon = {
+            note = 'Standard route'
+        },
+    },
+
+    woodmon = {
+        cherrymon = {
+            note = 'Standard route'
+        },
+    },
+
+    lillymon = {
+        rosemon = {
+            note = 'Standard route'
+        },
+    },
+
+    lilamon = {
+        rosemon = {
+            note = 'Standard route'
+        },
+    },
+
+    jagamon = {
+        hydramon = {
+            note = 'Standard route'
+        },
+    },
+
+    cherrymon = {
+        rosemon = {
+            note = 'Standard route'
+        },
+    },
+
 
 }
 
@@ -414,8 +507,7 @@ function BM.get_care_crisis_baby_options(card)
         end
     end
 
-    -- Shop-obtained higher stages may have no personal history. In that case,
-    -- find every Fresh Digimon in the database that can reach this form.
+
     local candidates = {}
     for slug, def in pairs(BM.joker_defs or {}) do
         if def.stage == 'Fresh' and slug ~= source_slug
@@ -433,10 +525,7 @@ function BM.get_care_crisis_baby_options(card)
         return candidates
     end
 
-    -- A few special/standalone high-stage Digimon have no incoming line in
-    -- the current database. They still need a valid Care Crisis consequence.
-    -- Because Balatromon's Fresh forms are intentionally universal starting
-    -- points, fall back to one deterministic random Fresh form.
+
     local source_def = BM.joker_defs and BM.joker_defs[source_slug]
     if source_def and source_def.stage ~= 'Fresh' then
         local fresh = {}
@@ -460,8 +549,7 @@ function BM.get_care_crisis_baby_options(card)
         end
     end
 
-    -- A Fresh Digimon is already at the baby stage. If it has no marked bad
-    -- path, the player must repair its Care Mistakes instead.
+
     return {}
 end
 
@@ -469,13 +557,17 @@ function BM.get_valid_evolutions(card, device_key, opts)
     opts = opts or {}
 
     if not BM.is_digimon(card) then return {} end
+
+    if BM.is_digivolution_blocked
+    and BM.is_digivolution_blocked(card) then
+        return {}
+    end
+
     local e = card.ability and card.ability.extra or {}
     if e.permanently_disabled then return {} end
 
     local crisis = BM.is_care_crisis(card)
 
-    -- Normal Digivolution requires full Bond. A Care Crisis is an exception:
-    -- the Digivice is being used to resolve the crisis, so Bond is ignored.
     if not crisis and not opts.ignore_bond and not BM.card_ready_for_digivolution(card) then return {} end
 
     local source_slug = BM.get_card_slug(card)
@@ -489,13 +581,12 @@ function BM.get_valid_evolutions(card, device_key, opts)
             local bad = is_bad_rule(rule)
 
             if crisis then
-                -- At Care Mistakes 3, only explicitly marked bad routes may
-                -- move forward.
+
                 if bad and rule_allows(card, center, slug, device_key, rule) then
                     options[#options + 1] = make_option(name, center, key, slug, rule)
                 end
             else
-                -- Bad routes are hidden until an actual Care Crisis.
+
                 if not bad and rule_allows(card, center, slug, device_key, rule) then
                     options[#options + 1] = make_option(name, center, key, slug, rule)
                 end

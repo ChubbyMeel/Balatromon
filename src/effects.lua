@@ -731,3 +731,409 @@ if not BM._polarbearmon_cost_patched then
         return result
     end
 end
+
+local function plant_boss_food(card, context)
+    if context.end_of_round
+    and context.main_eval
+    and BM.is_boss()
+    and not context.blueprint then
+        local made = BM.add_random_food(
+            'plant_food_' .. tostring(card.sort_id or 0)
+        )
+
+        if made then
+            return {message='Food!'}
+        end
+    end
+end
+
+local function apply_random_bloom(card, seed)
+    if not G.hand
+    or not G.hand.cards
+    or #G.hand.cards == 0 then
+        return false
+    end
+
+    local target = BM.random_element(
+        G.hand.cards,
+        seed .. tostring(card.sort_id or 0)
+    )
+
+    if not target then
+        return false
+    end
+
+    target:set_edition(
+        'e_' .. BM.PREFIX .. '_bloom',
+        true,
+        true
+    )
+
+    target:juice_up(0.7, 0.5)
+
+    return true
+end
+
+local function create_farm_card(with_bloom)
+    if not G.deck then
+        return nil
+    end
+
+    local created = BM.add_playing_card{
+        area = G.deck
+    }
+
+    if not created then
+        return nil
+    end
+
+    created:set_seal(
+        BM.PREFIX .. '_farm',
+        true,
+        false
+    )
+
+    if with_bloom then
+        created:set_edition(
+            'e_' .. BM.PREFIX .. '_bloom',
+            true,
+            true
+        )
+    end
+
+    return created
+end
+
+local function consume_self(card)
+    if not card or card.REMOVED then
+        return
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.1,
+        func = function()
+            if card and not card.REMOVED then
+                card:start_dissolve()
+            end
+
+            return true
+        end
+    }))
+end
+
+H.yuramon = function()
+end
+
+H.tanemon = plant_boss_food
+
+H.palmon = function(card, context)
+    if context.joker_main then
+        local value = 3 * BM.count_food()
+
+        if value > 0 then
+            return {
+                mult = value
+            }
+        end
+    end
+
+    return plant_boss_food(card, context)
+end
+
+H.lalamon = function(card, context)
+    if context.joker_main then
+        local value = 30 * BM.count_food()
+
+        if value > 0 then
+            return {
+                chips = value
+            }
+        end
+    end
+
+    return plant_boss_food(card, context)
+end
+
+H.mushroomon = function(card, context)
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        local value = 2 * BM.count_food()
+
+        if BM.is_boss() then
+            BM.add_random_food(
+                'mushroomon_food_' .. tostring(card.sort_id or 0)
+            )
+        end
+
+        if value > 0 then
+            return {
+                dollars = value
+            }
+        end
+    end
+end
+
+H.togemon = function(card, context)
+    if context.joker_main then
+        return {
+            xmult = 1 + 0.5 * BM.count_food()
+        }
+    end
+
+    return plant_boss_food(card, context)
+end
+
+H.sunflowmon = function()
+end
+
+H.redvegiemon = function()
+end
+
+H.woodmon = function(card, context)
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        if create_farm_card(false) then
+            return {
+                message = 'Farm Card!'
+            }
+        end
+    end
+end
+
+H.lillymon = function(card, context)
+    if context.first_hand_drawn
+    and context.main_eval
+    and not context.blueprint then
+        if apply_random_bloom(
+            card,
+            'lillymon_bloom_'
+        ) then
+            return {
+                message = 'Bloom!'
+            }
+        end
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint
+    and BM.count_food() == 0 then
+        consume_self(card)
+
+        return {
+            message = 'Consumed!'
+        }
+    end
+end
+
+H.lilamon = function(card, context)
+    if context.first_hand_drawn
+    and context.main_eval
+    and not context.blueprint then
+        if apply_random_bloom(
+            card,
+            'lilamon_bloom_'
+        ) then
+            return {
+                message = 'Bloom!'
+            }
+        end
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint
+    and BM.count_food() > 0 then
+        consume_self(card)
+
+        return {
+            message = 'Consumed!'
+        }
+    end
+end
+
+H.jagamon = function()
+end
+
+H.cherrymon = function(card, context)
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        if create_farm_card(true) then
+            return {
+                message = 'Bloom Farm!'
+            }
+        end
+    end
+end
+
+H.rosemon = function(card, context)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and (G.GAME.current_round.hands_played or 0) == 0
+    and #context.full_hand == 1 then
+        local copy = SMODS.copy_card(
+            context.full_hand[1],
+            {area = G.hand}
+        )
+
+        if copy then
+            copy:set_seal(
+                BM.PREFIX .. '_farm',
+                true,
+                false
+            )
+
+            copy:set_edition(
+                'e_' .. BM.PREFIX .. '_bloom',
+                true,
+                true
+            )
+
+            return {
+                message = 'Bloom Copy!'
+            }
+        end
+    end
+end
+
+function BM.is_digivolution_blocked(card)
+    if not G.jokers
+    or not BM.is_digimon(card) then
+        return false
+    end
+
+    local blockers = {}
+
+    for _, joker in ipairs(G.jokers.cards or {}) do
+        local slug = BM.get_card_slug(joker)
+
+        if (slug == 'woodmon' or slug == 'cherrymon')
+        and BM.is_active_digimon(joker) then
+            blockers[#blockers + 1] = joker
+        end
+    end
+
+    if #blockers == 0 then
+        return false
+    end
+
+    for _, blocker in ipairs(blockers) do
+        if card == blocker then
+            return false
+        end
+
+        local index = BM.joker_index(blocker)
+
+        if index
+        and G.jokers.cards[index - 1] == card then
+            return false
+        end
+    end
+
+    return true
+end
+
+function BM.refresh_sunflowmon_shop_packs()
+    if not BM.has_active_digimon('sunflowmon')
+    or not G.shop_booster then
+        return
+    end
+
+    for i, card in ipairs(G.shop_booster.cards or {}) do
+        local key = card.config
+            and card.config.center
+            and card.config.center.key
+
+        local mega_key = key
+            and BM.mega_digital_pack_key(
+                key,
+                'sunflowmon_existing_' .. tostring(i)
+            )
+
+        if mega_key
+        and mega_key ~= key
+        and G.P_CENTERS[mega_key] then
+            card:set_ability(
+                G.P_CENTERS[mega_key],
+                nil,
+                true
+            )
+
+            if card.set_cost then
+                card:set_cost()
+            end
+        end
+    end
+end
+
+function BM.refresh_redvegiemon_shop_costs()
+    if not G.shop_jokers then
+        return
+    end
+
+    for _, card in ipairs(G.shop_jokers.cards or {}) do
+        if card.set_cost then
+            card:set_cost()
+        end
+    end
+end
+
+function BM.on_food_used()
+    if not G.consumeables then
+        return
+    end
+
+    for _, jagamon in ipairs(
+        BM.active_digimon('jagamon')
+    ) do
+        local tower = SMODS.add_card{
+            set = 'Tarot',
+            area = G.consumeables,
+            key = 'c_tower',
+            edition = 'e_negative',
+            key_append = 'jagamon_tower'
+        }
+
+        if tower then
+            jagamon:juice_up(0.7, 0.5)
+
+            card_eval_status_text(
+                jagamon,
+                'extra',
+                nil,
+                nil,
+                nil,
+                {
+                    message = 'Tower!',
+                    colour = G.C.PURPLE
+                }
+            )
+        end
+    end
+end
+
+if not BM._redvegiemon_cost_patched then
+    BM._redvegiemon_cost_patched = true
+
+    local old_set_cost_redvegiemon = Card.set_cost
+
+    Card.set_cost = function(self, ...)
+        local result = old_set_cost_redvegiemon(
+            self,
+            ...
+        )
+
+        if BM.has_active_digimon('redvegiemon')
+        and self.area == G.shop_jokers
+        and BM.is_food_card(self) then
+            self.cost = 0
+        end
+
+        return result
+    end
+end
