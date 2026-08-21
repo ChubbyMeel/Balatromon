@@ -173,12 +173,28 @@ H.metalgarurumon = function(card,context)
     if context.individual and context.cardarea==G.play and BM.get_rank(context.other_card)==e.target_rank and context.other_card:is_suit(e.target_suit) and not context.blueprint then local id=tostring(context.other_card.playing_card or context.other_card.sort_id); if not e.seen[id] then e.seen[id]=true; e.xchips=e.xchips+0.25; return {message='XChips Up!'} end end
     if context.joker_main then return {xchips=e.xchips} end
 end
-H.heavyleomon = function(card,context)
-    local e=card.ability.extra; e.xchips=e.xchips or 1
-    if context.poker_hand_changed and context.new_level and context.old_level and context.new_level>context.old_level and not context.blueprint then
-        if context.scoring_name==BM.find_least_played_hand() then e.xchips=e.xchips+0.25; return {message='XChips Up!'} end
+H.heavyleomon = function(card, context)
+    local e = card.ability.extra
+    e.xchips = e.xchips or 1
+
+    if context.poker_hand_changed
+    and context.new_level
+    and context.old_level
+    and context.new_level > context.old_level
+    and not context.blueprint
+    and BM.is_least_played_hand(context.scoring_name) then
+        e.xchips = e.xchips + 0.25
+
+        return {
+            message = 'XChips Up!'
+        }
     end
-    if context.joker_main then return {xchips=e.xchips} end
+
+    if context.joker_main then
+        return {
+            xchips = e.xchips
+        }
+    end
 end
 H.monzaemon = function(card,context) if context.setting_blind and context.main_eval and not context.blueprint and BM.add_consumable('Tarot') then return {message='Tarot!'} end end
 H.warumonzaemon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then local n=BM.add_food(2); if n>0 then return {message='Food!'} end end end
@@ -413,8 +429,29 @@ H.hiandromon = function(card,context)
 end
 H.pururumon = function() end
 H.poromon = function() end
-H.hawkmon = function(card,context)
-    if context.pre_discard and context.main_eval and BM.get_poker_hand_name(G.hand.highlighted)=='Flush' and not context.blueprint then card.ability.extra.hawk_hand_size=(card.ability.extra.hawk_hand_size or 0)+1; G.hand:change_size(1); return {message='+1 Hand Size'} end
+H.hawkmon = function(card, context)
+    local e = card.ability.extra
+    e.hawk_hand_size = e.hawk_hand_size or 0
+
+    if context.pre_discard
+    and context.main_eval
+    and not context.blueprint
+    and BM.get_poker_hand_name(G.hand.highlighted) == 'Flush' then
+        e.hawk_hand_size = e.hawk_hand_size + 1
+        G.hand:change_size(1)
+
+        return {
+            message = '+1 Hand Size'
+        }
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint
+    and e.hawk_hand_size > 0 then
+        G.hand:change_size(-e.hawk_hand_size)
+        e.hawk_hand_size = 0
+    end
 end
 H.biyomon = function(card,context)
     if context.pre_discard and context.main_eval and BM.get_poker_hand_name(G.hand.highlighted)=='Four of a Kind' and not context.blueprint then ease_hands_played(2); return {message='+2 Hands'} end

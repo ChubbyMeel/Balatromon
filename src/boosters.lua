@@ -1,18 +1,223 @@
 local BM = Balatromon
 
--- ============================================================
--- BUFFOON PACKS: DIGIMON ONLY
--- ============================================================
+BM.digital_pack_keys = BM.digital_pack_keys or {
+    regular = {},
+    jumbo = {},
+    mega = {},
+}
+
+local REGULAR_TOTAL_WEIGHT = 1.20
+local JUMBO_TOTAL_WEIGHT = 0.40
+local MEGA_TOTAL_WEIGHT = 0.20
+
+local REGULAR_WEIGHT = REGULAR_TOTAL_WEIGHT / 4
+local JUMBO_WEIGHT = JUMBO_TOTAL_WEIGHT / 2
+local MEGA_WEIGHT = MEGA_TOTAL_WEIGHT / 2
+
+local function booster_center_key(slug)
+    return 'p_' .. BM.PREFIX .. '_' .. slug
+end
+
+local function random_from(list, seed)
+    if not list or #list == 0 then
+        return nil
+    end
+    return pseudorandom_element(list, pseudoseed(seed or 'balatromon_booster'))
+end
+
+function BM.random_digital_pack_key(size, seed)
+    local list = BM.digital_pack_keys[size]
+    return random_from(list, seed or ('balatromon_' .. tostring(size) .. '_digital_pack'))
+end
+
+local function digiitem_keys(seed)
+    local keys = {}
+
+    local pool = G.P_CENTER_POOLS and G.P_CENTER_POOLS.DigiItem or {}
+
+    for _, center in ipairs(pool) do
+        if center then
+            local allowed = true
+
+            if center.in_pool then
+                local ok = center:in_pool({source = 'digital_pack'})
+                allowed = ok ~= false
+            end
+
+            if allowed then
+                keys[#keys + 1] = center.key
+            end
+        end
+    end
+
+    return keys
+end
+
+local function random_digiitem_key(seed)
+    local pool = digiitem_keys(seed)
+
+    if #pool == 0 then
+        return nil
+    end
+
+    return random_from(pool, seed or 'balatromon_digiitem')
+end
+
+local function pack_card_def(seed_base, i)
+    local key = random_digiitem_key(seed_base .. '_' .. tostring(i or 1))
+
+    if not key then
+        return nil
+    end
+
+    return {
+        set = 'DigiItem',
+        area = G.pack_cards,
+        key = key,
+        skip_materialize = true,
+        soulable = false,
+        key_append = seed_base .. '_' .. tostring(i or 1),
+    }
+end
+
+local function make_digital_pack(args)
+    SMODS.Booster{
+        key = args.key,
+        kind = 'Digital',
+        atlas = 'Booster',
+        pos = args.pos,
+        cost = args.cost,
+        weight = args.weight,
+        no_collection = false,
+        discovered = true,
+        config = {
+            extra = args.extra,
+            choose = args.choose
+        },
+
+        loc_txt = {
+            name = args.display_name,
+            group_name = 'Digital Pack',
+            text = {
+                'Choose {C:attention}#1#{} of up to',
+                '{C:attention}#2#{} {C:attention}Digi Items{}',
+            },
+        },
+
+        select_card = 'consumeables',
+
+        create_card = function(self, card, i)
+            return pack_card_def(args.key, i)
+        end,
+    }
+end
+
+local function add_pack_key(size, slug)
+    BM.digital_pack_keys[size][#BM.digital_pack_keys[size] + 1] = booster_center_key(slug)
+end
+
+make_digital_pack{
+    key = 'digital_pack_orange',
+    display_name = 'Digital Pack',
+    pos = {x = 0, y = 0},
+    extra = 3,
+    choose = 1,
+    cost = 4,
+    weight = REGULAR_WEIGHT,
+}
+add_pack_key('regular', 'digital_pack_orange')
+
+make_digital_pack{
+    key = 'digital_pack_blue',
+    display_name = 'Digital Pack',
+    pos = {x = 1, y = 0},
+    extra = 3,
+    choose = 1,
+    cost = 4,
+    weight = REGULAR_WEIGHT,
+}
+add_pack_key('regular', 'digital_pack_blue')
+
+make_digital_pack{
+    key = 'digital_pack_red',
+    display_name = 'Digital Pack',
+    pos = {x = 0, y = 1},
+    extra = 3,
+    choose = 1,
+    cost = 4,
+    weight = REGULAR_WEIGHT,
+}
+add_pack_key('regular', 'digital_pack_red')
+
+make_digital_pack{
+    key = 'digital_pack_green',
+    display_name = 'Digital Pack',
+    pos = {x = 1, y = 1},
+    extra = 3,
+    choose = 1,
+    cost = 4,
+    weight = REGULAR_WEIGHT,
+}
+add_pack_key('regular', 'digital_pack_green')
+
+make_digital_pack{
+    key = 'jumbo_digital_pack_pink',
+    display_name = 'Jumbo Digital Pack',
+    pos = {x = 2, y = 0},
+    extra = 5,
+    choose = 1,
+    cost = 6,
+    weight = JUMBO_WEIGHT,
+}
+add_pack_key('jumbo', 'jumbo_digital_pack_pink')
+
+make_digital_pack{
+    key = 'jumbo_digital_pack_cyan',
+    display_name = 'Jumbo Digital Pack',
+    pos = {x = 2, y = 1},
+    extra = 5,
+    choose = 1,
+    cost = 6,
+    weight = JUMBO_WEIGHT,
+}
+add_pack_key('jumbo', 'jumbo_digital_pack_cyan')
+
+make_digital_pack{
+    key = 'mega_digital_pack_blue',
+    display_name = 'Mega Digital Pack',
+    pos = {x = 3, y = 0},
+    extra = 5,
+    choose = 2,
+    cost = 8,
+    weight = MEGA_WEIGHT,
+}
+add_pack_key('mega', 'mega_digital_pack_blue')
+
+make_digital_pack{
+    key = 'mega_digital_pack_orange',
+    display_name = 'Mega Digital Pack',
+    pos = {x = 3, y = 1},
+    extra = 5,
+    choose = 2,
+    cost = 8,
+    weight = MEGA_WEIGHT,
+}
+add_pack_key('mega', 'mega_digital_pack_orange')
 
 local function weighted_digimon_key(seed)
     local pool = {}
 
     for _, entry in ipairs(BM.shop_joker_keys or {}) do
         local center = G.P_CENTERS[entry.key]
-        if center then
+
+        if center and center.balatromon == true then
             local allowed = true
+
             if center.in_pool then
-                local ok = center:in_pool({source = 'buf'})
+                local ok = center:in_pool({
+                    source = 'buf'
+                })
+
                 allowed = ok ~= false
             end
 
@@ -24,104 +229,44 @@ local function weighted_digimon_key(seed)
         end
     end
 
-    return BM.random_element(pool, seed or 'balatromon_buffoon')
+    if #pool == 0 then
+        return BM.center_key('botamon')
+    end
+
+    return BM.random_element(
+        pool,
+        seed or 'balatromon_buffoon'
+    )
 end
 
-SMODS.Booster:take_ownership_by_kind('Buffoon', {
-    create_card = function(self, card, i)
-        local key = weighted_digimon_key('balatromon_buffoon_' .. tostring(i or 1))
+local function buffoon_create_card(self, card, i)
+    local key = weighted_digimon_key(
+        'balatromon_buffoon_'
+        .. tostring(self.key)
+        .. '_'
+        .. tostring(i or 1)
+    )
 
-        return {
-            set = 'Joker',
-            area = G.pack_cards,
-            key = key or BM.center_key('botamon'),
-            skip_materialize = true,
-            soulable = false,
-            key_append = key and ('balatromon_buffoon_' .. tostring(i or 1))
-                or 'balatromon_buffoon_fallback',
-        }
-    end,
-}, true)
-
--- ============================================================
--- DIGITAL PACKS
--- ============================================================
-
-local function digital_pack_def(args)
-    SMODS.Booster {
-        key = args.key,
-        kind = args.kind,
-        atlas = 'Joker',
-        pos = {x = 0, y = 0},
-        cost = args.cost or 4,
-        weight = args.weight or 0,
-        no_collection = args.no_collection or false,
-        discovered = true,
-        unlocked = true,
-
-        config = {
-            extra = args.extra or 3,
-            choose = args.choose or 1,
-        },
-
-        select_card = 'consumeables',
-
-        loc_txt = {
-            name = args.name or 'Digital Pack',
-            group_name = 'Digital Pack',
-            text = {
-                'Choose {C:attention}#1#{} of up to',
-                '{C:attention}#2#{} {C:attention}Digi Items{}',
-            },
-        },
-
-        loc_vars = function(self, info_queue, card)
-            return {vars = {self.config.choose, self.config.extra}}
-        end,
-
-        create_card = function(self, card, i)
-            return {
-                set = 'DigiItem',
-                area = G.pack_cards,
-                skip_materialize = true,
-                soulable = false,
-                key_append = args.key .. '_' .. tostring(i or 1),
-            }
-        end,
+    return {
+        set = 'Joker',
+        area = G.pack_cards,
+        key = key,
+        skip_materialize = true,
+        soulable = false,
+        key_append = 'balatromon_buffoon_'
+            .. tostring(i or 1),
     }
 end
 
--- Normal Digital Pack variants. Their kind makes them compete in the
--- same booster families you were already using.
-digital_pack_def {
-    key = 'digital_pack_arcana',
-    kind = 'Arcana',
-    weight = 1.0,
-    extra = 3,
-    choose = 1,
-    cost = 4,
-    name = 'Digital Pack',
+local buffoon_packs = {
+    'buffoon_normal_1',
+    'buffoon_normal_2',
+    'buffoon_jumbo_1',
+    'buffoon_mega_1',
 }
 
-digital_pack_def {
-    key = 'digital_pack_celestial',
-    kind = 'Celestial',
-    weight = 2.0,
-    no_collection = true,
-    extra = 3,
-    choose = 1,
-    cost = 4,
-    name = 'Digital Pack',
-}
-
--- Jumbo can ALSO naturally appear in the shop, and Digitag can force-open
--- this exact same complete Booster definition.
-digital_pack_def {
-    key = 'jumbo_digital_pack',
-    kind = 'Digital',
-    weight = 0.75,
-    extra = 5,
-    choose = 2,
-    cost = 6,
-    name = 'Jumbo Digital Pack',
-}
+for _, key in ipairs(buffoon_packs) do
+    SMODS.Booster:take_ownership(key, {
+        create_card = buffoon_create_card,
+    }, true)
+end

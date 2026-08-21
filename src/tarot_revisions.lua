@@ -17,29 +17,61 @@ local function create_negative_food()
     }
 end
 
--- JUDGEMENT: keep the spirit of vanilla Judgement, but add a Negative Food.
+local function get_any_digimon_pool()
+    local pool = {}
+
+    for _, center in ipairs(
+        G.P_CENTER_POOLS
+        and G.P_CENTER_POOLS.Joker
+        or {}
+    ) do
+        if center.balatromon == true then
+            pool[#pool + 1] = center
+        end
+    end
+
+    return pool
+end
+
 SMODS.Consumable:take_ownership('judgement', {
     loc_txt = {
         name = 'Judgement',
         text = {
-            'Creates a random {C:attention}Joker{}',
+            'Creates a random {C:attention}Digimon{}',
             'and a {C:dark_edition}Negative{} {C:attention}Food{}',
         },
     },
+
     can_use = function(self, card)
-        return has_joker_room() and G.consumeables ~= nil
+        return has_joker_room()
+            and G.consumeables ~= nil
     end,
+
     use = function(self, card, area, copier)
-        SMODS.add_card {
-            set = 'Joker',
-            area = G.jokers,
-            key_append = 'balatromon_judgement',
-        }
+        local pool = get_any_digimon_pool()
+
+        if #pool > 0 then
+            local center = BM.random_element(
+                pool,
+                'balatromon_judgement_digimon'
+                    .. tostring(G.GAME.round_resets.ante or 0)
+            )
+
+            if center then
+                SMODS.add_card {
+                    set = 'Joker',
+                    area = G.jokers,
+                    key = center.key,
+                    key_append = 'balatromon_judgement',
+                }
+            end
+        end
+
         create_negative_food()
     end,
 }, true)
 
--- THE EMPEROR: each generated card independently rolls between Tarot/DigiItem.
+
 SMODS.Consumable:take_ownership('emperor', {
     loc_txt = {
         name = 'The Emperor',
@@ -76,8 +108,6 @@ local function fool_target_key()
     return nil
 end
 
--- THE FOOL: vanilla already remembers Tarot/Planet; Digi Items update the same
--- tracker in BM.remember_digi_item when used.
 SMODS.Consumable:take_ownership('fool', {
     loc_txt = {
         name = 'The Fool',

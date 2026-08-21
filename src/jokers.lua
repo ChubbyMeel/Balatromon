@@ -5150,6 +5150,7 @@ do
             'Gain an extra handsize for every flush',
             'discarded',
             '{C:inactive}(Poromon’s effect is also applied){}',
+            '{C:inactive}(Reset every round){}',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
         }},
@@ -5366,8 +5367,6 @@ do
             local mode_names = {'Bloodstone', 'Arrowhead', 'Onyx Agate', 'Rough Gem'}
             local current_mode = mode_names[e.mode or 1] or 'Bloodstone'
 
-            -- Garudamon borrows these four vanilla Joker effects. Queue their
-            -- native tooltips so hovering Garudamon also explains each mode.
             local referenced_jokers = {
                 'j_bloodstone',
                 'j_arrowhead',

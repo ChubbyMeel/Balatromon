@@ -61,6 +61,13 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas{
+    key = 'Booster',
+    path = 'DigiMeel_Booster.png',
+    px = 71,
+    py = 95
+}
+
 assert(SMODS.load_file('src/core.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()
 assert(SMODS.load_file('src/evolution.lua'))()

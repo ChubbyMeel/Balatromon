@@ -71,11 +71,7 @@ SMODS.Tag {
     end,
 }
 
--- ============================================================
--- DIGITAG
--- Mirrors vanilla Charm/Meteor/Ethereal tags: after choosing the next Blind,
--- directly open the Jumbo Digital Pack.
--- ============================================================
+
 
 SMODS.Tag {
     key = 'digitag',
@@ -88,26 +84,38 @@ SMODS.Tag {
         name = 'Digitag',
         text = {
             'After selecting the next Blind,',
-            'open a {C:attention}Jumbo Digital Pack{}',
+            'open a {C:attention}Mega Digital Pack{}',
         },
     },
 
     apply = function(self, tag, context)
-        if context.type ~= 'new_blind_choice' or tag.triggered then return end
+        if context.type ~= 'new_blind_choice'
+        or tag.triggered then
+            return
+        end
 
-        local key = 'p_' .. BM.PREFIX .. '_jumbo_digital_pack'
+        local key = BM.random_digital_pack_key(
+            'mega',
+            'balatromon_digitag'
+                .. tostring(G.GAME.round_resets.ante or 0)
+        )
+
+        if not key then
+            print('[Balatromon] Digitag: no Mega Digital Pack found')
+            return
+        end
+
         local center = G.P_CENTERS[key]
+
         if not center then
-            print('[Balatromon] Digitag: missing booster center ' .. key)
+            print('[Balatromon] Digitag: missing booster center ' .. tostring(key))
             return
         end
 
         local lock = tag.ID
         G.CONTROLLER.locks[lock] = true
 
-        tag:yep('Digital Pack!', G.C.BLUE, function()
-            -- This is intentionally the same opening pattern used by vanilla
-            -- Charm/Meteor/Ethereal/Standard/Buffoon tags.
+        tag:yep('Mega Pack!', G.C.BLUE, function()
             local card = Card(
                 G.play.T.x + G.play.T.w / 2 - G.CARD_W * 1.27 / 2,
                 G.play.T.y + G.play.T.h / 2 - G.CARD_H * 1.27 / 2,
@@ -115,12 +123,23 @@ SMODS.Tag {
                 G.CARD_H * 1.27,
                 G.P_CARDS.empty,
                 center,
-                {bypass_discovery_center = true, bypass_discovery_ui = true}
+                {
+                    bypass_discovery_center = true,
+                    bypass_discovery_ui = true
+                }
             )
+
             card.cost = 0
             card.from_tag = true
-            G.FUNCS.use_card({config = {ref_table = card}})
+
+            G.FUNCS.use_card({
+                config = {
+                    ref_table = card
+                }
+            })
+
             card:start_materialize()
+
             G.CONTROLLER.locks[lock] = nil
             return true
         end)
@@ -130,12 +149,6 @@ SMODS.Tag {
     end,
 }
 
--- ============================================================
--- EVOLUTION TAG
--- IMPORTANT: this Tag does NOT trigger in Tag:apply at all.
--- It stays visible through Blind selection. core.lua consumes it only when
--- the first hand is actually drawn INSIDE the next Blind.
--- ============================================================
 
 SMODS.Tag {
     key = 'evolution_tag',
@@ -233,3 +246,127 @@ SMODS.Tag {
         return true
     end,
 }
+
+local function get_stage_digimon_pool(stage)
+    local pool = {}
+
+    for _, center in ipairs(
+        G.P_CENTER_POOLS
+        and G.P_CENTER_POOLS.Joker
+        or {}
+    ) do
+        if center.balatromon == true
+        and center.balatromon_stage == stage then
+            pool[#pool + 1] = center
+        end
+    end
+
+    return pool
+end
+
+local function apply_stage_shop_tag(tag, context, stage, seed, colour)
+    if context.type ~= 'store_joker_create'
+    or tag.triggered then
+        return
+    end
+
+    local pool = get_stage_digimon_pool(stage)
+
+    if #pool == 0 then
+        tag:nope()
+        tag.triggered = true
+        return
+    end
+
+    local center = BM.random_element(
+        pool,
+        seed .. '_' .. tostring(G.GAME.round_resets.ante or 0)
+    )
+
+    if not center then
+        tag:nope()
+        tag.triggered = true
+        return
+    end
+
+    local card = create_card(
+        'Joker',
+        context.area,
+        nil,
+        nil,
+        nil,
+        nil,
+        center.key,
+        seed
+    )
+
+    create_shop_card_ui(
+        card,
+        'Joker',
+        context.area
+    )
+
+    card.states.visible = false
+
+    tag:yep('+', colour, function()
+        card:start_materialize()
+        card.ability.couponed = true
+        card:set_cost()
+        return true
+    end)
+
+    tag.triggered = true
+
+    return card
+end
+
+
+SMODS.Tag:take_ownership('uncommon', {
+    loc_txt = {
+        name = 'Champion Tag',
+        text = {
+            'Shop has a free',
+            '{C:attention}Champion Digimon{}',
+        },
+    },
+
+    apply = function(self, tag, context)
+        return apply_stage_shop_tag(
+            tag,
+            context,
+            'Champion',
+            'balatromon_champion_tag',
+            G.C.GREEN
+        )
+    end,
+}, true)
+
+
+SMODS.Tag:take_ownership('rare', {
+    loc_txt = {
+        name = 'Ultimate Tag',
+        text = {
+            'Shop has a free',
+            '{C:attention}Ultimate Digimon{}',
+        },
+    },
+
+    apply = function(self, tag, context)
+        return apply_stage_shop_tag(
+            tag,
+            context,
+            'Ultimate',
+            'balatromon_ultimate_tag',
+            G.C.RED
+        )
+    end,
+}, true)
+
+
+SMODS.Tag:take_ownership('top_up', {
+    in_pool = function(self, args)
+        return false
+    end,
+
+    no_collection = true,
+}, true)

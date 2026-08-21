@@ -16,6 +16,108 @@ function BM.slug(name)
         :gsub('_+$', '')
 end
 
+function BM.get_card_slug(card)
+    if not (card and card.config and card.config.center) then
+        return nil
+    end
+
+    local key = card.config.center.key or ''
+    local prefix = 'j_' .. BM.PREFIX .. '_'
+
+    if type(key) == 'string' and key:sub(1, #prefix) == prefix then
+        return key:sub(#prefix + 1)
+    end
+
+    return key
+end
+
+function BM.has_passive_deck_effect(slug)
+    return slug == 'vikemon'
+        or slug == 'pururumon'
+        or slug == 'poromon'
+        or slug == 'hawkmon'
+        or slug == 'aquilamon'
+        or slug == 'halsemon'
+end
+
+function BM.apply_passive_deck_effect(card, slug)
+    local e = card and card.ability and card.ability.extra
+    if not e then return end
+
+    if e._bm_passive_applied and not e._bm_passive_removed then
+        return
+    end
+
+    e._bm_passive_applied = true
+    e._bm_passive_removed = nil
+    e._bm_passive_slug = slug
+
+    if slug == 'vikemon' then
+        G.hand:change_size(-3)
+
+    elseif slug == 'pururumon' then
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1
+
+    elseif slug == 'poromon' then
+        SMODS.change_discard_limit(1)
+
+    elseif slug == 'hawkmon' then
+        SMODS.change_discard_limit(1)
+        e.hawk_hand_size = e.hawk_hand_size or 0
+        local gained = e.hawk_hand_size or 0
+        if gained ~= 0 then
+            G.hand:change_size(-gained)
+            e.hawk_hand_size = 0
+        end
+
+    elseif slug == 'aquilamon' then
+        G.hand:change_size(2)
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1
+
+    elseif slug == 'halsemon' then
+        G.GAME.round_resets.discards = G.GAME.round_resets.discards + 3
+        G.hand:change_size(-1)
+    end
+end
+
+function BM.remove_passive_deck_effect(card, slug)
+    local e = card and card.ability and card.ability.extra
+    if not e then return end
+    if e._bm_passive_removed then return end
+
+    local applied_slug = e._bm_passive_slug or slug
+
+    if applied_slug == 'vikemon' then
+        G.hand:change_size(3)
+
+    elseif applied_slug == 'pururumon' then
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1
+
+    elseif applied_slug == 'poromon' then
+        SMODS.change_discard_limit(-1)
+
+    elseif applied_slug == 'hawkmon' then
+        SMODS.change_discard_limit(-1)
+
+        local gained = e.hawk_hand_size or 0
+        if gained ~= 0 then
+            G.hand:change_size(-gained)
+            e.hawk_hand_size = 0
+        end
+
+    elseif applied_slug == 'aquilamon' then
+        G.hand:change_size(-2)
+        G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1
+
+    elseif applied_slug == 'halsemon' then
+        G.GAME.round_resets.discards = G.GAME.round_resets.discards - 3
+        G.hand:change_size(1)
+    end
+
+    e._bm_passive_applied = nil
+    e._bm_passive_removed = true
+    e._bm_passive_slug = nil
+end
 
 function BM.center_key(slug)
     return 'j_' .. BM.PREFIX .. '_' .. slug
@@ -82,10 +184,6 @@ end
 
 
 
-
--- ============================================================
--- DOUBLE CLICK DIGIMON TO VIEW EVOLUTION PATHS
--- ============================================================
 
 if not BM._digimon_double_click_hooked then
     BM._digimon_double_click_hooked = true
@@ -443,12 +541,18 @@ function BM.care_tick(card, context)
     end
 
     if (e.care_mistakes or 0) >= 3 then
-        -- The Digivice system resolves this into de-Digivolution or a bad path.
         e.care_crisis = true
     end
 
     if (e.hunger or 1) >= 5 then
+        local slug = BM.get_card_slug(card)
+
         e.permanently_disabled = true
+
+        if slug and BM.has_passive_deck_effect(slug) then
+            BM.on_remove(card, slug)
+        end
+
         SMODS.debuff_card(card, true, 'balatromon_hunger')
     end
 end
@@ -554,12 +658,32 @@ function BM.add_sell_value_to_all(amount)
     end
 end
 
-function BM.find_least_played_hand()
-    local best, plays = nil, math.huge
-    for hand, data in pairs(G.GAME.hands or {}) do
-        if data.visible ~= false and (data.played or 0) < plays then best, plays = hand, (data.played or 0) end
+function BM.is_least_played_hand(hand)
+    if not hand
+    or not G.GAME
+    or not G.GAME.hands
+    or not G.GAME.hands[hand] then
+        return false
     end
-    return best
+
+    local hand_data = G.GAME.hands[hand]
+
+    if hand_data.visible == false then
+        return false
+    end
+
+    local least = math.huge
+
+    for _, data in pairs(G.GAME.hands) do
+        if data.visible ~= false then
+            least = math.min(
+                least,
+                data.played or 0
+            )
+        end
+    end
+
+    return (hand_data.played or 0) == least
 end
 
 function BM.stage_shop_weight(stage)
@@ -579,26 +703,19 @@ function BM.stage_rarity(stage)
 end
 
 function BM.on_add(card, slug)
-    if slug == 'vikemon' then G.hand:change_size(-3) end
-    if slug == 'pururumon' then G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1 end
-    if slug == 'poromon' then SMODS.change_discard_limit(1) end
-    if slug == 'hawkmon' then SMODS.change_discard_limit(1) end
-    if slug == 'aquilamon' then G.hand:change_size(2); G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1 end
-    if slug == 'halsemon' then G.GAME.round_resets.discards = G.GAME.round_resets.discards + 3; G.hand:change_size(-1) end
-    if slug == 'digitamamon' then card.ability.rental = true end
+    if BM.has_passive_deck_effect(slug) then
+        BM.apply_passive_deck_effect(card, slug)
+    end
+
+    if slug == 'digitamamon' then
+        card.ability.rental = true
+    end
 end
 
 function BM.on_remove(card, slug)
-    if slug == 'vikemon' then G.hand:change_size(3) end
-    if slug == 'pururumon' then G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1 end
-    if slug == 'poromon' then SMODS.change_discard_limit(-1) end
-    if slug == 'hawkmon' then
-        SMODS.change_discard_limit(-1)
-        local gained = card.ability.extra.hawk_hand_size or 0
-        if gained ~= 0 then G.hand:change_size(-gained) end
+    if BM.has_passive_deck_effect(slug) then
+        BM.remove_passive_deck_effect(card, slug)
     end
-    if slug == 'aquilamon' then G.hand:change_size(-2); G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1 end
-    if slug == 'halsemon' then G.GAME.round_resets.discards = G.GAME.round_resets.discards - 3; G.hand:change_size(1) end
 end
 
 function BM.can_sell(card, slug)
