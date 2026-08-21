@@ -494,8 +494,112 @@ H.akatorimon = function(card,context)
 end
 H.kokatorimon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then local i=BM.joker_index(card); local t=i and G.jokers.cards[i-1]; if t and BM.is_digimon(t) then BM.feed(t,1); return {message='Fed!'} end end end
 H.pinamon = function(card,context) if context.selling_self and not context.blueprint then BM.add_food(1) end end
+H.kuramon = function(card, context)
+    if context.joker_main then
+        return {
+            mult = BM.count_owned_jokers() * 3
+        }
+    end
+end
 
--- Rule-altering effects that cannot be expressed as a normal calculate return.
+H.tsumemon = function(card, context)
+    if context.joker_main then
+        return {
+            mult = BM.sum_other_joker_sell_value(card)
+        }
+    end
+end
+
+H.keramon = function(card, context)
+    if context.joker_main then
+        local empty = BM.empty_joker_slots({
+            keramon = true
+        })
+
+        return {
+            mult = empty * 8
+        }
+    end
+end
+
+H.raremon = function(card, context)
+    if context.joker_main then
+        return {
+            xmult = BM.raremon_xmult()
+        }
+    end
+end
+
+H.bakemon = function(card, context)
+    if context.joker_main then
+        local empty = BM.empty_joker_slots({
+            raremon = true,
+            phantomon = true,
+            pumpkinmon = true
+        })
+
+        return {
+            xmult = empty * 0.5
+        }
+    end
+end
+
+H.phantomon = function(card, context)
+    if context.joker_main then
+        local empty = BM.empty_joker_slots({
+            raremon = true,
+            phantomon = true,
+            pumpkinmon = true
+        })
+
+        return {
+            xmult = empty
+        }
+    end
+end
+
+H.pumpkinmon = function(card, context)
+    if context.joker_main then
+        local empty = BM.empty_joker_slots({
+            raremon = true,
+            phantomon = true,
+            pumpkinmon = true
+        })
+
+        return {
+            xmult = empty
+        }
+    end
+end
+
+H.puppetmon = function(card, context)
+    local e = card.ability.extra
+    e.xmult = e.xmult or 4
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        local empty = BM.empty_joker_slots()
+
+        if empty > 0 then
+            e.xmult = e.xmult + empty
+
+            return {
+                message = 'XMult Up!'
+            }
+        end
+    end
+
+    if context.joker_main then
+        return {
+            xmult = e.xmult
+        }
+    end
+end
+
+
+
+------------------------------------------------------------------------------------------------------
 if not BM._shortcut_patched then
     BM._shortcut_patched=true
     local old_shortcut=SMODS.shortcut

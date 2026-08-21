@@ -22,25 +22,43 @@ local function random_from(list, seed)
     if not list or #list == 0 then
         return nil
     end
-    return pseudorandom_element(list, pseudoseed(seed or 'balatromon_booster'))
+
+    return pseudorandom_element(
+        list,
+        pseudoseed(seed or 'balatromon_booster')
+    )
 end
 
 function BM.random_digital_pack_key(size, seed)
     local list = BM.digital_pack_keys[size]
-    return random_from(list, seed or ('balatromon_' .. tostring(size) .. '_digital_pack'))
+
+    return random_from(
+        list,
+        seed or (
+            'balatromon_'
+            .. tostring(size)
+            .. '_digital_pack'
+        )
+    )
 end
 
-local function digiitem_keys(seed)
+local function digiitem_keys()
     local keys = {}
 
-    local pool = G.P_CENTER_POOLS and G.P_CENTER_POOLS.DigiItem or {}
+    local pool =
+        G.P_CENTER_POOLS
+        and G.P_CENTER_POOLS.DigiItem
+        or {}
 
     for _, center in ipairs(pool) do
         if center then
             local allowed = true
 
             if center.in_pool then
-                local ok = center:in_pool({source = 'digital_pack'})
+                local ok = center:in_pool({
+                    source = 'digital_pack'
+                })
+
                 allowed = ok ~= false
             end
 
@@ -54,17 +72,26 @@ local function digiitem_keys(seed)
 end
 
 local function random_digiitem_key(seed)
-    local pool = digiitem_keys(seed)
+    local pool = digiitem_keys()
 
     if #pool == 0 then
         return nil
     end
 
-    return random_from(pool, seed or 'balatromon_digiitem')
+    return random_from(
+        pool,
+        seed or 'balatromon_digiitem'
+    )
 end
 
 local function pack_card_def(seed_base, i)
-    local key = random_digiitem_key(seed_base .. '_' .. tostring(i or 1))
+    local index = i or 1
+
+    local key = random_digiitem_key(
+        seed_base
+        .. '_'
+        .. tostring(index)
+    )
 
     if not key then
         return nil
@@ -76,12 +103,15 @@ local function pack_card_def(seed_base, i)
         key = key,
         skip_materialize = true,
         soulable = false,
-        key_append = seed_base .. '_' .. tostring(i or 1),
+        key_append =
+            seed_base
+            .. '_'
+            .. tostring(index),
     }
 end
 
 local function make_digital_pack(args)
-    SMODS.Booster{
+    SMODS.Booster {
         key = args.key,
         kind = 'Digital',
         atlas = 'Booster',
@@ -90,9 +120,10 @@ local function make_digital_pack(args)
         weight = args.weight,
         no_collection = false,
         discovered = true,
+
         config = {
             extra = args.extra,
-            choose = args.choose
+            choose = args.choose,
         },
 
         loc_txt = {
@@ -107,16 +138,21 @@ local function make_digital_pack(args)
         select_card = 'consumeables',
 
         create_card = function(self, card, i)
-            return pack_card_def(args.key, i)
+            return pack_card_def(
+                args.key,
+                i
+            )
         end,
     }
 end
 
 local function add_pack_key(size, slug)
-    BM.digital_pack_keys[size][#BM.digital_pack_keys[size] + 1] = booster_center_key(slug)
+    BM.digital_pack_keys[size][
+        #BM.digital_pack_keys[size] + 1
+    ] = booster_center_key(slug)
 end
 
-make_digital_pack{
+make_digital_pack {
     key = 'digital_pack_orange',
     display_name = 'Digital Pack',
     pos = {x = 0, y = 0},
@@ -125,9 +161,13 @@ make_digital_pack{
     cost = 4,
     weight = REGULAR_WEIGHT,
 }
-add_pack_key('regular', 'digital_pack_orange')
 
-make_digital_pack{
+add_pack_key(
+    'regular',
+    'digital_pack_orange'
+)
+
+make_digital_pack {
     key = 'digital_pack_blue',
     display_name = 'Digital Pack',
     pos = {x = 1, y = 0},
@@ -136,9 +176,13 @@ make_digital_pack{
     cost = 4,
     weight = REGULAR_WEIGHT,
 }
-add_pack_key('regular', 'digital_pack_blue')
 
-make_digital_pack{
+add_pack_key(
+    'regular',
+    'digital_pack_blue'
+)
+
+make_digital_pack {
     key = 'digital_pack_red',
     display_name = 'Digital Pack',
     pos = {x = 0, y = 1},
@@ -147,9 +191,13 @@ make_digital_pack{
     cost = 4,
     weight = REGULAR_WEIGHT,
 }
-add_pack_key('regular', 'digital_pack_red')
 
-make_digital_pack{
+add_pack_key(
+    'regular',
+    'digital_pack_red'
+)
+
+make_digital_pack {
     key = 'digital_pack_green',
     display_name = 'Digital Pack',
     pos = {x = 1, y = 1},
@@ -158,9 +206,13 @@ make_digital_pack{
     cost = 4,
     weight = REGULAR_WEIGHT,
 }
-add_pack_key('regular', 'digital_pack_green')
 
-make_digital_pack{
+add_pack_key(
+    'regular',
+    'digital_pack_green'
+)
+
+make_digital_pack {
     key = 'jumbo_digital_pack_pink',
     display_name = 'Jumbo Digital Pack',
     pos = {x = 2, y = 0},
@@ -169,9 +221,13 @@ make_digital_pack{
     cost = 6,
     weight = JUMBO_WEIGHT,
 }
-add_pack_key('jumbo', 'jumbo_digital_pack_pink')
 
-make_digital_pack{
+add_pack_key(
+    'jumbo',
+    'jumbo_digital_pack_pink'
+)
+
+make_digital_pack {
     key = 'jumbo_digital_pack_cyan',
     display_name = 'Jumbo Digital Pack',
     pos = {x = 2, y = 1},
@@ -180,9 +236,13 @@ make_digital_pack{
     cost = 6,
     weight = JUMBO_WEIGHT,
 }
-add_pack_key('jumbo', 'jumbo_digital_pack_cyan')
 
-make_digital_pack{
+add_pack_key(
+    'jumbo',
+    'jumbo_digital_pack_cyan'
+)
+
+make_digital_pack {
     key = 'mega_digital_pack_blue',
     display_name = 'Mega Digital Pack',
     pos = {x = 3, y = 0},
@@ -191,9 +251,13 @@ make_digital_pack{
     cost = 8,
     weight = MEGA_WEIGHT,
 }
-add_pack_key('mega', 'mega_digital_pack_blue')
 
-make_digital_pack{
+add_pack_key(
+    'mega',
+    'mega_digital_pack_blue'
+)
+
+make_digital_pack {
     key = 'mega_digital_pack_orange',
     display_name = 'Mega Digital Pack',
     pos = {x = 3, y = 1},
@@ -202,98 +266,42 @@ make_digital_pack{
     cost = 8,
     weight = MEGA_WEIGHT,
 }
-add_pack_key('mega', 'mega_digital_pack_orange')
+
+add_pack_key(
+    'mega',
+    'mega_digital_pack_orange'
+)
 
 local function weighted_digimon_key(seed)
     local pool = {}
 
-    for _, entry in ipairs(BM.shop_joker_keys or {}) do
-        local center = G.P_CENTERS[entry.key]
+    for _, entry in ipairs(
+        BM.shop_joker_keys or {}
+    ) do
+        local center =
+            G.P_CENTERS[entry.key]
 
-        if center and center.balatromon == true then
+        if center
+        and center.balatromon == true then
             local allowed = true
 
             if center.in_pool then
                 local ok = center:in_pool({
-                    source = 'buf'
+                    source = 'crest_pack'
                 })
 
                 allowed = ok ~= false
             end
 
             if allowed then
-                for _ = 1, math.max(1, entry.weight or 1) do
-                    pool[#pool + 1] = entry.key
-                end
-            end
-        end
-    end
-
-    if #pool == 0 then
-        return BM.center_key('botamon')
-    end
-
-    return BM.random_element(
-        pool,
-        seed or 'balatromon_buffoon'
-    )
-end
-
-local function buffoon_create_card(self, card, i)
-    local key = weighted_digimon_key(
-        'balatromon_buffoon_'
-        .. tostring(self.key)
-        .. '_'
-        .. tostring(i or 1)
-    )
-
-    return {
-        set = 'Joker',
-        area = G.pack_cards,
-        key = key,
-        skip_materialize = true,
-        soulable = false,
-        key_append = 'balatromon_buffoon_'
-            .. tostring(i or 1),
-    }
-end
-
-local buffoon_packs = {
-    'buffoon_normal_1',
-    'buffoon_normal_2',
-    'buffoon_jumbo_1',
-    'buffoon_mega_1',
-}
-
-for _, key in ipairs(buffoon_packs) do
-    SMODS.Booster:take_ownership(key, {
-        create_card = buffoon_create_card,
-    }, true)
-end
-
-local function weighted_digimon_key(seed)
-    local pool = {}
-
-    for _, entry in ipairs(BM.shop_joker_keys or {}) do
-        local center = G.P_CENTERS[entry.key]
-
-        if center and center.balatromon == true then
-            local allowed = true
-
-            if center.in_pool then
-                local ok = center:in_pool({
-                    source = 'buf'
-                })
-
-                allowed = ok ~= false
-            end
-
-            if allowed then
-                for _ = 1, math.max(
+                local weight = math.max(
                     1,
                     math.floor(entry.weight or 1)
-                ) do
-                    pool[#pool + 1] = entry.key
+                )
+
+                for _ = 1, weight do
+                    pool[#pool + 1] =
+                        entry.key
                 end
             end
         end
@@ -309,12 +317,18 @@ local function weighted_digimon_key(seed)
     )
 end
 
-local function crest_create_card(self, card, i)
+local function crest_create_card(
+    self,
+    card,
+    i
+)
+    local index = i or 1
+
     local key = weighted_digimon_key(
         'balatromon_crest_'
         .. tostring(self.key)
         .. '_'
-        .. tostring(i or 1)
+        .. tostring(index)
     )
 
     return {
@@ -325,15 +339,55 @@ local function crest_create_card(self, card, i)
         soulable = false,
         key_append =
             'balatromon_crest_'
-            .. tostring(i or 1),
+            .. tostring(index),
+    }
+end
+
+local function crest_loc_vars(
+    self,
+    info_queue,
+    card
+)
+    local cfg =
+        card
+        and card.ability
+        or self.config
+        or {}
+
+    local modifiers =
+        G.GAME
+        and G.GAME.modifiers
+        or {}
+
+    local extra = math.max(
+        1,
+        (cfg.extra or 1)
+        + (modifiers.booster_size_mod or 0)
+    )
+
+    local choose = math.min(
+        (cfg.choose or 1)
+        + (modifiers.booster_choice_mod or 0),
+        extra
+    )
+
+    return {
+        vars = {
+            choose,
+            extra,
+        }
     }
 end
 
 SMODS.Booster:take_ownership(
     'buffoon_normal_1',
     {
+        name = 'Crest Pack',
         atlas = 'Booster',
         pos = {x = 0, y = 2},
+
+        group_key =
+            'k_booster_group_p_buffoon_normal_1',
 
         loc_txt = {
             name = 'Crest Pack',
@@ -344,6 +398,7 @@ SMODS.Booster:take_ownership(
             },
         },
 
+        loc_vars = crest_loc_vars,
         create_card = crest_create_card,
     },
     true
@@ -352,8 +407,12 @@ SMODS.Booster:take_ownership(
 SMODS.Booster:take_ownership(
     'buffoon_normal_2',
     {
+        name = 'Crest Pack',
         atlas = 'Booster',
         pos = {x = 1, y = 2},
+
+        group_key =
+            'k_booster_group_p_buffoon_normal_2',
 
         loc_txt = {
             name = 'Crest Pack',
@@ -364,6 +423,7 @@ SMODS.Booster:take_ownership(
             },
         },
 
+        loc_vars = crest_loc_vars,
         create_card = crest_create_card,
     },
     true
@@ -372,8 +432,12 @@ SMODS.Booster:take_ownership(
 SMODS.Booster:take_ownership(
     'buffoon_jumbo_1',
     {
+        name = 'Jumbo Crest Pack',
         atlas = 'Booster',
         pos = {x = 2, y = 2},
+
+        group_key =
+            'k_booster_group_p_buffoon_jumbo_1',
 
         loc_txt = {
             name = 'Jumbo Crest Pack',
@@ -384,6 +448,7 @@ SMODS.Booster:take_ownership(
             },
         },
 
+        loc_vars = crest_loc_vars,
         create_card = crest_create_card,
     },
     true
@@ -392,8 +457,12 @@ SMODS.Booster:take_ownership(
 SMODS.Booster:take_ownership(
     'buffoon_mega_1',
     {
+        name = 'Mega Crest Pack',
         atlas = 'Booster',
         pos = {x = 3, y = 2},
+
+        group_key =
+            'k_booster_group_p_buffoon_mega_1',
 
         loc_txt = {
             name = 'Mega Crest Pack',
@@ -404,6 +473,7 @@ SMODS.Booster:take_ownership(
             },
         },
 
+        loc_vars = crest_loc_vars,
         create_card = crest_create_card,
     },
     true

@@ -190,6 +190,62 @@ BM.evolution_rules = {
         akatorimon = {note = 'Wide-feeding route'},
         kokatorimon = {note = 'Focused-feeding route'},
     },
+    kuramon = {
+        tsumemon = {
+            note = 'Standard route'
+        },
+    },
+
+    tsumemon = {
+        keramon = {
+            note = 'Standard route'
+        },
+
+        espimon = {
+            note = 'Rare route'
+        },
+    },
+
+    keramon = {
+        bakemon = {
+            note = 'Standard route'
+        },
+
+        raremon = {
+            bad_path = true,
+            note = 'Care Crisis route'
+        },
+    },
+
+    raremon = {
+        garbagemon = {
+            note = 'Standard route'
+        },
+    },
+
+    bakemon = {
+        phantomon = {
+            note = 'Standard route'
+        },
+    },
+
+    phantomon = {
+        malomyotismon = {
+            note = 'Standard route'
+        },
+
+        puppetmon = {
+            note = 'Standard route'
+        },
+    },
+
+    pumpkinmon = {
+        puppetmon = {
+            note = 'Standard route'
+        },
+    },
+
+
 }
 
 BM.evolution_queue = BM.evolution_queue or {}

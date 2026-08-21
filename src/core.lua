@@ -767,10 +767,6 @@ local function getEnhancements()
 end
 
 
--- Evolution Tag support.
--- Do NOT arm/consume this on the Blind-select screen. Instead, when the
--- first hand is actually drawn inside a Blind, find the owned Evolution Tag,
--- consume it, and create Calumon directly in the hand.
 local function balatromon_find_evolution_tag()
     local wanted = 'tag_' .. BM.PREFIX .. '_evolution_tag'
     for _, tag in ipairs((G.GAME and G.GAME.tags) or {}) do
@@ -793,7 +789,6 @@ SMODS.current_mod.calculate = function(self, context)
         return
     end
 
-    -- Mark it NOW so repeated calculate passes cannot trigger the same tag.
     tag.triggered = true
 
     local lock = tag.ID
@@ -820,4 +815,60 @@ SMODS.current_mod.calculate = function(self, context)
         G.CONTROLLER.locks[lock] = nil
         return true
     end)
+end
+
+function BM.count_owned_jokers()
+    return G.jokers
+        and #(G.jokers.cards or {})
+        or 0
+end
+
+function BM.sum_other_joker_sell_value(card)
+    local total = 0
+
+    for _, joker in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        if joker ~= card then
+            total = total + (joker.sell_cost or 0)
+        end
+    end
+
+    return total
+end
+
+function BM.empty_joker_slots(excluded_slugs)
+    if not G.jokers then
+        return 0
+    end
+
+    local occupied = 0
+
+    for _, joker in ipairs(G.jokers.cards or {}) do
+        local slug = BM.get_card_slug(joker)
+
+        if not (
+            excluded_slugs
+            and excluded_slugs[slug]
+        ) then
+            occupied = occupied + 1
+        end
+    end
+
+    return math.max(
+        0,
+        (G.jokers.config.card_limit or 0) - occupied
+    )
+end
+
+function BM.raremon_xmult()
+    local count = BM.count_owned_jokers()
+
+    if count <= 4 then
+        return 5 - count
+    end
+
+    return 1 - 0.01 * (count - 4)
 end
