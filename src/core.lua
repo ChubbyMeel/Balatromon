@@ -720,7 +720,10 @@ end
 function BM.copy_joker(target, strip_negative)
     if not target or not BM.has_room(G.jokers) then return nil end
     local should_strip = strip_negative and target.edition and target.edition.negative
-    return SMODS.copy_card(target, {area=G.jokers, strip_edition=should_strip})
+    return SMODS.copy_card(target, {
+        area = G.jokers,
+        strip_edition = should_strip
+    })
 end
 
 function BM.apply_blind_reduction(card, context, amount, bosses)

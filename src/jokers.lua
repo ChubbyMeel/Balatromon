@@ -1637,7 +1637,7 @@ end
 
 do
     local slug = 'monzaemon'
-    local stage = 'Ultimate'
+    local stage = 'Champion'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
     SMODS.Joker {
         key = slug,
@@ -1680,7 +1680,7 @@ end
 
 do
     local slug = 'warumonzaemon'
-    local stage = 'Ultimate'
+    local stage = 'Champion'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
     SMODS.Joker {
         key = slug,
@@ -1723,7 +1723,7 @@ end
 
 do
     local slug = 'polarbearmon'
-    local stage = 'Ultimate'
+    local stage = 'Champion'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
     SMODS.Joker {
         key = slug,
@@ -1928,7 +1928,7 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Ikkakumon', text={
-            'Gives {C:chips}+5{} Chips for every unenhanced cards',
+            'Gives {C:chips}+20{} Chips for every unenhanced cards',
             'played this hand',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',

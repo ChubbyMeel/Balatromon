@@ -204,7 +204,7 @@ H.pichimon = hand_chips('Pair',50)
 H.bukamon = hand_chips('Three of a Kind',100)
 H.gomamon = hand_chips('Flush',80)
 H.crabmon = hand_chips('Straight',160)
-H.ikkakumon = function(card,context) if context.joker_main then local n=0; for _,c in ipairs(context.full_hand or {}) do if BM.is_unenhanced(c) then n=n+1 end end; if n>0 then return {chips=5*n} end end end
+H.ikkakumon = function(card,context) if context.joker_main then local n=0; for _,c in ipairs(context.full_hand or {}) do if BM.is_unenhanced(c) then n=n+1 end end; if n>0 then return {chips=20*n} end end end
 H.shellmon = function(card,context) if context.setting_blind and context.main_eval and not context.blueprint then BM.add_playing_card{area=G.deck, enhancement='m_stone'}; return {message='Stone Card!'} end end
 H.seadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.is_face(context.other_card) then return {chips=30} end end
 H.zudomon = function(card,context)
@@ -339,15 +339,116 @@ H.troopmon = function(card,context) local other=G.jokers and G.jokers.cards[1]; 
 H.digitamamon = function(card,context)
     if context.retrigger_joker_check and G.jokers and context.other_card==G.jokers.cards[#G.jokers.cards] and context.other_card~=card and not context.retrigger_joker then return {repetitions=2} end
 end
-H.espimon = function(card,context)
-    local e=card.ability.extra; e.sell_rounds=e.sell_rounds or 0
-    if context.end_of_round and context.main_eval and not context.blueprint then e.sell_rounds=e.sell_rounds+1; if e.sell_rounds==2 then return {message='Ready to Sell!'} end end
-    if context.selling_self and e.sell_rounds>=2 then local t=BM.random_other_joker(card,'espimon_copy'); if t then BM.copy_joker(t,true) end end
+H.espimon = function(card, context)
+    local e = card.ability.extra
+    e.sell_rounds = e.sell_rounds or 0
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        e.sell_rounds = e.sell_rounds + 1
+
+        if e.sell_rounds >= 2 then
+            return {
+                message = 'Ready to Sell!'
+            }
+        end
+    end
+
+    if context.selling_self
+    and e.sell_rounds >= 2
+    and not context.blueprint then
+        local jokers = {}
+
+        for i = 1, #G.jokers.cards do
+            if G.jokers.cards[i] ~= card then
+                jokers[#jokers + 1] = G.jokers.cards[i]
+            end
+        end
+
+        if #jokers > 0 then
+            if #G.jokers.cards <= G.jokers.config.card_limit then
+                local chosen_joker = pseudorandom_element(
+                    jokers,
+                    pseudoseed('espimon_copy')
+                )
+
+                local copy = copy_card(
+                    chosen_joker,
+                    nil,
+                    nil,
+                    nil,
+                    chosen_joker.edition
+                    and chosen_joker.edition.negative
+                )
+
+                copy:add_to_deck()
+                G.jokers:emplace(copy)
+
+                return {
+                    message = 'Duplicated!'
+                }
+            else
+                return {
+                    message = 'No Room!'
+                }
+            end
+        else
+            return {
+                message = 'No Other Jokers!'
+            }
+        end
+    end
 end
-H.hoverespimon = function(card,context)
-    local e=card.ability.extra; e.sell_rounds=e.sell_rounds or 0
-    if context.end_of_round and context.main_eval and not context.blueprint then e.sell_rounds=e.sell_rounds+1; if e.sell_rounds==3 then return {message='Ready to Sell!'} end end
-    if context.selling_self and e.sell_rounds>=3 then local t=G.jokers and G.jokers.cards[1]; if t and t~=card then BM.copy_joker(t,false) end end
+H.hoverespimon = function(card, context)
+    local e = card.ability.extra
+    e.sell_rounds = e.sell_rounds or 0
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        e.sell_rounds = e.sell_rounds + 1
+
+        if e.sell_rounds >= 3 then
+            return {
+                message = 'Ready to Sell!'
+            }
+        end
+    end
+
+    if context.selling_self
+    and e.sell_rounds >= 3
+    and not context.blueprint then
+        local target = nil
+
+        for i = 1, #G.jokers.cards do
+            if G.jokers.cards[i] ~= card then
+                target = G.jokers.cards[i]
+                break
+            end
+        end
+
+        if target then
+            if #G.jokers.cards <= G.jokers.config.card_limit then
+                local copy = copy_card(target)
+
+                copy:add_to_deck()
+                G.jokers:emplace(copy)
+
+                return {
+                    message = 'Duplicated!'
+                }
+            else
+                return {
+                    message = 'No Room!'
+                }
+            end
+        else
+            return {
+                message = 'No Other Jokers!'
+            }
+        end
+    end
 end
 H.relemon = eor_dollars(4)
 H.viximon = eor_dollars(5)
