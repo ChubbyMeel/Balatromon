@@ -81,6 +81,7 @@ assert(SMODS.load_file('src/enhancements.lua'))()
 assert(SMODS.load_file('src/seals.lua'))()
 assert(SMODS.load_file('src/tags.lua'))()
 assert(SMODS.load_file('src/vouchers.lua'))()
+assert(SMODS.load_file('src/collections.lua'))()
 
 SMODS.current_mod.process_loc_text = function()
     G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {

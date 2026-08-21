@@ -507,9 +507,8 @@ function BM.feed(card, amount)
 end
 
 function BM.care_tick(card, context)
-    -- Re-establish the ready-to-Digivolve shake whenever this card is evaluated.
-    -- This also makes full-Bond cards resume shaking after loading a save.
-    if BM.is_bond_full and BM.is_bond_full(card) then
+    if BM.should_bond_shake
+    and BM.should_bond_shake(card) then
         BM.start_bond_shake(card)
     end
 
@@ -536,7 +535,7 @@ function BM.care_tick(card, context)
         e.bond = math.min(max_bond, (e.bond or 0) + 1)
     end
 
-    if BM.is_bond_full(card) then
+    if BM.should_bond_shake(card) then
         BM.start_bond_shake(card)
     end
 
@@ -573,6 +572,23 @@ function BM.is_bond_full(card)
     return (e.bond or 0) >= max_bond
 end
 
+function BM.should_bond_shake(card)
+    if not BM.is_bond_full(card) then
+        return false
+    end
+
+    if not BM.get_display_evolutions then
+        return false
+    end
+
+    for _, option in ipairs(BM.get_display_evolutions(card)) do
+        if not option.bad_path then
+            return true
+        end
+    end
+
+    return false
+end
 
 function BM.start_bond_shake(card)
     if not BM.is_bond_full(card) then return end

@@ -394,13 +394,13 @@ SMODS.Consumable {
     set = COMMON_CARD.set, key = 'digitama', atlas = 'Consumable', pos = {x=2,y=1},
     discovered = true, unlocked = true, cost = 5,
     loc_txt = {name='Digitama', text={
-        'Create {C:attention}2 random Rookie{} Digimon',
+        'Create {C:attention}2 random In-Training{} Digimon',
         '{C:inactive}(Must have room){}'
     }},
     can_use = function(self, card) return room_for(G.jokers, 2) end,
     use = function(self, card, area, copier)
         BM.remember_digi_item(card)
-        create_random_stage('Rookie', 2, 'digitama')
+        create_random_stage('In-Training', 2, 'digitama')
     end,
 }
 

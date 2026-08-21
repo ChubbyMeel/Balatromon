@@ -83,8 +83,7 @@ SMODS.Tag {
     loc_txt = {
         name = 'Digitag',
         text = {
-            'After selecting the next Blind,',
-            'open a {C:attention}Mega Digital Pack{}',
+            'Gives a {C:attention}Mega Digital Pack{}',
         },
     },
 
@@ -166,15 +165,10 @@ SMODS.Tag {
     },
 
     apply = function(self, tag, context)
-        -- Deliberately empty. We do NOT consume on new_blind_choice.
-        -- core.lua handles this tag on context.first_hand_drawn.
     end,
 }
 
--- ============================================================
--- CUTE TAG
--- Immediate: create exactly 4 random Fresh Digimon, but only if all 4 fit.
--- ============================================================
+
 
 SMODS.Tag {
     key = 'cute',
@@ -370,3 +364,84 @@ SMODS.Tag:take_ownership('top_up', {
 
     no_collection = true,
 }, true)
+
+
+SMODS.Tag:take_ownership(
+    'buffoon',
+    {
+        loc_txt = {
+            name = 'Crest Tag',
+            text = {
+                'Gives a free {C:attention}Mega Crest Pack{}',
+            },
+        },
+
+        apply = function(self, tag, context)
+            if context.type ~= 'new_blind_choice'
+            or tag.triggered then
+                return
+            end
+
+            local center =
+                G.P_CENTERS['p_buffoon_mega_1']
+
+            if not center then
+                print(
+                    '[Balatromon] Crest Tag: '
+                    .. 'Mega Crest Pack center missing'
+                )
+                return
+            end
+
+            local lock = tag.ID
+            G.CONTROLLER.locks[lock] = true
+
+            tag:yep(
+                'Crest Pack!',
+                G.C.BLUE,
+                function()
+                    local card = Card(
+                        G.play.T.x
+                            + G.play.T.w / 2
+                            - G.CARD_W * 1.27 / 2,
+
+                        G.play.T.y
+                            + G.play.T.h / 2
+                            - G.CARD_H * 1.27 / 2,
+
+                        G.CARD_W * 1.27,
+                        G.CARD_H * 1.27,
+
+                        G.P_CARDS.empty,
+                        center,
+
+                        {
+                            bypass_discovery_center = true,
+                            bypass_discovery_ui = true
+                        }
+                    )
+
+                    card.cost = 0
+                    card.from_tag = true
+
+                    G.FUNCS.use_card({
+                        config = {
+                            ref_table = card
+                        }
+                    })
+
+                    card:start_materialize()
+
+                    G.CONTROLLER.locks[lock] = nil
+
+                    return true
+                end
+            )
+
+            tag.triggered = true
+
+            return true
+        end,
+    },
+    true
+)

@@ -270,3 +270,141 @@ for _, key in ipairs(buffoon_packs) do
         create_card = buffoon_create_card,
     }, true)
 end
+
+local function weighted_digimon_key(seed)
+    local pool = {}
+
+    for _, entry in ipairs(BM.shop_joker_keys or {}) do
+        local center = G.P_CENTERS[entry.key]
+
+        if center and center.balatromon == true then
+            local allowed = true
+
+            if center.in_pool then
+                local ok = center:in_pool({
+                    source = 'buf'
+                })
+
+                allowed = ok ~= false
+            end
+
+            if allowed then
+                for _ = 1, math.max(
+                    1,
+                    math.floor(entry.weight or 1)
+                ) do
+                    pool[#pool + 1] = entry.key
+                end
+            end
+        end
+    end
+
+    if #pool == 0 then
+        return BM.center_key('botamon')
+    end
+
+    return BM.random_element(
+        pool,
+        seed or 'balatromon_crest'
+    )
+end
+
+local function crest_create_card(self, card, i)
+    local key = weighted_digimon_key(
+        'balatromon_crest_'
+        .. tostring(self.key)
+        .. '_'
+        .. tostring(i or 1)
+    )
+
+    return {
+        set = 'Joker',
+        area = G.pack_cards,
+        key = key,
+        skip_materialize = true,
+        soulable = false,
+        key_append =
+            'balatromon_crest_'
+            .. tostring(i or 1),
+    }
+end
+
+SMODS.Booster:take_ownership(
+    'buffoon_normal_1',
+    {
+        atlas = 'Booster',
+        pos = {x = 0, y = 2},
+
+        loc_txt = {
+            name = 'Crest Pack',
+            group_name = 'Crest Pack',
+            text = {
+                'Choose {C:attention}#1#{} of up to',
+                '{C:attention}#2#{} {C:attention}Digimon Jokers{}',
+            },
+        },
+
+        create_card = crest_create_card,
+    },
+    true
+)
+
+SMODS.Booster:take_ownership(
+    'buffoon_normal_2',
+    {
+        atlas = 'Booster',
+        pos = {x = 1, y = 2},
+
+        loc_txt = {
+            name = 'Crest Pack',
+            group_name = 'Crest Pack',
+            text = {
+                'Choose {C:attention}#1#{} of up to',
+                '{C:attention}#2#{} {C:attention}Digimon Jokers{}',
+            },
+        },
+
+        create_card = crest_create_card,
+    },
+    true
+)
+
+SMODS.Booster:take_ownership(
+    'buffoon_jumbo_1',
+    {
+        atlas = 'Booster',
+        pos = {x = 2, y = 2},
+
+        loc_txt = {
+            name = 'Jumbo Crest Pack',
+            group_name = 'Crest Pack',
+            text = {
+                'Choose {C:attention}#1#{} of up to',
+                '{C:attention}#2#{} {C:attention}Digimon Jokers{}',
+            },
+        },
+
+        create_card = crest_create_card,
+    },
+    true
+)
+
+SMODS.Booster:take_ownership(
+    'buffoon_mega_1',
+    {
+        atlas = 'Booster',
+        pos = {x = 3, y = 2},
+
+        loc_txt = {
+            name = 'Mega Crest Pack',
+            group_name = 'Crest Pack',
+            text = {
+                'Choose {C:attention}#1#{} of up to',
+                '{C:attention}#2#{} {C:attention}Digimon Jokers{}',
+            },
+        },
+
+        create_card = crest_create_card,
+    },
+    true
+)
