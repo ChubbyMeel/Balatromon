@@ -726,11 +726,37 @@ function BM.on_add(card, slug)
     if slug == 'digitamamon' then
         card.ability.rental = true
     end
+
+    if slug == 'polarbearmon'
+    and BM.refresh_polarbearmon_shop_costs then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0,
+
+            func = function()
+                BM.refresh_polarbearmon_shop_costs()
+                return true
+            end
+        }))
+    end
 end
 
 function BM.on_remove(card, slug)
     if BM.has_passive_deck_effect(slug) then
         BM.remove_passive_deck_effect(card, slug)
+    end
+
+    if slug == 'polarbearmon'
+    and BM.refresh_polarbearmon_shop_costs then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0,
+
+            func = function()
+                BM.refresh_polarbearmon_shop_costs()
+                return true
+            end
+        }))
     end
 end
 

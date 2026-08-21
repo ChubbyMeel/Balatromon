@@ -5565,7 +5565,7 @@ end
 
 do
     local slug = 'akatorimon'
-    local stage = 'In-Training'
+    local stage = 'Champion'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
     SMODS.Joker {
         key = slug,
@@ -5605,7 +5605,7 @@ end
 
 do
     local slug = 'kokatorimon'
-    local stage = 'In-Training'
+    local stage = 'Champion'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
     SMODS.Joker {
         key = slug,
@@ -5644,7 +5644,7 @@ end
 
 do
     local slug = 'pinamon'
-    local stage = 'Fresh'
+    local stage = 'Rookie'
     local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
     SMODS.Joker {
         key = slug,

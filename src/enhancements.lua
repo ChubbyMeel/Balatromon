@@ -1,9 +1,6 @@
 local BM = Balatromon
 
 
--- ============================================================
--- CALUMON CARD
--- ============================================================
 
 SMODS.Enhancement {
     key = 'calumon',
@@ -14,15 +11,12 @@ SMODS.Enhancement {
         y = 0
     },
 
-    -- Completely replace the normal playing-card appearance.
+
     replace_base_card = true,
 
-    -- Calumon has no normal playing-card identity.
     no_rank = true,
     no_suit = true,
 
-    -- Even without a rank/suit, Calumon always participates
-    -- in scoring.
     always_scores = true,
 
     config = {
@@ -163,15 +157,13 @@ SMODS.Enhancement {
                     )
 
 
-                    -- Calumon Card
-                    --      ↓
-                    -- Evolution Card
+
                     card:set_ability(
                         G.P_CENTERS[
                             'm_DigiMeel_evolution'
                         ],
                         nil,
-                        true
+                        false
                     )
 
 
@@ -185,11 +177,6 @@ SMODS.Enhancement {
     end,
 }
 
-
-
--- ============================================================
--- EVOLUTION CARD
--- ============================================================
 
 SMODS.Enhancement {
     key = 'evolution',

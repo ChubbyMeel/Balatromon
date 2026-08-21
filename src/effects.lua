@@ -198,13 +198,7 @@ H.heavyleomon = function(card, context)
 end
 H.monzaemon = function(card,context) if context.setting_blind and context.main_eval and not context.blueprint and BM.add_consumable('Tarot') then return {message='Tarot!'} end end
 H.warumonzaemon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then local n=BM.add_food(2); if n>0 then return {message='Food!'} end end end
-H.polarbearmon = function(card,context)
-    if context.modify_shop_card and context.card and not context.card.ability.balatromon_polar_discount then
-        local center=context.card.config and context.card.config.center
-        local is_planet=center and center.set=='Planet'
-        local is_celestial=center and center.set=='Booster' and (center.kind=='Celestial' or tostring(center.key):find('celestial'))
-        if is_planet or is_celestial then context.card.ability.balatromon_polar_discount=true; context.card.ability.extra_value=(context.card.ability.extra_value or 0)-2; context.card:set_cost() end
-    end
+H.polarbearmon = function(card, context)
 end
 H.pichimon = hand_chips('Pair',50)
 H.bukamon = hand_chips('Three of a Kind',100)
@@ -626,4 +620,114 @@ end
 function BM.run_effect(slug,card,context)
     local fn=H[slug]
     if fn then return fn(card,context) end
+end
+
+function BM.has_active_polarbearmon()
+    if not G.jokers then
+        return false
+    end
+
+    for _, joker in ipairs(G.jokers.cards or {}) do
+        local center =
+            joker.config
+            and joker.config.center
+
+        if center
+        and center.key == BM.center_key('polarbearmon')
+        and not joker.debuff
+        and not (
+            joker.ability
+            and joker.ability.extra
+            and joker.ability.extra.permanently_disabled
+        ) then
+            return true
+        end
+    end
+
+    return false
+end
+
+function BM.is_polarbearmon_discount_target(card)
+    local center =
+        card
+        and card.config
+        and card.config.center
+
+    if not center then
+        return false
+    end
+
+    if center.set == 'Planet' then
+        return true
+    end
+
+    if center.set == 'Booster' then
+        if center.kind == 'Celestial' then
+            return true
+        end
+
+        if tostring(center.key):lower():find('celestial') then
+            return true
+        end
+
+        if card.ability
+        and tostring(card.ability.name):lower():find('celestial') then
+            return true
+        end
+    end
+
+    return false
+end
+
+function BM.refresh_polarbearmon_shop_costs()
+    local function refresh(area)
+        if not area then
+            return
+        end
+
+        for _, card in ipairs(area.cards or {}) do
+            if card.set_cost then
+                card:set_cost()
+            end
+        end
+    end
+
+    refresh(G.shop_jokers)
+    refresh(G.shop_booster)
+end
+
+if not BM._polarbearmon_cost_patched then
+    BM._polarbearmon_cost_patched = true
+
+    local old_set_cost = Card.set_cost
+
+    Card.set_cost = function(self, ...)
+        local result = old_set_cost(self, ...)
+
+        if BM.has_active_polarbearmon()
+        and BM.is_polarbearmon_discount_target(self) then
+            self.cost = math.max(
+                0,
+                (self.cost or 0) - 2
+            )
+
+            self.sell_cost =
+                math.max(
+                    1,
+                    math.floor(self.cost / 2)
+                )
+                + (
+                    self.ability
+                    and self.ability.extra_value
+                    or 0
+                )
+
+            self.sell_cost_label =
+                self.facing == 'back'
+                and '?'
+                or self.sell_cost
+        end
+
+        return result
+    end
 end
