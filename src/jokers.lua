@@ -138,7 +138,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MetalGreymon, SkullGreymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'greymon_rank') or e.target_rank or 14
+            local target_rank=card and BM.ensure_target(card,'target_rank',BM.deck_ranks(),'greymon_rank') or e.target_rank or 14
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank)}}
         end,
         in_pool = function(self,args)
@@ -258,7 +258,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MetalGreymon, SkullGreymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'tyrannomon_suit') or e.target_suit or 'Hearts'
+            local target_suit=card and BM.ensure_target(card,'target_suit',BM.deck_suits(),'tyrannomon_suit') or e.target_suit or 'Hearts'
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
         end,
         in_pool = function(self,args)
@@ -385,9 +385,34 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'wargrey_rank') or e.target_rank or 14
-            local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'wargrey_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank),target_suit,e.xmult or 1, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+
+            local target_rank=e.target_rank
+            local target_suit=e.target_suit
+
+            if card then
+                target_rank,target_suit=BM.ensure_card_target(
+                    card,
+                    'wargrey_card'
+            )
+            end
+
+            target_rank=target_rank or 14
+            target_suit=target_suit or 'Hearts'
+
+            return {
+                vars={
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    BM.rank_name(target_rank),
+                    target_suit,
+                    e.xmult or 1,
+                    colours={
+                        (G.C.SUITS and G.C.SUITS[target_suit])
+                        or G.C.FILTER
+                    }
+                }
+            }
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -429,9 +454,34 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'machine_rank') or e.target_rank or 14
-            local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'machine_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank),target_suit,e.xmult or 1, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+
+            local target_rank=e.target_rank
+            local target_suit=e.target_suit
+
+            if card then
+                target_rank,target_suit=BM.ensure_card_target(
+                    card,
+                    'machine_card'
+                )
+            end
+
+            target_rank=target_rank or 14
+            target_suit=target_suit or 'Hearts'
+
+            return {
+                vars={
+                e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    BM.rank_name(target_rank),
+                    target_suit,
+                    e.xmult or 1,
+                    colours={
+                        (G.C.SUITS and G.C.SUITS[target_suit])
+                        or G.C.FILTER
+                    }
+                }
+            }
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1573,9 +1623,34 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'metalgaruru_rank') or e.target_rank or 14
-            local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'metalgaruru_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank),target_suit,e.xchips or 1, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+
+            local target_rank=e.target_rank
+            local target_suit=e.target_suit
+
+            if card then
+                target_rank,target_suit=BM.ensure_card_target(
+                    card,
+                    'metalgaruru_card'
+                )
+            end
+
+            target_rank=target_rank or 14
+            target_suit=target_suit or 'Hearts'
+
+            return {
+                vars={
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    BM.rank_name(target_rank),
+                    target_suit,
+                    e.xchips or 1,
+                    colours={
+                        (G.C.SUITS and G.C.SUITS[target_suit])
+                        or G.C.FILTER
+                    }
+                }
+            }
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5042,7 +5117,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'hiandro_suit') or e.target_suit or 'Hearts'
+            local target_suit=card and BM.ensure_target(card,'target_suit',BM.deck_suits(),'hiandro_suit') or e.target_suit or 'Hearts'
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_suit,e.xmult or 1, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
         end,
         in_pool = function(self,args)
@@ -5462,9 +5537,33 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Phoenixmon, Valkyrimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'hippo_rank') or e.target_rank or 14
-            local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'hippo_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank),target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+
+            local target_rank=e.target_rank
+            local target_suit=e.target_suit
+
+            if card then
+                target_rank,target_suit=BM.ensure_card_target(
+                    card,
+                    'hippo_card'
+                )
+            end
+
+            target_rank=target_rank or 14
+            target_suit=target_suit or 'Hearts'
+
+            return {
+                vars={
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    BM.rank_name(target_rank),
+                    target_suit,
+                    colours={
+                        (G.C.SUITS and G.C.SUITS[target_suit])
+                        or G.C.FILTER
+                    }
+                }
+            }
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'

@@ -183,7 +183,161 @@ function BM.is_digimon_display_card(card)
 end
 
 
+function BM.deck_ranks()
+    local found = {}
+    local ranks = {}
 
+    for _, card in ipairs(G.playing_cards or {}) do
+        local rank = BM.get_rank(card)
+
+        if rank and not found[rank] then
+            found[rank] = true
+            ranks[#ranks + 1] = rank
+        end
+    end
+
+    table.sort(ranks)
+
+    return ranks
+end
+
+function BM.deck_suits()
+    local found = {}
+    local suits = {}
+
+    for _, card in ipairs(G.playing_cards or {}) do
+        local suit = card.base and card.base.suit
+
+        if suit then
+            found[suit] = true
+        end
+    end
+
+    for _, suit in ipairs(BM.SUITS) do
+        if found[suit] then
+            suits[#suits + 1] = suit
+        end
+    end
+
+    return suits
+end
+
+function BM.deck_card_targets()
+    local found = {}
+    local targets = {}
+
+    for _, card in ipairs(G.playing_cards or {}) do
+        local rank = BM.get_rank(card)
+        local suit = card.base and card.base.suit
+
+        if rank and suit then
+            local key = tostring(rank) .. ':' .. suit
+
+            if not found[key] then
+                found[key] = true
+
+                targets[#targets + 1] = {
+                    rank = rank,
+                    suit = suit
+                }
+            end
+        end
+    end
+
+    return targets
+end
+
+function BM.card_target_exists(rank, suit)
+    if not rank or not suit then
+        return false
+    end
+
+    for _, card in ipairs(G.playing_cards or {}) do
+        if BM.get_rank(card) == rank
+        and card.base
+        and card.base.suit == suit then
+            return true
+        end
+    end
+
+    return false
+end
+
+function BM.ensure_card_target(card, seed)
+    local e = card.ability.extra
+
+    if BM.card_target_exists(
+        e.target_rank,
+        e.target_suit
+    ) then
+        return e.target_rank, e.target_suit
+    end
+
+    local targets = BM.deck_card_targets()
+
+    if #targets == 0 then
+        e.target_rank = nil
+        e.target_suit = nil
+        return nil, nil
+    end
+
+    local target = BM.random_element(
+        targets,
+        seed .. tostring(card.sort_id or '')
+    )
+
+    e.target_rank = target.rank
+    e.target_suit = target.suit
+
+    return e.target_rank, e.target_suit
+end
+
+function BM.reroll_card_target(card, seed)
+    local e = card.ability.extra
+    local targets = BM.deck_card_targets()
+
+    local old_rank = e.target_rank
+    local old_suit = e.target_suit
+
+    if #targets == 0 then
+        e.target_rank = nil
+        e.target_suit = nil
+        return nil, nil
+    end
+
+    e._target_rerolls = e._target_rerolls or {}
+    e._target_rerolls.target_card =
+        (e._target_rerolls.target_card or 0) + 1
+
+    local roll_seed =
+        seed
+        .. ':'
+        .. tostring(e._target_rerolls.target_card)
+        .. ':'
+        .. tostring(card.sort_id or '')
+
+    local target = BM.random_element(
+        targets,
+        roll_seed
+    )
+
+    if #targets > 1
+    and target.rank == old_rank
+    and target.suit == old_suit then
+        for i, value in ipairs(targets) do
+            if value.rank == old_rank
+            and value.suit == old_suit then
+                target = targets[(i % #targets) + 1]
+                break
+            end
+        end
+    end
+
+    e.target_rank = target.rank
+    e.target_suit = target.suit
+
+    return e.target_rank, e.target_suit
+end
 
 if not BM._digimon_double_click_hooked then
     BM._digimon_double_click_hooked = true
@@ -414,25 +568,65 @@ function BM.random_element(list, seed)
 end
 
 function BM.ensure_target(card, field, list, seed)
-    card.ability.extra[field] = card.ability.extra[field] or BM.random_element(list, seed .. tostring(card.sort_id or ''))
-    return card.ability.extra[field]
+    local e = card.ability.extra
+    list = list or {}
+
+    local current = e[field]
+    local valid = false
+
+    if current ~= nil then
+        for _, value in ipairs(list) do
+            if value == current then
+                valid = true
+                break
+            end
+        end
+    end
+
+    if not valid then
+        if #list > 0 then
+            e[field] = BM.random_element(
+                list,
+                seed .. tostring(card.sort_id or '')
+            )
+        else
+            e[field] = nil
+        end
+    end
+
+    return e[field]
 end
 
 function BM.reroll_target(card, field, list, seed)
     local e = card.ability.extra
+    list = list or {}
+
     e._target_rerolls = e._target_rerolls or {}
-    e._target_rerolls[field] = (e._target_rerolls[field] or 0) + 1
+    e._target_rerolls[field] =
+        (e._target_rerolls[field] or 0) + 1
 
     local old_value = e[field]
-    local roll_seed = seed
-        .. ':' .. tostring(e._target_rerolls[field])
-        .. ':' .. tostring(card.sort_id or '')
 
-    local new_value = BM.random_element(list, roll_seed)
+    if #list == 0 then
+        e[field] = nil
+        return nil, old_value
+    end
 
-    -- A "changes every round/hand" target should visibly change. If the
-    -- seeded roll lands on the same value, advance to the next entry instead.
-    if old_value ~= nil and #list > 1 and new_value == old_value then
+    local roll_seed =
+        seed
+        .. ':'
+        .. tostring(e._target_rerolls[field])
+        .. ':'
+        .. tostring(card.sort_id or '')
+
+    local new_value = BM.random_element(
+        list,
+        roll_seed
+    )
+
+    if old_value ~= nil
+    and #list > 1
+    and new_value == old_value then
         for i, value in ipairs(list) do
             if value == old_value then
                 new_value = list[(i % #list) + 1]
@@ -442,6 +636,7 @@ function BM.reroll_target(card, field, list, seed)
     end
 
     e[field] = new_value
+
     return new_value, old_value
 end
 
