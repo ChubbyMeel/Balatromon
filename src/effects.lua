@@ -309,7 +309,7 @@ H.gatomon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then
         local single=#context.full_hand==1
         if single then BM.set_enhancement(context.full_hand[1],'m_glass') end
-        for _,c in ipairs(context.full_hand or {}) do if BM.is_face(c) and not (single and c==context.full_hand[1]) then BM.set_enhancement(c,'m_lucky') end end
+        for _,c in ipairs(context.full_hand or {}) do if BM.is_face(c) and not (single and c==context.full_hand[1]) then BM.set_enhancement(c,'m_glass') end end
         return {message='Changed!'}
     end
 end

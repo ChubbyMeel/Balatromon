@@ -2757,7 +2757,7 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gatomon', text={
-            'All played face cards turn to lucky cards,',
+            'All played face cards turn to glass cards,',
             'Also applies Salamon’s effect',
             BM.care_status_text(stage),
             '{C:red}Care Mistakes{} #3#/3',
