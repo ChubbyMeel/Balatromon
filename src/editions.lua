@@ -50,20 +50,6 @@ local function bloom_feed(source)
 
     BM.feed(target, 1)
 
-    target:juice_up(0.8, 0.5)
-
-    card_eval_status_text(
-        target,
-        'extra',
-        nil,
-        nil,
-        nil,
-        {
-            message = 'Fed!',
-            colour = G.C.GREEN
-        }
-    )
-
     return true
 end
 

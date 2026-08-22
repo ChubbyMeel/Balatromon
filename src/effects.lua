@@ -558,9 +558,34 @@ H.tankdramon = function(card,context)
         if money>0 or purple>0 then return {dollars=money,message='Seals Activated!'} end
     end
 end
-H.megagargomon = function(card,context)
-    if context.ending_shop and context.main_eval and not context.blueprint and G.consumeables and #G.consumeables.cards>0 and BM.has_room(G.consumeables) then
-        local t=BM.random_element(G.consumeables.cards,'megagargomon_copy'); local c=SMODS.copy_card(t,{area=G.consumeables}); if c then c:set_edition('e_negative',true) end; return {message='Copied!'}
+H.megagargomon = function(card, context)
+    if context.ending_shop then
+        if G.consumeables and G.consumeables.cards[1] then
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    local target = pseudorandom_element(
+                        G.consumeables.cards,
+                        pseudoseed('megagargomon')
+                    )
+
+                    local copy = copy_card(target, nil)
+
+                    copy:set_edition(
+                        {negative = true},
+                        true
+                    )
+
+                    copy:add_to_deck()
+                    G.consumeables:emplace(copy)
+
+                    return true
+                end
+            }))
+
+            return {
+                message = 'Copied!'
+            }
+        end
     end
 end
 H.hiandromon = function(card,context)

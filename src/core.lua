@@ -694,11 +694,63 @@ function BM.add_playing_card(args)
     return SMODS.add_card(args)
 end
 
+function BM.care_animation(card, message, colour)
+    if not card or card.REMOVED then return end
+
+    if card.juice_up then
+        card:juice_up(0.8, 0.5)
+    end
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message = message,
+            colour = colour
+        }
+    )
+end
+
+function BM.bad_care_animation(card, message)
+    if not card or card.REMOVED then return end
+
+    if card.juice_up then
+        card:juice_up(1.4, 1.0)
+    end
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message = message,
+            colour = G.C.RED
+        }
+    )
+end
+
 function BM.feed(card, amount)
     if not BM.is_digimon(card) then return end
+
     local e = card.ability.extra
+
     if e.permanently_disabled then return end
-    e.hunger = math.max(1, (e.hunger or 1) - (amount or 1))
+
+    e.hunger = math.max(
+        1,
+        (e.hunger or 1) - (amount or 1)
+    )
+
+    BM.care_animation(
+        card,
+        'Fed!',
+        G.C.GREEN
+    )
 end
 
 function BM.is_active_digimon(card, slug)
@@ -791,23 +843,67 @@ function BM.care_tick(card, context)
     if e.permanently_disabled then return end
     e.care_rounds = (e.care_rounds or 0) + 1
 
-    -- Hunger rises by 1 every two rounds. Hunger uses 1..5.
-    if e.care_rounds % 2 == 0 then e.hunger = math.min(5, (e.hunger or 1) + 1) end
+    if e.care_rounds % 2 == 0 then
+        local old_hunger = e.hunger or 1
+
+        e.hunger = math.min(
+            5,
+            old_hunger + 1
+        )
+
+        if e.hunger > old_hunger then
+            BM.care_animation(
+                card,
+                'Hungry',
+                G.C.RED
+            )
+        end
+    end
 
     if (e.hunger or 1) > 3 then
-        e.care_mistakes = math.min(3, (e.care_mistakes or 0) + 1)
-        -- No Bond while too hungry.
+        local old_mistakes = e.care_mistakes or 0
+
+        e.care_mistakes = math.min(
+            3,
+            old_mistakes + 1
+        )
+
+        if e.care_mistakes > old_mistakes then
+            BM.bad_care_animation(
+                card,
+                ':('
+            )
+        end
+
+        if old_mistakes < 3
+        and e.care_mistakes >= 3 then
+            e.care_crisis = true
+
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.2,
+                func = function()
+                    if card
+                    and not card.REMOVED
+                    and BM.queue_care_crisis then
+                        BM.queue_care_crisis(card)
+                    end
+
+                    return true
+                end
+            }))
+        end
     else
         local max_bond = BM.get_bond_max(card)
-        e.bond = math.min(max_bond, (e.bond or 0) + 1)
+
+        e.bond = math.min(
+            max_bond,
+            (e.bond or 0) + 1
+        )
     end
 
     if BM.should_bond_shake(card) then
         BM.start_bond_shake(card)
-    end
-
-    if (e.care_mistakes or 0) >= 3 then
-        e.care_crisis = true
     end
 
     if (e.hunger or 1) >= 5 then

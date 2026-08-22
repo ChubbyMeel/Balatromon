@@ -1008,6 +1008,43 @@ function BM.process_evolution_queue()
     end
 end
 
+function BM.queue_care_crisis(card)
+    if not card
+    or card.REMOVED
+    or not BM.is_digimon(card) then
+        return false
+    end
+
+    local e = card.ability and card.ability.extra or {}
+
+    if e.permanently_disabled
+    or not BM.is_care_crisis(card) then
+        return false
+    end
+
+    if BM.pending_evolution
+    and BM.pending_evolution.card == card then
+        return false
+    end
+
+    BM.evolution_queue = BM.evolution_queue or {}
+
+    for _, entry in ipairs(BM.evolution_queue) do
+        if entry.card == card then
+            return false
+        end
+    end
+
+    BM.evolution_queue[#BM.evolution_queue + 1] = {
+        card = card,
+        device_key = 'care_crisis'
+    }
+
+    BM.process_evolution_queue()
+
+    return true
+end
+
 function BM.begin_evolution_sequence(cards, device_key)
     BM.evolution_queue = {}
     BM.pending_evolution = nil
