@@ -83,6 +83,7 @@ assert(SMODS.load_file('src/tags.lua'))()
 assert(SMODS.load_file('src/vouchers.lua'))()
 assert(SMODS.load_file('src/collections.lua'))()
 assert(SMODS.load_file('src/editions.lua'))()
+assert(SMODS.load_file('src/stickers.lua'))()
 
 SMODS.current_mod.process_loc_text = function()
     G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {
@@ -93,4 +94,67 @@ SMODS.current_mod.process_loc_text = function()
             '{C:inactive}(rank changes at end of round){}'
         }
     }
+end
+
+
+local function wrap_digimon_tooltip_text(text, max_length)
+    max_length = max_length or 34
+
+    if not text or text == '' then
+        return {''}
+    end
+
+    local lines = {}
+    local current = ''
+
+    for word in tostring(text):gmatch('%S+') do
+        if current == '' then
+            current = word
+        elseif #current + #word + 1 <= max_length then
+            current = current .. ' ' .. word
+        else
+            lines[#lines + 1] = current
+            current = word
+        end
+    end
+
+    if current ~= '' then
+        lines[#lines + 1] = current
+    end
+
+    return lines
+end
+
+local old_process_loc_text =
+    SMODS.current_mod.process_loc_text
+
+SMODS.current_mod.process_loc_text = function(self)
+    if old_process_loc_text then
+        old_process_loc_text(self)
+    end
+
+    G.localization.descriptions.Other =
+        G.localization.descriptions.Other or {}
+
+    for slug, def in pairs(
+        Balatromon.joker_defs or {}
+    ) do
+        local key =
+            Balatromon.PREFIX
+            .. '_digimon_ref_'
+            .. slug
+
+        SMODS.process_loc_text(
+            G.localization.descriptions.Other,
+            key,
+            {
+                name = def.name or slug,
+                text = wrap_digimon_tooltip_text(
+                    def.effect
+                        or 'No effect description',
+                    34
+                )
+            }
+        )
+    end
 end

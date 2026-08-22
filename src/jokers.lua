@@ -7,9 +7,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Botamon', text={
-            '{C:mult}+2{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+2{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -20,7 +24,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Koromon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -46,9 +51,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Koromon', text={
-            '{C:mult}+4{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+4{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -59,7 +68,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Agumon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -85,9 +95,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Agumon', text={
-            '{C:mult}+6{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+6{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -98,7 +112,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Greymon, Tyrannomon, Numemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -124,10 +139,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Greymon', text={
-            '{X:mult,C:white}X2{} Mult if played hand contains {C:attention}#4#{}',
-            '{C:inactive}(rank changes at end of round){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{X:mult,C:white}X2{} Mult if played hand contains {C:attention}#4#{}',
+                '{C:inactive}(rank changes at end of round){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -139,7 +158,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_rank=card and BM.ensure_target(card,'target_rank',BM.deck_ranks(),'greymon_rank') or e.target_rank or 14
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank)}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},BM.rank_name(target_rank)}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -165,9 +185,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MetalGreymon', text={
-            '{X:mult,C:white}X3{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{X:mult,C:white}X3{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -178,7 +202,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'WarGreymon, Machinedramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -204,10 +229,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='SkullGreymon', text={
-            'Gain {X:mult,C:white}X0.25{} Mult every time a card is destroyed',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.25{} Mult every time a card is destroyed',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -218,7 +247,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'BlackWarGreymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xmult or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xmult or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -244,10 +274,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Tyrannomon', text={
-            '{X:mult,C:white}X2{} Mult if played hand contains {V:1}#4#{}',
-            '{C:inactive}(suit changes at end of round){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{X:mult,C:white}X2{} Mult if played hand contains {V:1}#4#{}',
+                '{C:inactive}(suit changes at end of round){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -259,7 +293,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_suit=card and BM.ensure_target(card,'target_suit',BM.deck_suits(),'tyrannomon_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -285,11 +320,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Numemon', text={
-            '{X:mult,C:white}X2{} Mult',
-            '{C:inactive}(-X0.01 Mult for every discarded card){}',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{X:mult,C:white}X2{} Mult',
+                '{C:inactive}(-X0.01 Mult for every discarded card){}',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -300,7 +339,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Garbagemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xmult or 2}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xmult or 2}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -326,12 +366,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Garbagemon', text={
-            'Gain {X:mult,C:white}X0.75{} Mult for every {C:attention}#4#{} Discarded. Reset',
-            'at the end of the round',
-            '{C:inactive}(rank changes at end of round){}',
-            '{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.75{} Mult for every {C:attention}#4#{} Discarded. Reset',
+                'at the end of the round',
+                '{C:inactive}(rank changes at end of round){}',
+                '{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -343,7 +387,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'garbage_rank') or e.target_rank or 14
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank),e.round_xmult or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},BM.rank_name(target_rank),e.round_xmult or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -369,12 +414,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='WarGreymon', text={
-            'Gain {X:mult,C:white}X0.5{} Mult for every {C:attention}#4#{} of {V:1}#5#{} Played',
-            '{C:inactive}(Upgrade limited once per card including',
-            'retrigger){} {C:inactive}(card changes at end of round){}',
-            '{C:inactive}(Currently {X:mult,C:white}X#6#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.5{} Mult for every {C:attention}#4#{} of {V:1}#5#{} Played',
+                '{C:inactive}(Upgrade limited once per card including',
+                'retrigger){} {C:inactive}(card changes at end of round){}',
+                '{C:inactive}(Currently {X:mult,C:white}X#6#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -404,6 +453,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.rank_name(target_rank),
                     target_suit,
                     e.xmult or 1,
@@ -438,12 +488,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Machinedramon', text={
-            'Gain {X:mult,C:white}X0.5{} Mult for every {C:attention}#4#{} of {V:1}#5#{} Held in',
-            'hand at the end of the round',
-            '{C:inactive}(card changes at end of round){}',
-            '{C:inactive}(Currently {X:mult,C:white}X#6#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.5{} Mult for every {C:attention}#4#{} of {V:1}#5#{} Held in',
+                'hand at the end of the round',
+                '{C:inactive}(card changes at end of round){}',
+                '{C:inactive}(Currently {X:mult,C:white}X#6#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -473,6 +527,7 @@ do
                 e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.rank_name(target_rank),
                     target_suit,
                     e.xmult or 1,
@@ -507,10 +562,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='BlackWarGreymon', text={
-            'Gain {X:mult,C:white}X0.5{} Mult every time a card is destroyed',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.5{} Mult every time a card is destroyed',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -521,7 +580,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xmult or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xmult or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -547,9 +607,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Jyarimon', text={
-            '{C:mult}+8{} Mult if played hand contains a Pair',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+8{} Mult if played hand contains a Pair',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -560,7 +624,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gigimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -586,9 +651,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gigimon', text={
-            '{C:mult}+9{} Mult if played hand contains Two Pair',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+9{} Mult if played hand contains Two Pair',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -599,7 +668,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Guilmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -625,9 +695,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Guilmon', text={
-            '{C:mult}+10{} Mult if played hand contains a Flush',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+10{} Mult if played hand contains a Flush',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -638,7 +712,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Growlmon, Numemon, Monochromon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -664,10 +739,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Growlmon', text={
-            '{C:mult}+17{} Mult if played hand contains Four of a',
-            'Kind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:mult}+17{} Mult if played hand contains Four of a',
+                'Kind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -678,7 +757,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'WarGrowlmon, Megadramon, Gigadramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -704,10 +784,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Monochromon', text={
-            'Add to Mult the highest valued card in played',
-            'hand and make it gold',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Add to Mult the highest valued card in played',
+                'hand and make it gold',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -718,7 +802,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Mammothmon, Triceramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -744,11 +829,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='WarGrowlmon', text={
-            'Gain {C:mult}+10{} Mult every time {C:attention}#4#{} is played',
-            '{C:inactive}(poker hand changes at end of round){}',
-            '{C:inactive}(Currently {C:mult}+#5#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:mult}+10{} Mult every time {C:attention}#4#{} is played',
+                '{C:inactive}(poker hand changes at end of round){}',
+                '{C:inactive}(Currently {C:mult}+#5#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -760,7 +849,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'wargrowl_hand') or e.target_hand or 'High Card'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_hand,e.mult or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_hand,e.mult or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -786,10 +876,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Megadramon', text={
-            'Make the non-enhanced highest value card and',
-            'all of its rank held in hand into steel cards',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Make the non-enhanced highest value card and',
+                'all of its rank held in hand into steel cards',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -800,7 +894,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Machinedramon, BlackWarGreymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -826,11 +921,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gigadramon', text={
-            'Add to Mult double the lowest valued card held',
-            'in hand',
-            '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Add to Mult double the lowest valued card held',
+                'in hand',
+                '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -842,7 +941,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = 0; if G.hand and G.hand.cards then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then current=r*2 end end
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -868,11 +968,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Mammothmon', text={
-            'If the played hand contains scoring Diamond,',
-            'Club, Heart, and Spade, gain {C:money}$20{}, {C:chips}+50{} Chips',
-            'and {X:mult,C:white}X2{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If the played hand contains scoring Diamond,',
+                'Club, Heart, and Spade, gain {C:money}$20{}, {C:chips}+50{} Chips',
+                'and {X:mult,C:white}X2{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -883,7 +987,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Vikemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -909,10 +1014,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Triceramon', text={
-            '{X:mult,C:white}X4{} Mult if played hand contains {C:attention}#4#{}',
-            '{C:inactive}(poker hand changes every hand){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{X:mult,C:white}X4{} Mult if played hand contains {C:attention}#4#{}',
+                '{C:inactive}(poker hand changes every hand){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -924,7 +1033,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'tricera_hand') or e.target_hand or 'High Card'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_hand}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_hand}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -950,10 +1060,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gallantmon', text={
-            'Gives {X:mult,C:white}X#4#{} Mult',
-            "{C:inactive}(1/3 of its previous form\'s stored value)",
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gives {X:mult,C:white}X#4#{} Mult',
+                "{C:inactive}(1/3 of its previous form\'s stored value)",
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -966,7 +1080,8 @@ do
             local e=card and card.ability and card.ability.extra or extra
             local previous=e.previous_form_value
             if previous == nil then previous = 3 end
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,previous/3}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},previous/3}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -992,10 +1107,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Cotsucomon', text={
-            'Reduce score requirement to beat small and big',
-            'blind by 2%',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Reduce score requirement to beat small and big',
+                'blind by 2%',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1006,7 +1125,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Kakkinmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1032,10 +1152,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Kakkinmon', text={
-            'Reduce score requirement to beat small and big',
-            'blind by 3%',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Reduce score requirement to beat small and big',
+                'blind by 3%',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1046,7 +1170,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Ludomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1072,10 +1197,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Ludomon', text={
-            'Reduce score requirement to beat small and big',
-            'blind by 5%',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Reduce score requirement to beat small and big',
+                'blind by 5%',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1086,7 +1215,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'TiaLudomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1112,10 +1242,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='TiaLudomon', text={
-            'Reduce score requirement to beat any blind by',
-            '10%',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Reduce score requirement to beat any blind by',
+                '10%',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1126,7 +1260,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'RaijiLudomon, Knightmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1152,10 +1287,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='RaijiLudomon', text={
-            'Reduce score requirement to beat any blind by',
-            '25%',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Reduce score requirement to beat any blind by',
+                '25%',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1166,7 +1305,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'BryweLudramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1192,11 +1332,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Knightmon', text={
-            'Gain {C:mult}+6{} Mult for every hand played that does',
-            'not win',
-            '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:mult}+6{} Mult for every hand played that does',
+                'not win',
+                '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1207,7 +1351,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gallantmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.mult or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.mult or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1233,9 +1378,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='BryweLudramon', text={
-            'Disable boss blind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Disable boss blind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1246,7 +1395,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1272,9 +1422,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Punimon', text={
-            '{C:chips}+20{} Chips',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+20{} Chips',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1285,7 +1439,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Tsunomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1311,11 +1466,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Tsunomon', text={
-            '{C:chips}+90{} Chips',
-            '{C:inactive}(-5 Chips per discard used){}',
-            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+90{} Chips',
+                '{C:inactive}(-5 Chips per discard used){}',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1327,7 +1486,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = 90 - 5 * (e.discards or 0)
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1353,12 +1513,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gabumon', text={
-            'Gain {C:chips}+8{} Chips if hand played contains a',
-            'scoring face card after a scoring numbered',
-            'card',
-            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:chips}+8{} Chips if hand played contains a',
+                'scoring face card after a scoring numbered',
+                'card',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1369,7 +1533,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Garurumon, Numemon, Leomon, MadLeomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.chips or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.chips or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1395,12 +1560,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Garurumon', text={
-            'Gain {C:chips}+10{} Chips if played hand contains a',
-            'scoring face card',
-            '{C:inactive}(carried over Chips from Gabumon){}',
-            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:chips}+10{} Chips if played hand contains a',
+                'scoring face card',
+                '{C:inactive}(carried over Chips from Gabumon){}',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1411,7 +1580,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'WereGarurumon, Mammothmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.chips or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.chips or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1437,12 +1607,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Leomon', text={
-            'Gain {C:chips}+15{} Chips if played hand contains {C:attention}#4#{}',
-            '{C:inactive}(carried over Chips from Gabumon){} {C:inactive}(poker hand',
-            'changes at end of round){}',
-            '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:chips}+15{} Chips if played hand contains {C:attention}#4#{}',
+                '{C:inactive}(carried over Chips from Gabumon){} {C:inactive}(poker hand',
+                'changes at end of round){}',
+                '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1454,7 +1628,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'leomon_hand') or e.target_hand or 'High Card'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_hand,e.chips or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_hand,e.chips or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1480,11 +1655,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MadLeomon', text={
-            '{C:chips}+1000{} Chips',
-            '{C:inactive}(-100 Chips for each card of hand size){}',
-            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+1000{} Chips',
+                '{C:inactive}(-100 Chips for each card of hand size){}',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1496,7 +1675,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = 1000 - 100 * (G.hand and G.hand.config and G.hand.config.card_limit or 0)
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1522,12 +1702,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='WereGarurumon', text={
-            'Gain {C:chips}+20{} Chips if {C:attention}#4#{} is discarded.',
-            '{C:inactive}(can upgrade once per discard){} {C:inactive}(rank changes',
-            'every round){}',
-            '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:chips}+20{} Chips if {C:attention}#4#{} is discarded.',
+                '{C:inactive}(can upgrade once per discard){} {C:inactive}(rank changes',
+                'every round){}',
+                '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1539,7 +1723,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'weregaruru_rank') or e.target_rank or 14
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank),e.chips or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},BM.rank_name(target_rank),e.chips or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1565,11 +1750,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='LoaderLeomon', text={
-            'Gain {C:chips}+50{} Chips if {C:attention}#4#{} is discarded.',
-            '{C:inactive}(poker hand changes at end of round){}',
-            '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {C:chips}+50{} Chips if {C:attention}#4#{} is discarded.',
+                '{C:inactive}(poker hand changes at end of round){}',
+                '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1581,7 +1770,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'loader_hand') or e.target_hand or 'High Card'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_hand,e.chips or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_hand,e.chips or 0}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1607,12 +1797,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MetalGarurumon', text={
-            'Gain {X:chips,C:white}X0.25{} Chips for every {C:attention}#4#{} of {V:1}#5#{} Played',
-            '{C:inactive}(Upgrade limited once per card including',
-            'retrigger){} {C:inactive}(card changes at end of round){}',
-            '{C:inactive}(Currently {X:chips,C:white}X#6#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:chips,C:white}X0.25{} Chips for every {C:attention}#4#{} of {V:1}#5#{} Played',
+                '{C:inactive}(Upgrade limited once per card including',
+                'retrigger){} {C:inactive}(card changes at end of round){}',
+                '{C:inactive}(Currently {X:chips,C:white}X#6#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1642,6 +1836,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.rank_name(target_rank),
                     target_suit,
                     e.xchips or 1,
@@ -1676,11 +1871,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='HeavyLeomon', text={
-            'Gain {X:chips,C:white}X0.25{} Chips every time the least played',
-            'poker hand is upgraded',
-            '{C:inactive}(Currently {X:chips,C:white}X#4#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:chips,C:white}X0.25{} Chips every time the least played',
+                'poker hand is upgraded',
+                '{C:inactive}(Currently {X:chips,C:white}X#4#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1691,7 +1890,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xchips or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xchips or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1717,10 +1917,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Monzaemon', text={
-            'Create a tarot card when blind is selected',
-            '{C:inactive}(must have room){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create a tarot card when blind is selected',
+                '{C:inactive}(must have room){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1731,7 +1935,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return true
@@ -1760,10 +1965,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='WaruMonzaemon', text={
-            'Create 2 Food items at the end of a round',
-            '{C:inactive}(must have room){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create 2 Food items at the end of a round',
+                '{C:inactive}(must have room){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1774,7 +1983,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return true
@@ -1803,10 +2013,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='PolarBearmon', text={
-            'All planet cards and celestial booster packs',
-            'cost {C:money}$2{} less',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'All planet cards and celestial booster packs',
+                'cost {C:money}$2{} less',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1817,7 +2031,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return true
@@ -1846,9 +2061,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Pichimon', text={
-            '{C:chips}+50{} Chips if played hand contains a Pair',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+50{} Chips if played hand contains a Pair',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1859,7 +2078,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Bukamon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1885,10 +2105,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Bukamon', text={
-            '{C:chips}+100{} Chips if played hand contains Three of a',
-            'Kind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+100{} Chips if played hand contains Three of a',
+                'Kind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1899,7 +2123,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gomamon, Crabmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1925,9 +2150,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gomamon', text={
-            '{C:chips}+80{} Chips if played hand contains a Flush',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+80{} Chips if played hand contains a Flush',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1938,7 +2167,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Ikkakumon, Shellmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -1964,9 +2194,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Crabmon', text={
-            '{C:chips}+160{} Chips if played hand contains a Straight',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+160{} Chips if played hand contains a Straight',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -1977,7 +2211,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Seadramon, Shellmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2003,10 +2238,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Ikkakumon', text={
-            'Gives {C:chips}+20{} Chips for every unenhanced cards',
-            'played this hand',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gives {C:chips}+20{} Chips for every unenhanced cards',
+                'played this hand',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2017,7 +2256,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Zudomon, Mammothmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2043,9 +2283,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Shellmon', text={
-            'Add a stone card when blind is selected',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Add a stone card when blind is selected',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2056,7 +2300,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MarineBullmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2082,9 +2327,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Seadramon', text={
-            'Every face card gives {C:chips}+30{} Chips',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Every face card gives {C:chips}+30{} Chips',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2095,7 +2344,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MegaSeadramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2121,10 +2371,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Zudomon', text={
-            'Gives {C:chips}+100{} Chips and {C:money}$8{} when boss blind effect',
-            'is activated',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gives {C:chips}+100{} Chips and {C:money}$8{} when boss blind effect',
+                'is activated',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2135,7 +2389,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Vikemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2161,11 +2416,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MarineBullmon', text={
-            'Gives {C:chips}+25{} Chips for each Stone Card in your',
-            'full deck',
-            '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gives {C:chips}+25{} Chips for each Stone Card in your',
+                'full deck',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2177,7 +2436,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = 25 * BM.count_deck_enhancement('m_stone')
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2203,9 +2463,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MegaSeadramon', text={
-            'Face card played gets {C:chips}+30{} Chips permanently',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Face card played gets {C:chips}+30{} Chips permanently',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2216,7 +2480,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MetalSeadramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2242,9 +2507,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Vikemon', text={
-            '{C:chips}+1000{} Chips, -3 hand size',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{C:chips}+1000{} Chips, -3 hand size',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2255,7 +2524,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2281,9 +2551,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Hydramon', text={
-            'Each played stone card gives {C:mult}+20{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played stone card gives {C:mult}+20{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2294,7 +2568,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2320,9 +2595,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MetalSeadramon', text={
-            'Cards played gain {C:chips}+50{} Chips permanently',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Cards played gain {C:chips}+50{} Chips permanently',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2333,7 +2612,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2359,9 +2639,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Poyomon', text={
-            'Each played lucky card gives {C:mult}+2{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played lucky card gives {C:mult}+2{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2372,7 +2656,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Tokomon, Pagumon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2398,10 +2683,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Tokomon', text={
-            'Create a negative magician at the end of a',
-            'boss blind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create a negative magician at the end of a',
+                'boss blind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2412,7 +2701,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Patamon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2438,10 +2728,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Patamon', text={
-            'If the first played card is a single card,',
-            'turn it into a lucky card',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If the first played card is a single card,',
+                'turn it into a lucky card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2452,7 +2746,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Angemon, Pegasusmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2478,10 +2773,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Angemon', text={
-            'All played cards with rank 7 turn to lucky',
-            'cards. Also applies Patamon’s effect',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'All played cards with rank 7 turn to lucky',
+                'cards. Also applies Patamon’s effect',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2492,7 +2791,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MagnaAngemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2518,10 +2818,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Pegasusmon', text={
-            'Double any probability',
-            '{C:inactive}(eg, {C:green}1 in 3{} to 2 in 3){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Double any probability',
+                '{C:inactive}(eg, {C:green}1 in 3{} to 2 in 3){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2532,7 +2836,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MagnaAngemon, HippoGryphonmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2558,11 +2863,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MagnaAngemon', text={
-            'Gain {X:mult,C:white}X0.3{} Mult every time a Lucky Card',
-            'triggers',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.3{} Mult every time a Lucky Card',
+                'triggers',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2573,7 +2882,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Seraphimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xmult or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xmult or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2599,9 +2909,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Seraphimon', text={
-            'Lucky cards can give {X:mult,C:white}X2{} Mult on money hit',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Lucky cards can give {X:mult,C:white}X2{} Mult on money hit',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2612,7 +2926,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2638,9 +2953,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='YukimiBotamon', text={
-            'Each played glass card gives {C:chips}+30{} Chips',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played glass card gives {C:chips}+30{} Chips',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2651,7 +2970,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Nyaromon, Pagumon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2677,10 +2997,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Nyaromon', text={
-            'Create 2 negative justice at the end of a boss',
-            'blind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create 2 negative justice at the end of a boss',
+                'blind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2691,7 +3015,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Salamon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2717,10 +3042,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Salamon', text={
-            'If the first played card is a single card,',
-            'turn it into a glass card',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If the first played card is a single card,',
+                'turn it into a glass card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2731,7 +3060,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gatomon, Nefertimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2757,10 +3087,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gatomon', text={
-            'All played face cards turn to glass cards,',
-            'Also applies Salamon’s effect',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'All played face cards turn to glass cards,',
+                'Also applies Salamon’s effect',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2771,7 +3105,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Angewomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2797,10 +3132,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Nefertimon', text={
-            'Reduce any probability by half',
-            '{C:inactive}(eg, {C:green}1 in 3{} to 0.5 in 3){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Reduce any probability by half',
+                '{C:inactive}(eg, {C:green}1 in 3{} to 0.5 in 3){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2811,7 +3150,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Angewomon, HippoGryphonmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2837,10 +3177,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Angewomon', text={
-            'Gain {X:mult,C:white}X0.69{} Mult every time a glass card breaks',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X0.69{} Mult every time a glass card breaks',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2851,7 +3195,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Magnadramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xmult or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xmult or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -2881,10 +3226,14 @@ do
         loc_txt = {
             name='Magnadramon',
             text={
-                'Glass cards have a {C:green}#4# in #5#{} chance to',
-                '{X:mult,C:white}X3{} Mult additionally',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Glass cards have a {C:green}#4# in #5#{} chance to',
+                    '{X:mult,C:white}X3{} Mult additionally',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -2918,6 +3267,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     numerator,
                     denominator
                 }
@@ -2984,10 +3334,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Pagumon', text={
-            'Create 2 negative chariot at the end of a boss',
-            'blind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create 2 negative chariot at the end of a boss',
+                'blind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -2998,7 +3352,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'DemiDevimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3024,10 +3379,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='DemiDevimon', text={
-            'If the first played card is a single card,',
-            'turn it into a steel card',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If the first played card is a single card,',
+                'turn it into a steel card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3038,7 +3397,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Devimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3064,9 +3424,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Devimon', text={
-            'Ace and 2 held in hand turn into steel cards',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Ace and 2 held in hand turn into steel cards',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3077,7 +3441,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Myotismon, LadyDevimon, Kimeramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3103,9 +3468,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='LadyDevimon', text={
-            'Steel cards give {C:money}$2{} when discarded',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Steel cards give {C:money}$2{} when discarded',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3116,7 +3485,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MaloMyotismon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3142,10 +3512,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Myotismon', text={
-            'Each Steel card in deck gives {X:mult,C:white}X0.25{} Mult',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each Steel card in deck gives {X:mult,C:white}X0.25{} Mult',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3157,7 +3531,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = 1 + 0.25 * BM.count_deck_enhancement('m_steel')
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3183,9 +3558,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MaloMyotismon', text={
-            'Each King held in hand gives {X:mult,C:white}X1.5{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each King held in hand gives {X:mult,C:white}X1.5{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3196,7 +3575,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3222,10 +3602,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Piedmon', text={
-            'Gain {X:mult,C:white}X1{} Mult for every face card destroyed',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain {X:mult,C:white}X1{} Mult for every face card destroyed',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3236,7 +3620,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.xmult or 1}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.xmult or 1}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3262,10 +3647,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Sakumon', text={
-            'If the first played card is a single card,',
-            'turn it into a gold card',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If the first played card is a single card,',
+                'turn it into a gold card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3276,7 +3665,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Sakuttomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3302,10 +3692,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Sakuttomon', text={
-            'Create a negative devil at the end of a boss',
-            'blind',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create a negative devil at the end of a boss',
+                'blind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3316,7 +3710,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Zubamon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3342,9 +3737,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Zubamon', text={
-            'All played face cards turn to gold card',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'All played face cards turn to gold card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3355,7 +3754,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'ZubaEagermon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3381,9 +3781,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='ZubaEagermon', text={
-            'Each played gold card gives {C:money}$4{}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played gold card gives {C:money}$4{}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3394,7 +3798,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Duramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3420,9 +3825,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Duramon', text={
-            'Each played gold card gives {C:money}$6{}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played gold card gives {C:money}$6{}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3433,7 +3842,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Durandamon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3459,9 +3869,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Durandamon', text={
-            'Each played gold card gives {C:money}$6{} and {X:mult,C:white}X1.5{} Mult',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played gold card gives {C:money}$6{} and {X:mult,C:white}X1.5{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3472,7 +3886,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3498,10 +3913,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Kimeramon', text={
-            'If first hand of round has only 1 card, add a',
-            'permanent copy to deck and draw it to hand',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If first hand of round has only 1 card, add a',
+                'permanent copy to deck and draw it to hand',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3512,7 +3931,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Apocalymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3538,10 +3958,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Apocalymon', text={
-            'If first hand of round has 5 scoring cards,',
-            'destroy all of it and gain {C:money}$20{}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If first hand of round has 5 scoring cards,',
+                'destroy all of it and gain {C:money}$20{}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3552,7 +3976,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3578,9 +4003,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Chibomon', text={
-            'Retrigger last played card used in scoring',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger last played card used in scoring',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3591,7 +4020,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'DemiVeemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3617,9 +4047,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='DemiVeemon', text={
-            'Retrigger first played card used in scoring',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger first played card used in scoring',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3630,7 +4064,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Veemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3656,10 +4091,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Veemon', text={
-            'Retrigger first played card used in scoring 2',
-            'additional times',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger first played card used in scoring 2',
+                'additional times',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3670,7 +4109,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'ExVeemon, Flamedramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3696,9 +4136,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='ExVeemon', text={
-            'Retrigger all played face cards',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger all played face cards',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3709,7 +4153,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Paildramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3739,9 +4184,13 @@ do
         loc_txt = {
             name='Flamedramon',
             text={
-                '{C:green}#4# in #5#{} chance to upgrade played poker hand after it is scored',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{C:green}#4# in #5#{} chance to upgrade played poker hand after it is scored',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -3775,6 +4224,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     numerator,
                     denominator
                 }
@@ -3841,10 +4291,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Paildramon', text={
-            'Retrigger all played cards in final hand of',
-            'the round 2 additional times',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger all played cards in final hand of',
+                'the round 2 additional times',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3855,7 +4309,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Imperialdramon Fighter Mode, Imperialdramon Dragon Mode',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3881,10 +4336,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Wingdramon', text={
-            'Upgrade the level of the first discarded poker',
-            'hand each round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Upgrade the level of the first discarded poker',
+                'hand each round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3895,7 +4354,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gallantmon, BlackWarGreymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3921,9 +4381,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Imperialdramon Dragon Mode', text={
-            'Retrigger all cards held in hand abilities',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger all cards held in hand abilities',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3934,7 +4398,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Imperialdramon Fighter Mode',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3960,9 +4425,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Imperialdramon Fighter Mode', text={
-            'Retrigger all played cards 2 additional times',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger all played cards 2 additional times',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -3973,7 +4442,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Imperialdramon Dragon Mode',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -3999,10 +4469,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gekkomon', text={
-            'Copies the Digimon Joker\'s effect to the right',
-            'of this Joker',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Copies the Digimon Joker\'s effect to the right',
+                'of this Joker',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4013,7 +4487,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4039,9 +4514,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Troopmon', text={
-            'Copies the leftmost Digimon Joker\'s effect',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Copies the leftmost Digimon Joker\'s effect',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4052,7 +4531,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4078,10 +4558,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Digitamamon', text={
-            'Retrigger the rightmost Joker\'s effect 2',
-            'additional times. Perpetually rental.',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Retrigger the rightmost Joker\'s effect 2',
+                'additional times. Perpetually rental.',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4092,7 +4576,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4118,13 +4603,17 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Espimon', text={
-            'After {C:attention}2{} rounds, sell this card to',
-            'Duplicate a random Joker',
-            '{C:inactive}(Removes Negative from copy){}',
-            '{C:inactive}(Currently {C:attention}#4#{C:inactive}/2 rounds){}',
-            '{C:inactive}(Evolve using D-Ark){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'After {C:attention}2{} rounds, sell this card to',
+                'Duplicate a random Joker',
+                '{C:inactive}(Removes Negative from copy){}',
+                '{C:inactive}(Currently {C:attention}#4#{C:inactive}/2 rounds){}',
+                '{C:inactive}(Evolve using D-Ark){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4142,6 +4631,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     rounds
                 }
             }
@@ -4170,11 +4660,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='HoverEspimon', text={
-            'After {C:attention}3{} rounds, sell this card to',
-            'Duplicate the leftmost Joker',
-            '{C:inactive}(Currently {C:attention}#4#{C:inactive}/3 rounds){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'After {C:attention}3{} rounds, sell this card to',
+                'Duplicate the leftmost Joker',
+                '{C:inactive}(Currently {C:attention}#4#{C:inactive}/3 rounds){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4192,6 +4686,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     rounds
                 }
             }
@@ -4220,9 +4715,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Relemon', text={
-            'Earn {C:money}$4{} at end of round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Earn {C:money}$4{} at end of round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4233,7 +4732,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Viximon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4259,9 +4759,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Viximon', text={
-            'Earn {C:money}$5{} at end of round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Earn {C:money}$5{} at end of round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4272,7 +4776,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Renamon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4298,10 +4803,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Renamon', text={
-            'Earn {C:money}$5{} for each discarded {C:attention}#4#{}',
-            '{C:inactive}(rank changes at end of round){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Earn {C:money}$5{} for each discarded {C:attention}#4#{}',
+                '{C:inactive}(rank changes at end of round){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4313,7 +4822,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'renamon_rank') or e.target_rank or 14
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,BM.rank_name(target_rank)}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},BM.rank_name(target_rank)}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4339,11 +4849,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Kyubimon', text={
-            'Earn {C:money}$10{} at end of round. Payout increases by',
-            '{C:money}$2{} when Boss Blind is defeated',
-            '{C:inactive}(Currently {C:money}$#4#{C:inactive} payout){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Earn {C:money}$10{} at end of round. Payout increases by',
+                '{C:money}$2{} when Boss Blind is defeated',
+                '{C:inactive}(Currently {C:money}$#4#{C:inactive} payout){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4354,7 +4868,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Taomon, LadyDevimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,e.payout or 10}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},e.payout or 10}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4380,10 +4895,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Taomon', text={
-            '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
-            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
+                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4395,7 +4914,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = math.max(1,math.floor((G.GAME and G.GAME.dollars or 0)/10))
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4431,11 +4951,15 @@ do
         loc_txt = {
             name = 'Sakuyamon',
             text = {
-                '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
-                'Also has the {C:attention}Renamon{} effect',
-                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
+                    'Also has the {C:attention}Renamon{} effect',
+                    '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -4497,6 +5021,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     current_xmult
                 }
             }
@@ -4571,10 +5096,14 @@ do
         loc_txt = {
             name='Zerimon',
             text={
-                'Each face card held in hand has a {C:green}#4# in #5#{}',
-                'chance to give {C:money}$1{}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Each face card held in hand has a {C:green}#4# in #5#{}',
+                    'chance to give {C:money}$1{}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -4608,6 +5137,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     numerator,
                     denominator
                 }
@@ -4674,10 +5204,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gummymon', text={
-            'Add {C:money}$1{} of sell value to every Joker and',
-            'Consumable card at end of round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Add {C:money}$1{} of sell value to every Joker and',
+                'Consumable card at end of round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4688,7 +5222,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Terriermon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4718,10 +5253,14 @@ do
         loc_txt = {
             name='Terriermon',
             text={
-                '{C:green}#4# in #5#{} chance for each played 8, 10, and Jacks',
-                'to create a Tarot card when scored',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{C:green}#4# in #5#{} chance for each played 8, 10, and Jacks',
+                    'to create a Tarot card when scored',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -4755,6 +5294,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     numerator,
                     denominator
                 }
@@ -4821,10 +5361,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Gargomon', text={
-            'Played face cards, Ace cards and 2\'s give {C:mult}+5{}',
-            'Mult when scored',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Played face cards, Ace cards and 2\'s give {C:mult}+5{}',
+                'Mult when scored',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4835,7 +5379,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Rapidmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4861,10 +5406,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Guardromon', text={
-            'When round begins, add a random playing card',
-            'with a random seal to your hand',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'When round begins, add a random playing card',
+                'with a random seal to your hand',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4875,7 +5424,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Andromon, Tankdramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4901,10 +5451,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Machmon', text={
-            'Allows Straights to be made with gaps of 1',
-            'rank',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Allows Straights to be made with gaps of 1',
+                'rank',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4915,7 +5469,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'LoaderLeomon, Tankdramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4941,10 +5496,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Rapidmon', text={
-            'If first discard of round has only 1 card,',
-            'destroy it and earn {C:money}$3{}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'If first discard of round has only 1 card,',
+                'destroy it and earn {C:money}$3{}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4955,7 +5514,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MegaGargomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -4981,10 +5541,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Andromon', text={
-            'Hearts and Diamonds count as the same suit,',
-            'Spades and Clubs count as the same suit',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Hearts and Diamonds count as the same suit,',
+                'Spades and Clubs count as the same suit',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -4995,7 +5559,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'HiAndromon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5021,10 +5586,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Tankdramon', text={
-            'Activate any purple seal and gold seal held in',
-            'hand at the end of a round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Activate any purple seal and gold seal held in',
+                'hand at the end of a round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5035,7 +5604,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Machinedramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5061,10 +5631,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='MegaGargomon', text={
-            'Creates a Negative copy of 1 random consumable',
-            'card in your possession at the end of the shop',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Creates a Negative copy of 1 random consumable',
+                'card in your possession at the end of the shop',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5075,7 +5649,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5101,12 +5676,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='HiAndromon', text={
-            'This Joker gains {X:mult,C:white}X1{} Mult every 7 {V:1}#4#{} cards',
-            'discarded',
-            '{C:inactive}(suit changes at end of round){}',
-            '{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'This Joker gains {X:mult,C:white}X1{} Mult every 7 {V:1}#4#{} cards',
+                'discarded',
+                '{C:inactive}(suit changes at end of round){}',
+                '{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5118,7 +5697,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_suit=card and BM.ensure_target(card,'target_suit',BM.deck_suits(),'hiandro_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_suit,e.xmult or 1, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_suit,e.xmult or 1, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5144,9 +5724,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Pururumon', text={
-            '+1 hands each round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '+1 hands each round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5157,7 +5741,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Poromon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5183,9 +5768,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Poromon', text={
-            '+1 discard selection limit',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '+1 discard selection limit',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5196,7 +5785,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Hawkmon, Biyomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5222,23 +5812,28 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Hawkmon', text={
-            'Gain an extra handsize for every flush',
-            'discarded',
-            '{C:inactive}(Poromon’s effect is also applied){}',
-            '{C:inactive}(Reset every round){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain an extra handsize for every flush',
+                'discarded',
+                '{C:inactive}(Poromon’s effect is also applied){}',
+                '{C:inactive}(Reset every round){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=8,y=11},
+        atlas = 'Joker', pos = {x=9,y=11},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Aquilamon, Halsemon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5264,21 +5859,26 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Biyomon', text={
-            'Gain 2 extra hands when four of a kind is',
-            'discarded',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Gain 2 extra hands when four of a kind is',
+                'discarded',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
         cost = 5,
-        atlas = 'Joker', pos = {x=9,y=11},
+        atlas = 'Joker', pos = {x=8,y=11},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Birdramon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5304,10 +5904,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Birdramon', text={
-            'Played card with {V:1}#4#{} give {C:mult}+4{} Mult when scored',
-            '{C:inactive}(suit changes every hand played){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Played card with {V:1}#4#{} give {C:mult}+4{} Mult when scored',
+                '{C:inactive}(suit changes every hand played){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5319,7 +5923,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'birdramon_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5345,9 +5950,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Aquilamon', text={
-            '+2 handsize, -1 hand every round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '+2 handsize, -1 hand every round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5358,7 +5967,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Parrotmon, HippoGryphonmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5384,9 +5994,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Halsemon', text={
-            '+3 discards each round, -1 hand size',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                '+3 discards each round, -1 hand size',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5397,7 +6011,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'HippoGryphonmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5423,12 +6038,16 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Garudamon', text={
-            'Cycle between the effects of {C:attention}Bloodstone{},',
-            '{C:attention}Arrowhead{}, {C:attention}Onyx Agate{} and',
-            '{C:attention}Rough Gem{} every hand played',
-            '{C:inactive}(Now {C:attention}#4#{C:inactive}){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Cycle between the effects of {C:attention}Bloodstone{},',
+                '{C:attention}Arrowhead{}, {C:attention}Onyx Agate{} and',
+                '{C:attention}Rough Gem{} every hand played',
+                '{C:inactive}(Now {C:attention}#4#{C:inactive}){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5454,7 +6073,8 @@ do
                 end
             end
 
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,current_mode}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},current_mode}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5480,11 +6100,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Parrotmon', text={
-            'Each played card with {V:1}#4#{} gives {X:mult,C:white}X1.5{} Mult when',
-            'scored',
-            '{C:inactive}(suit changes at end of round){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played card with {V:1}#4#{} gives {X:mult,C:white}X1.5{} Mult when',
+                'scored',
+                '{C:inactive}(suit changes at end of round){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5496,7 +6120,8 @@ do
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_suit=card and BM.ensure_target(card,'target_suit',BM.SUITS,'parrot_suit') or e.target_suit or 'Hearts'
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},target_suit, colours={(G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5522,11 +6147,15 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='HippoGryphonmon', text={
-            'Each played {C:attention}#4#{} of {V:1}#5#{} gives {X:mult,C:white}X2{} Mult when',
-            'scored',
-            '{C:inactive}(Card changes at end of round){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Each played {C:attention}#4#{} of {V:1}#5#{} gives {X:mult,C:white}X2{} Mult when',
+                'scored',
+                '{C:inactive}(Card changes at end of round){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5556,6 +6185,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.rank_name(target_rank),
                     target_suit,
                     colours={
@@ -5589,10 +6219,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Phoenixmon', text={
-            'Create a negative copy of a last sold Joker',
-            'when boss blind is defeated',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Create a negative copy of a last sold Joker',
+                'when boss blind is defeated',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5603,7 +6237,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5629,10 +6264,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Valkyrimon', text={
-            'Played Kings and Queens each give {X:mult,C:white}X2{} Mult when',
-            'scored',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Played Kings and Queens each give {X:mult,C:white}X2{} Mult when',
+                'scored',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5643,7 +6282,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5669,10 +6309,14 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Akatorimon', text={
-            'Feed 3 random Digimon Jokers every round',
-            '{C:inactive}(excluding Akatorimon){}',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Feed 3 random Digimon Jokers every round',
+                '{C:inactive}(excluding Akatorimon){}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5683,7 +6327,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5709,9 +6354,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Kokatorimon', text={
-            'Feed the Digimon Joker to its left every round',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Feed the Digimon Joker to its left every round',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5722,7 +6371,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5748,9 +6398,13 @@ do
     SMODS.Joker {
         key = slug,
         loc_txt = {name='Pinamon', text={
-            'Sell this Joker to create a Food',
-            BM.care_status_text(stage),
-            '{C:red}Care Mistakes{} #3#/3',
+            {
+                'Sell this Joker to create a Food',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -5761,7 +6415,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Akatorimon, Kokatorimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0}}
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
@@ -5796,10 +6451,14 @@ do
         loc_txt = {
             name='Kuramon',
             text={
-                '{C:mult}+3{} Mult for every Joker owned',
-                '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{C:mult}+3{} Mult for every Joker owned',
+                    '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -5829,6 +6488,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.count_owned_jokers() * 3
                 }
             }
@@ -5903,11 +6563,15 @@ do
         loc_txt = {
             name='Tsumemon',
             text={
-                'Add Mult equal to the total sell value',
-                'of all other owned Jokers',
-                '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Add Mult equal to the total sell value',
+                    'of all other owned Jokers',
+                    '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -5937,6 +6601,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.sum_other_joker_sell_value(card)
                 }
             }
@@ -6011,11 +6676,15 @@ do
         loc_txt = {
             name='Keramon',
             text={
-                '{C:mult}+8{} Mult for every empty Joker slot',
-                '{C:inactive}(Keramon is ignored when counting occupied slots){}',
-                '{C:inactive}(Currently #4# empty, {C:mult}+#5#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{C:mult}+8{} Mult for every empty Joker slot',
+                    '{C:inactive}(Keramon is ignored when counting occupied slots){}',
+                    '{C:inactive}(Currently #4# empty, {C:mult}+#5#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6049,6 +6718,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     empty,
                     empty * 8
                 }
@@ -6124,14 +6794,18 @@ do
         loc_txt = {
             name='Raremon',
             text={
-                'Starts at {X:mult,C:white}X5{} Mult',
-                'Lose {X:mult,C:white}X1{} Mult for every Joker owned',
-                'after {X:mult,C:white}X1{}, each additional Joker',
-                'only loses {X:mult,C:white}X0.01{} Mult',
-                '{C:inactive}(Negative Jokers included){}',
-                '{C:inactive}(#4# Jokers, Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Starts at {X:mult,C:white}X5{} Mult',
+                    'Lose {X:mult,C:white}X1{} Mult for every Joker owned',
+                    'after {X:mult,C:white}X1{}, each additional Joker',
+                    'only loses {X:mult,C:white}X0.01{} Mult',
+                    '{C:inactive}(Negative Jokers included){}',
+                    '{C:inactive}(#4# Jokers, Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6161,6 +6835,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.count_owned_jokers(),
                     BM.raremon_xmult()
                 }
@@ -6236,11 +6911,15 @@ do
         loc_txt = {
             name='Bakemon',
             text={
-                '{X:mult,C:white}X0.5{} Mult for every empty Joker slot',
-                '{C:inactive}(Raremon, Phantomon and Pumpkinmon ignored){}',
-                '{C:inactive}(Currently #4# empty, {X:mult,C:white}X#5#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{X:mult,C:white}X0.5{} Mult for every empty Joker slot',
+                    '{C:inactive}(Raremon, Phantomon and Pumpkinmon ignored){}',
+                    '{C:inactive}(Currently #4# empty, {X:mult,C:white}X#5#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6276,6 +6955,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     empty,
                     empty * 0.5
                 }
@@ -6351,11 +7031,15 @@ do
         loc_txt = {
             name='Phantomon',
             text={
-                '{X:mult,C:white}X1{} Mult for every empty Joker slot',
-                '{C:inactive}(Raremon, Phantomon and Pumpkinmon ignored){}',
-                '{C:inactive}(Currently #4# empty, {X:mult,C:white}X#5#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{X:mult,C:white}X1{} Mult for every empty Joker slot',
+                    '{C:inactive}(Raremon, Phantomon and Pumpkinmon ignored){}',
+                    '{C:inactive}(Currently #4# empty, {X:mult,C:white}X#5#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6391,6 +7075,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     empty,
                     empty
                 }
@@ -6466,11 +7151,15 @@ do
         loc_txt = {
             name='Pumpkinmon',
             text={
-                '{X:mult,C:white}X1{} Mult for every empty Joker slot',
-                '{C:inactive}(Raremon, Phantomon and Pumpkinmon ignored){}',
-                '{C:inactive}(Currently #4# empty, {X:mult,C:white}X#5#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    '{X:mult,C:white}X1{} Mult for every empty Joker slot',
+                    '{C:inactive}(Raremon, Phantomon and Pumpkinmon ignored){}',
+                    '{C:inactive}(Currently #4# empty, {X:mult,C:white}X#5#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6506,6 +7195,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     empty,
                     empty
                 }
@@ -6582,13 +7272,17 @@ do
         loc_txt = {
             name='Puppetmon',
             text={
-                'Starts with {X:mult,C:white}X4{} Mult',
-                'At end of round, gain {X:mult,C:white}X1{} Mult',
-                'for every empty Joker slot',
-                '{C:inactive}(Currently #4# empty slots){}',
-                '{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Starts with {X:mult,C:white}X4{} Mult',
+                    'At end of round, gain {X:mult,C:white}X1{} Mult',
+                    'for every empty Joker slot',
+                    '{C:inactive}(Currently #4# empty slots){}',
+                    '{C:inactive}(Currently {X:mult,C:white}X#5#{C:inactive} Mult){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6618,6 +7312,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     BM.empty_joker_slots(),
                     e.xmult or 4
                 }
@@ -6693,10 +7388,14 @@ do
         loc_txt = {
             name = 'Yuramon',
             text = {
-                'Feeds itself and only itself',
-                'at the end of each round',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself and only itself',
+                    'at the end of each round',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6728,7 +7427,8 @@ do
                 vars = {
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -6806,12 +7506,16 @@ do
         loc_txt = {
             name = 'Tanemon',
             text = {
-                'Feeds itself at the end of each round',
-                'At the end of a {C:attention}Boss Blind{}, create',
-                'a {C:attention}Food{} or {C:attention}Hefty Food{}',
-                '{C:inactive}(Must have room){}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'At the end of a {C:attention}Boss Blind{}, create',
+                    'a {C:attention}Food{} or {C:attention}Hefty Food{}',
+                    '{C:inactive}(Must have room){}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6843,7 +7547,8 @@ do
                 vars = {
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -6921,13 +7626,17 @@ do
         loc_txt = {
             name = 'Palmon',
             text = {
-                'Feeds itself at the end of each round',
-                '{C:mult}+3{} Mult for every {C:attention}Food{} and',
-                '{C:attention}Hefty Food{} in your consumable area',
-                '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
-                'Also applies {C:attention}Tanemon{} effect',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    '{C:mult}+3{} Mult for every {C:attention}Food{} and',
+                    '{C:attention}Hefty Food{} in your consumable area',
+                    '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
+                    'Also applies {C:attention}Tanemon{} effect',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -6965,6 +7674,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     3 * BM.count_food()
                 }
             }
@@ -7043,13 +7753,17 @@ do
         loc_txt = {
             name = 'Lalamon',
             text = {
-                'Feeds itself at the end of each round',
-                '{C:chips}+30{} Chips for every {C:attention}Food{} and',
-                '{C:attention}Hefty Food{} in your consumable area',
-                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
-                'Also applies {C:attention}Tanemon{} effect',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    '{C:chips}+30{} Chips for every {C:attention}Food{} and',
+                    '{C:attention}Hefty Food{} in your consumable area',
+                    '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+                    'Also applies {C:attention}Tanemon{} effect',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7087,6 +7801,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     30 * BM.count_food()
                 }
             }
@@ -7165,13 +7880,17 @@ do
         loc_txt = {
             name = 'Mushroomon',
             text = {
-                'Feeds itself at the end of each round',
-                'Earn {C:money}$2{} at end of round for every',
-                '{C:attention}Food{} and {C:attention}Hefty Food{} held',
-                '{C:inactive}(Currently {C:money}$#4#{C:inactive}){}',
-                'Also applies {C:attention}Tanemon{} effect',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'Earn {C:money}$2{} at end of round for every',
+                    '{C:attention}Food{} and {C:attention}Hefty Food{} held',
+                    '{C:inactive}(Currently {C:money}$#4#{C:inactive}){}',
+                    'Also applies {C:attention}Tanemon{} effect',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7209,6 +7928,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     2 * BM.count_food()
                 }
             }
@@ -7282,13 +8002,17 @@ do
         loc_txt = {
             name = 'Togemon',
             text = {
-                'Feeds itself at the end of each round',
-                'Each {C:attention}Food{} and {C:attention}Hefty Food{} gives',
-                '{X:mult,C:white}X0.5{} Mult',
-                '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
-                'Also applies {C:attention}Tanemon{} effect',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'Each {C:attention}Food{} and {C:attention}Hefty Food{} gives',
+                    '{X:mult,C:white}X0.5{} Mult',
+                    '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+                    'Also applies {C:attention}Tanemon{} effect',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7317,6 +8041,7 @@ do
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)},
                     1 + 0.5 * BM.count_food()
                 }
             }
@@ -7386,11 +8111,15 @@ do
         loc_txt = {
             name='Sunflowmon',
             text={
-                'Feeds itself at the end of each round',
-                'All {C:attention}Digital Packs{} in the shop',
-                'become {C:attention}Mega Digital Packs{}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'All {C:attention}Digital Packs{} in the shop',
+                    'become {C:attention}Mega Digital Packs{}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7416,7 +8145,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -7485,11 +8215,15 @@ do
         loc_txt = {
             name='RedVegiemon',
             text={
-                'Feeds itself at the end of each round',
-                '{C:attention}Food{} and {C:attention}Hefty Food{}',
-                'in the shop are {C:money}free{}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    '{C:attention}Food{} and {C:attention}Hefty Food{}',
+                    'in the shop are {C:money}free{}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7515,7 +8249,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -7584,12 +8319,16 @@ do
         loc_txt = {
             name='Woodmon',
             text={
-                'Prevents all other Jokers from Digivolving',
-                'except the Joker directly to its left',
-                'At end of round, create a random',
-                'playing card with a {C:attention}Farm Seal{}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Prevents all other Jokers from Digivolving',
+                    'except the Joker directly to its left',
+                    'At end of round, create a random',
+                    'playing card with a {C:attention}Farm Seal{}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7614,7 +8353,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -7683,13 +8423,17 @@ do
         loc_txt = {
             name='Lillymon',
             text={
-                'Feeds itself at the end of each round',
-                'At the start of the round, apply {C:attention}Bloom{}',
-                'to a random card drawn to hand',
-                'Consumes itself at end of round',
-                'if no {C:attention}Food{} or {C:attention}Hefty Food{} is held',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'At the start of the round, apply {C:attention}Bloom{}',
+                    'to a random card drawn to hand',
+                    'Consumes itself at end of round',
+                    'if no {C:attention}Food{} or {C:attention}Hefty Food{} is held',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7715,7 +8459,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -7784,13 +8529,17 @@ do
         loc_txt = {
             name='Lilamon',
             text={
-                'Feeds itself at the end of each round',
-                'At the start of the round, apply {C:attention}Bloom{}',
-                'to a random card drawn to hand',
-                'Consumes itself at end of round',
-                'if {C:attention}Food{} or {C:attention}Hefty Food{} is held',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'At the start of the round, apply {C:attention}Bloom{}',
+                    'to a random card drawn to hand',
+                    'Consumes itself at end of round',
+                    'if {C:attention}Food{} or {C:attention}Hefty Food{} is held',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7816,7 +8565,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -7885,11 +8635,15 @@ do
         loc_txt = {
             name='Jagamon',
             text={
-                'Feeds itself at the end of each round',
-                'When {C:attention}Food{} or {C:attention}Hefty Food{} is used,',
-                'create a free {C:dark_edition}Negative{} {C:tarot}The Tower{}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Feeds itself at the end of each round',
+                    'When {C:attention}Food{} or {C:attention}Hefty Food{} is used,',
+                    'create a free {C:dark_edition}Negative{} {C:tarot}The Tower{}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -7921,7 +8675,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -7990,12 +8745,16 @@ do
         loc_txt = {
             name='Cherrymon',
             text={
-                'Prevents all other Jokers from Digivolving',
-                'except the Joker directly to its left',
-                'At end of round, create a random playing',
-                'card with {C:attention}Farm Seal{} and {C:attention}Bloom{}',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'Prevents all other Jokers from Digivolving',
+                    'except the Joker directly to its left',
+                    'At end of round, create a random playing',
+                    'card with {C:attention}Farm Seal{} and {C:attention}Bloom{}',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -8020,7 +8779,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,
@@ -8089,12 +8849,16 @@ do
         loc_txt = {
             name='Rosemon',
             text={
-                'If the first hand of the round has only',
-                '{C:attention}1{} card, add a permanent copy to your deck',
-                'with {C:attention}Bloom{} and a {C:attention}Farm Seal{},',
-                'then draw that copy to hand',
-                BM.care_status_text(stage),
-                '{C:red}Care Mistakes{} #3#/3',
+                {
+                    'If the first hand of the round has only',
+                    '{C:attention}1{} card, add a permanent copy to your deck',
+                    'with {C:attention}Bloom{} and a {C:attention}Farm Seal{},',
+                    'then draw that copy to hand',
+                },
+                {
+                    BM.care_status_text(stage),
+                }
+                
             }
         },
 
@@ -8119,7 +8883,8 @@ do
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
-                    e.care_mistakes or 0
+                    e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}
                 }
             }
         end,

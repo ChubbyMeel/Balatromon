@@ -454,9 +454,221 @@ function BM.get_bond_max(card)
     return BM.bond_max_for_stage(BM.get_stage(card))
 end
 
+function BM.care_bar_segment(colour, active)
+    return {
+        n = G.UIT.C,
+        config = {
+            align = 'cm',
+            minw = 0.26,
+            maxw = 0.26,
+            minh = 0.16,
+            maxh = 0.16,
+            r = 0.03,
+            colour = active and colour or HEX('30343B')
+        }
+    }
+end
+
+function BM.care_bar_row(label, value, max_value, bar_type)
+    value = math.max(0, math.min(max_value, value or 0))
+
+    local segments = {}
+
+    local hunger_colours = {
+        HEX('67C95B'),
+        HEX('A7CF4A'),
+        HEX('E4C83E'),
+        HEX('E99038'),
+        HEX('D94A42')
+    }
+
+    local care_colours = {
+        HEX('E4C83E'),
+        HEX('E99038'),
+        HEX('D94A42')
+    }
+
+    for i = 1, max_value do
+        local colour = G.C.GREEN
+
+        if bar_type == 'hunger' then
+            colour = hunger_colours[i]
+                or hunger_colours[#hunger_colours]
+        elseif bar_type == 'care' then
+            colour = care_colours[i]
+                or care_colours[#care_colours]
+        elseif bar_type == 'bond' then
+            colour = HEX('55BDF2')
+        end
+
+        segments[#segments + 1] =
+            BM.care_bar_segment(
+                colour,
+                i <= value
+            )
+    end
+
+    local label_colour = G.C.UI.TEXT_LIGHT
+
+    if bar_type == 'hunger' then
+        label_colour = HEX('E99038')
+    elseif bar_type == 'bond' then
+        label_colour = HEX('55BDF2')
+    elseif bar_type == 'care' then
+        label_colour = HEX('D94A42')
+    end
+
+    return {
+        n = G.UIT.R,
+        config = {
+            align = 'cm',
+            padding = 0.025
+        },
+        nodes = {
+            {
+                n = G.UIT.C,
+                config = {
+                    align = 'cl',
+                    minw = 1.15,
+                    maxw = 1.15
+                },
+                nodes = {
+                    {
+                        n = G.UIT.T,
+                        config = {
+                            text = label,
+                            colour = label_colour,
+                            scale = 0.30,
+                            shadow = true
+                        }
+                    }
+                }
+            },
+            {
+                n = G.UIT.C,
+                config = {
+                    align = 'cm',
+                    minw = 1.55,
+                    maxw = 1.55,
+                    padding = 0.015
+                },
+                nodes = {
+                    {
+                        n = G.UIT.R,
+                        config = {
+                            align = 'cm',
+                            padding = 0.015
+                        },
+                        nodes = segments
+                    }
+                }
+            },
+            {
+                n = G.UIT.C,
+                config = {
+                    align = 'cr',
+                    minw = 0.58,
+                    maxw = 0.58
+                },
+                nodes = {
+                    {
+                        n = G.UIT.T,
+                        config = {
+                            text = tostring(value)
+                                .. '/'
+                                .. tostring(max_value),
+                            colour = G.C.UI.TEXT_LIGHT,
+                            scale = 0.27,
+                            shadow = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+end
+
+function BM.care_bars(e, stage)
+    e = e or {}
+
+    local hunger = math.max(
+        1,
+        math.min(5, e.hunger or 1)
+    )
+
+    local bond_max =
+        BM.bond_max_for_stage(stage)
+
+    local bond = math.max(
+        0,
+        math.min(
+            bond_max,
+            e.bond or 0
+        )
+    )
+
+    local mistakes = math.max(
+        0,
+        math.min(
+            3,
+            e.care_mistakes or 0
+        )
+    )
+
+    return {
+        n = G.UIT.C,
+        config = {
+            align = 'cm'
+        },
+        nodes = {
+            {
+                n = G.UIT.R,
+                config = {
+                    minh = 0.10
+                }
+            },
+            {
+                n = G.UIT.C,
+                config = {
+                    align = 'cm',
+                    padding = 0.06,
+                    r = 0.10,
+                    minw = 3.45,
+                    colour = lighten(G.C.BLACK, 0.15)
+                },
+                nodes = {
+                    BM.care_bar_row(
+                        'HUNGER',
+                        hunger,
+                        5,
+                        'hunger'
+                    ),
+                    BM.care_bar_row(
+                        'BOND',
+                        bond,
+                        bond_max,
+                        'bond'
+                    ),
+                    BM.care_bar_row(
+                        'CARE MISTAKE',
+                        mistakes,
+                        3,
+                        'care'
+                    )
+                }
+            },
+            {
+                n = G.UIT.R,
+                config = {
+                    minh = 0.10
+                }
+            }
+        }
+    }
+end
+
 function BM.care_status_text(stage)
-    return '{C:attention}Hunger{} #1#/5  {C:green}Bond{} #2#/'
-        .. tostring(BM.bond_max_for_stage(stage))
+    return '{element:1}'
 end
 
 function BM.is_boss()
@@ -813,12 +1025,40 @@ end
 function BM.add_digimon_tooltip(info_queue, slug)
     if not info_queue then return end
 
-    local center = G.P_CENTERS
-        and G.P_CENTERS[BM.center_key(slug)]
+    slug = BM.slug(slug)
 
-    if center then
-        info_queue[#info_queue + 1] = center
+    local def = BM.joker_defs
+        and BM.joker_defs[slug]
+
+    if not def then return end
+
+    info_queue[#info_queue + 1] = {
+        set = 'Other',
+        key = BM.PREFIX .. '_digimon_ref_' .. slug,
+        vars = {}
+    }
+end
+
+
+
+function BM.get_hunger_rounds(card)
+    if not card or not card.ability then
+        return 2
     end
+
+    if card.ability[
+        BM.PREFIX .. '_famined'
+    ] then
+        return 1
+    end
+
+    if card.ability[
+        BM.PREFIX .. '_fasting'
+    ] then
+        return 4
+    end
+
+    return 2
 end
 
 function BM.care_tick(card, context)
@@ -843,7 +1083,7 @@ function BM.care_tick(card, context)
     if e.permanently_disabled then return end
     e.care_rounds = (e.care_rounds or 0) + 1
 
-    if e.care_rounds % 2 == 0 then
+    if e.care_rounds % BM.get_hunger_rounds(card) == 0 then
         local old_hunger = e.hunger or 1
 
         e.hunger = math.min(
