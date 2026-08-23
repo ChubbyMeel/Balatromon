@@ -141,7 +141,7 @@ end
 H.wargrowlmon = function(card,context)
     local e=card.ability.extra; e.mult=e.mult or 0; BM.ensure_target(card,'target_hand',BM.HANDS,'wargrowl_hand')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_hand',BM.HANDS,'wargrowl_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
-    if context.before and context.main_eval and context.scoring_name==e.target_hand and not context.blueprint then e.mult=e.mult+10; return {message='+10 Mult'} end
+    if context.before and context.main_eval and context.scoring_name==e.target_hand and not context.blueprint then e.mult=e.mult+15; return {message='+15 Mult'} end
     if context.joker_main and e.mult~=0 then return {mult=e.mult} end
 end
 H.megadramon = function(card,context)
@@ -154,10 +154,37 @@ H.megadramon = function(card,context)
 end
 H.gigadramon = function(card,context) if context.joker_main then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then return {mult=r*2} end end end
 H.mammothmon = function(card,context) if context.joker_main and BM.all_four_suits(context.scoring_hand) then return {dollars=20,chips=50,xmult=2} end end
-H.triceramon = function(card,context)
-    local e=card.ability.extra; BM.ensure_target(card,'target_hand',BM.HANDS,'tricera_hand')
-    if context.joker_main and context.scoring_name==e.target_hand then return {xmult=4} end
-    if context.after and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_hand',BM.HANDS,'tricera_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
+H.triceramon = function(card, context)
+    local e = card.ability.extra
+
+    BM.ensure_target(
+        card,
+        'target_hand',
+        BM.HANDS,
+        'tricera_hand'
+    )
+
+    if context.joker_main
+    and BM.contains_hand(context, e.target_hand)  then
+        BM.emult(card, 1.3)
+    end
+
+    if context.after
+    and context.main_eval
+    and not context.blueprint then
+        BM.reroll_target(
+            card,
+            'target_hand',
+            BM.HANDS,
+            'tricera_hand'
+        )
+
+        return BM.target_change_return(
+            card,
+            'Target: ' .. tostring(e.target_hand),
+            G.C.ATTENTION
+        )
+    end
 end
 H.gallantmon = function(card,context)
     local e=card.ability.extra; e.previous_form_value=e.previous_form_value or 3
@@ -170,7 +197,7 @@ H.tialudomon = function(card,context) BM.apply_blind_reduction(card,context,0.10
 H.raijiludomon = function(card,context) BM.apply_blind_reduction(card,context,0.25,true) end
 H.knightmon = function(card,context)
     local e=card.ability.extra; e.mult=e.mult or 0
-    if context.after and context.main_eval and not context.blueprint and not SMODS.last_hand_oneshot then e.mult=e.mult+6; return {message='+6 Mult'} end
+    if context.after and context.main_eval and not context.blueprint and not SMODS.last_hand_oneshot then e.mult=e.mult+10; return {message='+10 Mult'} end
     if context.joker_main and e.mult~=0 then return {mult=e.mult} end
 end
 H.bryweludramon = function(card,context) if context.setting_blind and context.main_eval and BM.is_boss() and G.GAME.blind.disable and not context.blueprint then G.GAME.blind:disable(); return {message='Boss Disabled!'} end end
@@ -1058,8 +1085,21 @@ H.togemon = function(card, context)
     return plant_boss_food(card, context)
 end
 
-H.sunflowmon = function()
+local function lillymon_base_effect(card, context, seed)
+    if context.first_hand_drawn
+    and context.main_eval
+    and not context.blueprint then
+        if apply_random_bloom(card, seed) then
+            return {
+                message = 'Bloom!'
+            }
+        end
+    end
+
+    return H.togemon(card, context)
 end
+
+H.sunflowmon = plant_boss_food
 
 H.redvegiemon = function()
 end
@@ -1077,29 +1117,26 @@ H.woodmon = function(card, context)
 end
 
 H.lillymon = function(card, context)
-    if context.first_hand_drawn
-    and context.main_eval
-    and not context.blueprint then
-        if apply_random_bloom(
-            card,
-            'lillymon_bloom_'
-        ) then
-            return {
-                message = 'Bloom!'
-            }
-        end
-    end
+    local food_before = BM.count_food()
+
+    local inherited = lillymon_base_effect(
+        card,
+        context,
+        'lillymon_bloom_'
+    )
 
     if context.end_of_round
     and context.main_eval
     and not context.blueprint
-    and BM.count_food() == 0 then
+    and food_before == 0 then
         consume_self(card)
 
         return {
             message = 'Consumed!'
         }
     end
+
+    return inherited
 end
 
 H.lilamon = function(card, context)
@@ -1116,16 +1153,21 @@ H.lilamon = function(card, context)
         end
     end
 
+    local food_before = BM.count_food()
+    local inherited = H.sunflowmon(card, context)
+
     if context.end_of_round
     and context.main_eval
     and not context.blueprint
-    and BM.count_food() > 0 then
+    and food_before > 0 then
         consume_self(card)
 
         return {
             message = 'Consumed!'
         }
     end
+
+    return inherited
 end
 
 H.jagamon = function()
@@ -1172,6 +1214,12 @@ H.rosemon = function(card, context)
             }
         end
     end
+
+    return lillymon_base_effect(
+        card,
+        context,
+        'rosemon_bloom_'
+    )
 end
 
 function BM.is_digivolution_blocked(card)
@@ -1212,7 +1260,7 @@ function BM.is_digivolution_blocked(card)
 end
 
 function BM.refresh_sunflowmon_shop_packs()
-    if not BM.has_active_digimon('sunflowmon')
+    if not BM.has_sunflowmon_effect()
     or not G.shop_booster then
         return
     end
@@ -1309,4 +1357,9 @@ if not BM._redvegiemon_cost_patched then
 
         return result
     end
+end
+
+function BM.has_sunflowmon_effect()
+    return BM.has_active_digimon('sunflowmon')
+        or BM.has_active_digimon('lilamon')
 end

@@ -1,5 +1,49 @@
 local BM = Balatromon
 
+function BM.emult(card, amount)
+    if not amount or amount == 1 then
+        return
+    end
+
+    local mult_param =
+        SMODS.Scoring_Parameters
+        and SMODS.Scoring_Parameters.mult
+
+    if mult_param then
+        local current = mult_param.current or mult or 0
+        local target = current ^ amount
+
+        mult_param:modify(
+            target - current
+        )
+    else
+        mult = mod_mult(
+            mult ^ amount
+        )
+
+        update_hand_text(
+            {delay = 0},
+            {mult = mult}
+        )
+    end
+
+    if card and card.juice_up then
+        card:juice_up(0.8, 0.5)
+    end
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        percent,
+        nil,
+        {
+            message = '^' .. tostring(amount) .. ' Mult',
+            colour = G.C.MULT
+        }
+    )
+end
+
 BM.joker_defs = BM.joker_defs or {}
 BM.shop_joker_keys = BM.shop_joker_keys or {}
 BM.last_sold_joker_key = BM.last_sold_joker_key or nil
@@ -1357,7 +1401,7 @@ function BM.on_add(card, slug)
         }))
     end
 
-    if slug == 'sunflowmon'
+    if (slug == 'sunflowmon' or slug == 'lilamon')
     and BM.refresh_sunflowmon_shop_packs then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',

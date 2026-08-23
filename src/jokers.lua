@@ -830,7 +830,7 @@ do
         key = slug,
         loc_txt = {name='WarGrowlmon', text={
             {
-                'Gain {C:mult}+10{} Mult every time {C:attention}#4#{} is played',
+                'Gain {C:mult}+15{} Mult every time {C:attention}#4#{} is played',
                 '{C:inactive}(poker hand changes at end of round){}',
                 '{C:inactive}(Currently {C:mult}+#5#{C:inactive} Mult){}',
             },
@@ -864,7 +864,7 @@ elements={BM.care_bars(e,stage)},target_hand,e.mult or 0}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='WarGrowlmon', stage=stage, evolves_to='Gallantmon, BlackWarGreymon', effect='Gain +10 Mult every time [poker hand] is played (poker hand changes at end of round)'}
+    BM.joker_defs[slug] = {name='WarGrowlmon', stage=stage, evolves_to='Gallantmon, BlackWarGreymon', effect='Gain +15 Mult every time [poker hand] is played (poker hand changes at end of round)'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -1015,7 +1015,7 @@ do
         key = slug,
         loc_txt = {name='Triceramon', text={
             {
-                '{X:mult,C:white}X4{} Mult if played hand contains {C:attention}#4#{}',
+                '{C:mult}^1.3{} Mult if played hand contains {C:attention}#4#{}',
                 '{C:inactive}(poker hand changes every hand){}',
             },
             {
@@ -1048,7 +1048,7 @@ elements={BM.care_bars(e,stage)},target_hand}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Triceramon', stage=stage, evolves_to='WarGreymon, BlackWarGreymon, HeavyLeomon', effect='X4 Mult if played hand contains [poker hand] (poker hand changes every hand)'}
+    BM.joker_defs[slug] = {name='Triceramon', stage=stage, evolves_to='WarGreymon, BlackWarGreymon, HeavyLeomon', effect='^1.3 Mult if played hand contains [poker hand] (poker hand changes every hand)'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -1333,7 +1333,7 @@ do
         key = slug,
         loc_txt = {name='Knightmon', text={
             {
-                'Gain {C:mult}+6{} Mult for every hand played that does',
+                'Gain {C:mult}+10{} Mult for every hand played that does',
                 'not win',
                 '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
             },
@@ -1366,7 +1366,7 @@ elements={BM.care_bars(e,stage)},e.mult or 0}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Knightmon', stage=stage, evolves_to='Gallantmon', effect='Gain +6 Mult for every hand played that does not win'}
+    BM.joker_defs[slug] = {name='Knightmon', stage=stage, evolves_to='Gallantmon', effect='Gain +10 Mult for every hand played that does not win'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -8115,6 +8115,7 @@ do
                     'Feeds itself at the end of each round',
                     'All {C:attention}Digital Packs{} in the shop',
                     'become {C:attention}Mega Digital Packs{}',
+                    'Also applies {C:attention}Tanemon{} effect',
                 },
                 {
                     BM.care_status_text(stage),
@@ -8140,7 +8141,7 @@ do
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-
+            BM.add_digimon_tooltip(info_queue,'tanemon')
             return {
                 vars={
                     e.hunger or 1,
@@ -8190,7 +8191,7 @@ elements={BM.care_bars(e,stage)}
         name='Sunflowmon',
         stage=stage,
         evolves_to='Lilamon',
-        effect='All Digital Packs in the shop become Mega Digital Packs'
+        effect='All Digital Packs in the shop become Mega Digital Packs, also applies Tanemon effect'
     }
 
     local weight=BM.stage_shop_weight(stage)
@@ -8429,6 +8430,8 @@ do
                     'to a random card drawn to hand',
                     'Consumes itself at end of round',
                     'if no {C:attention}Food{} or {C:attention}Hefty Food{} is held',
+                    'Also applies {C:attention}Togemon{} effect',
+                    '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
                 },
                 {
                     BM.care_status_text(stage),
@@ -8454,15 +8457,17 @@ do
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-
+            BM.add_digimon_tooltip(info_queue,'togemon')
             return {
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}
+elements={BM.care_bars(e,stage)},
+                1 + 0.5 * BM.count_food()
                 }
             }
+            
         end,
 
         in_pool = function(self,args)
@@ -8504,7 +8509,7 @@ elements={BM.care_bars(e,stage)}
         name='Lillymon',
         stage=stage,
         evolves_to='Rosemon',
-        effect='Applies Bloom to a random drawn card and consumes itself if no Food is held'
+        effect='Applies Bloom to a random drawn card, consumes itself if no Food is held, and also applies Togemon effect'
     }
 
     local weight=BM.stage_shop_weight(stage)
@@ -8535,6 +8540,7 @@ do
                     'to a random card drawn to hand',
                     'Consumes itself at end of round',
                     'if {C:attention}Food{} or {C:attention}Hefty Food{} is held',
+                    'Also applies {C:attention}Sunflowmon{} effect',
                 },
                 {
                     BM.care_status_text(stage),
@@ -8560,7 +8566,7 @@ do
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-
+            BM.add_digimon_tooltip(info_queue,'sunflowmon')
             return {
                 vars={
                     e.hunger or 1,
@@ -8610,7 +8616,7 @@ elements={BM.care_bars(e,stage)}
         name='Lilamon',
         stage=stage,
         evolves_to='Rosemon',
-        effect='Applies Bloom to a random drawn card and consumes itself if Food is held'
+        effect='Applies Bloom to a random drawn card, consumes itself if Food is held, and also applies Sunflowmon effect'
     }
 
     local weight=BM.stage_shop_weight(stage)
@@ -8854,6 +8860,8 @@ do
                     '{C:attention}1{} card, add a permanent copy to your deck',
                     'with {C:attention}Bloom{} and a {C:attention}Farm Seal{},',
                     'then draw that copy to hand',
+                    'Also applies {C:attention}Lillymon{} positive effect',
+                    '{C:inactive}(Inherited Mult: {X:mult,C:white}X#4#{C:inactive}){}',
                 },
                 {
                     BM.care_status_text(stage),
@@ -8878,13 +8886,14 @@ do
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-
+            BM.add_digimon_tooltip(info_queue,'lillymon')
             return {
                 vars={
                     e.hunger or 1,
                     e.bond or 0,
                     e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}
+                    elements={BM.care_bars(e,stage)},
+                    1 + 0.5 * BM.count_food()
                 }
             }
         end,
@@ -8928,7 +8937,7 @@ elements={BM.care_bars(e,stage)}
         name='Rosemon',
         stage=stage,
         evolves_to='-',
-        effect='Copies a single-card first hand into a permanent Bloom Farm Seal card and draws it to hand'
+        effect='Copies a single-card first hand into a permanent Bloom Farm Seal card, also applies Lillymon effect without self-consumption'
     }
 
     local weight=BM.stage_shop_weight(stage)
