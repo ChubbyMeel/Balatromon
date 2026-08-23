@@ -68,6 +68,108 @@ SMODS.Atlas{
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'balatro',
+    path = 'Balatromon_Title.png',
+    px = 389,
+    py = 216,
+    prefix_config = {
+        key = false
+    }
+}
+
+SMODS.current_mod.menu_cards = function()
+    return {
+        remove_original = true,
+
+        {
+            key = BM.center_key('botamon')
+        },
+
+        func = function()
+            if not G.title_top
+            or not G.title_top.cards
+            or not G.title_top.cards[1] then
+                return
+            end
+
+            local card = G.title_top.cards[1]
+
+            card.T.w = G.CARD_W * 0.83
+            card.T.h = G.CARD_H * 0.83
+
+            card.VT.w = card.T.w
+            card.VT.h = card.T.h
+        end
+    }
+end
+
+G.C.BALATROMON_SPLASH_RED = HEX('B7475D')
+G.C.BALATROMON_SPLASH_BLUE = HEX('35566C')
+
+local balatromon_old_main_menu = Game.main_menu
+
+Game.main_menu = function(change_context)
+    local ret =
+        balatromon_old_main_menu(change_context)
+
+    if G.SPLASH_BACK then
+        G.SPLASH_BACK:define_draw_steps({
+            {
+                shader = 'splash',
+                send = {
+                    {
+                        name = 'time',
+                        ref_table = G.TIMERS,
+                        ref_value = 'REAL_SHADER'
+                    },
+                    {
+                        name = 'vort_speed',
+                        val = 0.4
+                    },
+                    {
+                        name = 'colour_1',
+                        ref_table = G.C,
+                        ref_value = 'BALATROMON_SPLASH_RED'
+                    },
+                    {
+                        name = 'colour_2',
+                        ref_table = G.C,
+                        ref_value = 'BALATROMON_SPLASH_BLUE'
+                    },
+                    {
+                        name = 'mid_flash',
+                        val = 0
+                    },
+                }
+            }
+        })
+    end
+
+    return ret
+end
+
+SMODS.current_mod.process_loc_text = function()
+    G.localization.descriptions.Mod[
+        SMODS.current_mod.id
+    ] = {
+        name = 'Balatromon',
+        text = {
+            'Play Balatro as you try to take care of these',
+            'digital monsters.',
+            '',
+            '{C:attention}Created by:{} ChubbyMeel',
+            '{C:attention}Art by:{} ChubbyMeel and StarRush',
+            '',
+            'Digimon characters and related intellectual property',
+            'belong to Bandai Namco Entertainment Inc.',
+            'Some visual assets are adapted from',
+            'the mobile game Digimon Up.'
+        }
+    }
+end
+
+
 assert(SMODS.load_file('src/core.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()
 assert(SMODS.load_file('src/evolution.lua'))()

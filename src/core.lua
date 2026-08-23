@@ -1104,7 +1104,9 @@ function BM.add_digimon_tooltip(info_queue, slug)
 end
 
 function BM.add_seal_tooltip(info_queue, key)
-    if not info_queue or not key then return end
+    if not info_queue or not key then
+        return
+    end
 
     local vanilla = {
         Gold = true,
@@ -1113,22 +1115,28 @@ function BM.add_seal_tooltip(info_queue, key)
         Red = true
     }
 
-    local loc_key
-
     if vanilla[key] then
-        loc_key = string.lower(key) .. '_seal'
-    else
-        loc_key =
-            BM.PREFIX
-            .. '_'
-            .. BM.slug(key)
-            .. '_seal'
+        info_queue[#info_queue + 1] = {
+            set = 'Other',
+            key = string.lower(key) .. '_seal'
+        }
+
+        return
     end
 
-    info_queue[#info_queue + 1] = {
-        set = 'Other',
-        key = loc_key
-    }
+    local seal_key =
+        key:find(BM.PREFIX .. '_', 1, true)
+        and key
+        or BM.PREFIX .. '_' .. BM.slug(key)
+
+    local seal =
+        G.P_SEALS
+        and G.P_SEALS[seal_key]
+
+    if seal then
+        info_queue[#info_queue + 1] =
+            seal
+    end
 end
 
 
