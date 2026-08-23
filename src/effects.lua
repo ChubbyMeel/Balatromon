@@ -225,7 +225,7 @@ end
 H.leomon = function(card,context)
     local e=card.ability.extra; e.chips=e.chips or 0; BM.ensure_target(card,'target_hand',BM.HANDS,'leomon_hand')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_hand',BM.HANDS,'leomon_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
-    if context.before and context.main_eval and context.scoring_name==e.target_hand and not context.blueprint then e.chips=e.chips+15; return {message='+15 Chips'} end
+    if context.before and context.main_eval and BM.contains_hand(context,e.target_hand) and not context.blueprint then e.chips=e.chips+15; return {message='+15 Chips'} end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
 H.madleomon = function(card,context) if context.joker_main then return {chips=1000-100*(G.hand and G.hand.config.card_limit or 0)} end end
