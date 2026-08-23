@@ -84,6 +84,7 @@ assert(SMODS.load_file('src/vouchers.lua'))()
 assert(SMODS.load_file('src/collections.lua'))()
 assert(SMODS.load_file('src/editions.lua'))()
 assert(SMODS.load_file('src/stickers.lua'))()
+assert(SMODS.load_file('src/evolution_map.lua'))()
 
 SMODS.current_mod.process_loc_text = function()
     G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {

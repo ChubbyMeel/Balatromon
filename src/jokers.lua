@@ -8137,7 +8137,7 @@ do
         balatromon = true,
         balatromon_self_feed = true,
         balatromon_stage = stage,
-        balatromon_evolves_to = 'Lilamon',
+        balatromon_evolves_to = 'Lilamon, Pumpkinmon',
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
@@ -8190,7 +8190,7 @@ elements={BM.care_bars(e,stage)}
     BM.joker_defs[slug] = {
         name='Sunflowmon',
         stage=stage,
-        evolves_to='Lilamon',
+        evolves_to='Lilamon, Pumpkinmon',
         effect='All Digital Packs in the shop become Mega Digital Packs, also applies Tanemon effect'
     }
 
@@ -8241,7 +8241,7 @@ do
         balatromon = true,
         balatromon_self_feed = true,
         balatromon_stage = stage,
-        balatromon_evolves_to = 'Jagamon',
+        balatromon_evolves_to = 'Jagamon, Pumpkinmon',
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
@@ -8294,7 +8294,7 @@ elements={BM.care_bars(e,stage)}
     BM.joker_defs[slug] = {
         name='RedVegiemon',
         stage=stage,
-        evolves_to='Jagamon',
+        evolves_to='Jagamon, Pumpkinmon',
         effect='Food and Hefty Food in the shop are free'
     }
 

@@ -300,11 +300,19 @@ BM.evolution_rules = {
         lilamon = {
             note = 'Standard route'
         },
+        pumpkinmon = {
+            min_hunger = 2,
+            note = 'Hungry route'
+        },
     },
 
     redvegiemon = {
         jagamon = {
             note = 'Standard route'
+        },
+        pumpkinmon = {
+            min_hunger = 2,
+            note = 'Hungry route'
         },
     },
 
