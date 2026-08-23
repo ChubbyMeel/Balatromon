@@ -337,7 +337,139 @@ BM.evolution_rules = {
             note = 'Standard route'
         },
     },
+    twins = {
+        upamon = {
+            note = 'Standard route'
+        },
+        motimon = {
+            note = 'Standard route'
+        },
+    },
+    upamon = {
+        armadillomon = {
+            note = 'Standard route'
+        },
+    },
 
+    motimon = {
+        tentomon = {
+            note = 'Standard route'
+        },
+    },
+
+    armadillomon = {
+        ankiromon = {
+            note = 'Standard route'
+        },
+        monochromon = {
+            note = 'Alternate standard route'
+        },
+        digmon = {
+            device = 'd3',
+            note = 'D-3 Armor route'
+        },
+        tortomon = {
+            min_hunger = 2,
+            note = 'Hungry route'
+        },
+    },
+
+    tentomon = {
+        kabuterimon = {
+            note = 'Standard route'
+        },
+        kuwagamon = {
+            min_hunger = 3,
+            note = 'High-Hunger route'
+        },
+    },
+
+    ankiromon = {
+        triceramon = {
+            note = 'Standard route'
+        },
+        tankdramon = {
+            min_care = 1,
+            note = 'Rough-care route'
+        },
+    },
+
+    digmon = {
+        megakabuterimon = {
+            note = 'Standard route'
+        },
+        okuwamon = {
+            min_care = 1,
+            note = 'Rough-care route'
+        },
+    },
+
+    tortomon = {
+        triceramon = {
+            note = 'Standard route'
+        },
+        tankdramon = {
+            min_care = 1,
+            note = 'Rough-care route'
+        },
+    },
+
+    kabuterimon = {
+        megakabuterimon = {
+            note = 'Standard route'
+        },
+    },
+
+    kuwagamon = {
+        okuwamon = {
+            note = 'Standard route'
+        },
+    },
+
+    megakabuterimon = {
+        herculeskabuterimon = {
+            note = 'Standard route'
+        },
+    },
+
+    okuwamon = {
+        herculeskabuterimon = {
+            note = 'Standard route'
+        },
+    },
+
+    leafmon = {
+        minomon = {
+            note = 'Standard route'
+        },
+    },
+
+    minomon = {
+        wormmon = {
+            note = 'Standard route'
+        },
+    },
+
+    wormmon = {
+        stingmon = {
+            note = 'Standard route'
+        },
+    },
+
+    stingmon = {
+        dinobeemon = {
+            note = 'Standard route'
+        },
+    },
+
+    dinobeemon = {
+        imperialdramon_fighter_mode = {
+            note = 'Mode choice'
+        },
+        imperialdramon_dragon_mode = {
+            note = 'Mode choice'
+        },
+    },
 
 }
 
@@ -791,6 +923,465 @@ function BM.perform_digivolution(card, option, device_key, opts)
             end
             return true
         end,
+    }))
+
+    return true
+end
+
+local function copy_recovery_data(value, seen)
+    if type(value) ~= 'table' then
+        return value
+    end
+
+    seen = seen or {}
+
+    if seen[value] then
+        return seen[value]
+    end
+
+    local out = {}
+    seen[value] = out
+
+    for k, v in pairs(value) do
+        out[copy_recovery_data(k, seen)] =
+            copy_recovery_data(v, seen)
+    end
+
+    return out
+end
+
+function BM.make_recovery_digitama(card)
+    if not card
+    or card.REMOVED
+    or not BM.is_digimon(card) then
+        return false
+    end
+
+    local e = card.ability
+        and card.ability.extra
+        or {}
+
+    if not e.permanently_disabled then
+        return false
+    end
+
+    local old_slug = BM.get_card_slug(card)
+
+    if not old_slug
+    or old_slug == 'recovery_digitama' then
+        return false
+    end
+
+    local egg_center =
+        G.P_CENTERS[
+            BM.center_key('recovery_digitama')
+        ]
+
+    if not egg_center then
+        return false
+    end
+
+    local saved_extra =
+        copy_recovery_data(e)
+
+    saved_extra.hunger = 1
+    saved_extra.bond = 0
+    saved_extra.care_mistakes = 0
+    saved_extra.care_rounds = 0
+    saved_extra.care_crisis = nil
+    saved_extra.permanently_disabled = nil
+    saved_extra._care_ticked_this_round = nil
+    saved_extra._bond_shaking = nil
+    saved_extra._recovery_ticked_this_round = nil
+
+    if BM.on_remove then
+        BM.on_remove(
+            card,
+            old_slug
+        )
+    end
+
+    SMODS.debuff_card(
+        card,
+        false,
+        'balatromon_hunger'
+    )
+
+    card:set_ability(
+        egg_center,
+        nil,
+        true
+    )
+
+    card.ability.extra =
+        card.ability.extra or {}
+
+    card.ability.extra.recovery_rounds = 2
+    card.ability.extra.recover_slug =
+        old_slug
+    card.ability.extra.recover_extra =
+        saved_extra
+
+    if SMODS.recalc_debuff then
+        SMODS.recalc_debuff(card)
+    end
+
+    if card.set_cost then
+        card:set_cost()
+    end
+
+    card:juice_up(1.25, 0.8)
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message = 'Digitama!',
+            colour = G.C.ATTENTION
+        }
+    )
+
+    return true
+end
+
+function BM.restore_recovery_digitama(card)
+    if not card
+    or card.REMOVED
+    or BM.get_card_slug(card)
+        ~= 'recovery_digitama' then
+        return false
+    end
+
+    local e = card.ability
+        and card.ability.extra
+        or {}
+
+    local recover_slug =
+        e.recover_slug
+
+    if not recover_slug then
+        return false
+    end
+
+    local center =
+        G.P_CENTERS[
+            BM.center_key(recover_slug)
+        ]
+
+    if not center then
+        return false
+    end
+
+    local saved_extra =
+        copy_recovery_data(
+            e.recover_extra or {}
+        )
+
+    card._bm_suppress_on_add = true
+
+    card:set_ability(
+        center,
+        nil,
+        true
+    )
+
+    card.ability.extra =
+        card.ability.extra or {}
+
+    for k, v in pairs(saved_extra) do
+        card.ability.extra[k] = v
+    end
+
+    card.ability.extra.hunger = 1
+    card.ability.extra.bond = 0
+    card.ability.extra.care_mistakes = 0
+    card.ability.extra.care_rounds = 0
+    card.ability.extra.care_crisis = nil
+    card.ability.extra.permanently_disabled = nil
+    card.ability.extra._care_ticked_this_round = nil
+    card.ability.extra._bond_shaking = nil
+    card.ability.extra.recovery_rounds = nil
+    card.ability.extra.recover_slug = nil
+    card.ability.extra.recover_extra = nil
+    card.ability.extra._recovery_ticked_this_round = nil
+
+    card.ability.extra._bm_passive_applied = nil
+    card.ability.extra._bm_passive_removed = nil
+    card.ability.extra._bm_passive_slug = nil
+
+    SMODS.debuff_card(
+        card,
+        false,
+        'balatromon_hunger'
+    )
+
+    if SMODS.recalc_debuff then
+        SMODS.recalc_debuff(card)
+    end
+
+    card._bm_suppress_on_add = nil
+
+    if BM.on_add then
+        BM.on_add(
+            card,
+            recover_slug
+        )
+    end
+
+    if card.set_cost then
+        card:set_cost()
+    end
+
+    card:juice_up(1.4, 1.0)
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message = 'Recovered!',
+            colour = G.C.GREEN
+        }
+    )
+
+    return true
+end
+
+function BM.tick_recovery_digitama(card, context)
+    if not (
+        context.end_of_round
+        and context.main_eval
+        and not context.blueprint
+    ) then
+        return
+    end
+
+    local e = card.ability.extra
+
+    if e._recovery_ticked_this_round then
+        return
+    end
+
+    e._recovery_ticked_this_round = true
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0,
+        func = function()
+            if card
+            and not card.REMOVED
+            and card.ability
+            and card.ability.extra then
+                card.ability.extra
+                    ._recovery_ticked_this_round = nil
+            end
+
+            return true
+        end
+    }))
+
+    e.recovery_rounds =
+        math.max(
+            0,
+            (e.recovery_rounds or 2) - 1
+        )
+
+    if e.recovery_rounds > 0 then
+        return {
+            message =
+                tostring(e.recovery_rounds)
+                .. ' Round Left',
+            colour = G.C.ATTENTION
+        }
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.3,
+        func = function()
+            if card
+            and not card.REMOVED then
+                BM.restore_recovery_digitama(
+                    card
+                )
+            end
+
+            return true
+        end
+    }))
+
+    return {
+        message = 'Hatching!',
+        colour = G.C.GREEN
+    }
+end
+
+function BM.can_dedigivolve_one_stage(card)
+    if not card
+    or card.REMOVED
+    or not BM.is_digimon(card) then
+        return false
+    end
+
+    if BM.get_card_slug(card)
+        == 'recovery_digitama' then
+        return false
+    end
+
+    local e = card.ability
+        and card.ability.extra
+        or {}
+
+    if e.permanently_disabled then
+        return false
+    end
+
+    return e.evolution_history
+        and #e.evolution_history > 0
+end
+
+function BM.dedigivolve_one_stage(card)
+    if not BM.can_dedigivolve_one_stage(
+        card
+    ) then
+        return false
+    end
+
+    local old_slug =
+        BM.get_card_slug(card)
+
+    local old_extra =
+        card.ability.extra
+
+    local history =
+        copy_evolution_history(
+            old_extra.evolution_history
+        )
+
+    local previous_slug =
+        table.remove(history)
+
+    if not previous_slug then
+        return false
+    end
+
+    local center =
+        G.P_CENTERS[
+            BM.center_key(previous_slug)
+        ]
+
+    if not center then
+        return false
+    end
+
+    local hunger =
+        old_extra.hunger or 1
+
+    local care_mistakes =
+        old_extra.care_mistakes or 0
+
+    local care_rounds =
+        old_extra.care_rounds or 0
+
+    card:juice_up(0.9, 0.8)
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message = 'De-Digivolving...',
+            colour = G.C.ATTENTION
+        }
+    )
+
+    if old_slug
+    and BM.on_remove then
+        BM.on_remove(
+            card,
+            old_slug
+        )
+    end
+
+    card:set_ability(
+        center,
+        nil,
+        true
+    )
+
+    card.ability.extra =
+        card.ability.extra or {}
+
+    card.ability.extra.hunger =
+        hunger
+
+    card.ability.extra.bond =
+        0
+
+    card.ability.extra.care_mistakes =
+        care_mistakes
+
+    card.ability.extra.care_rounds =
+        care_rounds
+
+    card.ability.extra.care_crisis =
+        nil
+
+    card.ability.extra.evolution_history =
+        history
+
+    card.ability.extra.previous_form =
+        history[#history]
+
+    card.ability.extra.previous_form_value =
+        nil
+
+    if BM.on_add then
+        BM.on_add(
+            card,
+            previous_slug
+        )
+    end
+
+    if card.set_cost then
+        card:set_cost()
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.25,
+        func = function()
+            if card
+            and not card.REMOVED then
+                card:juice_up(
+                    1.25,
+                    0.8
+                )
+
+                card_eval_status_text(
+                    card,
+                    'extra',
+                    nil,
+                    nil,
+                    nil,
+                    {
+                        message =
+                            'De-Digivolved!',
+                        colour =
+                            G.C.RED
+                    }
+                )
+            end
+
+            return true
+        end
     }))
 
     return true

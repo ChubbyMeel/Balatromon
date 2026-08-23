@@ -8950,3 +8950,701 @@ do
         }
     end
 end
+
+do
+    local slug = 'recovery_digitama'
+    local stage = 'Digitama'
+
+    local extra = {
+        recovery_rounds = 2,
+        recover_slug = nil,
+        recover_extra = nil
+    }
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = 'Digitama',
+            text = {
+                'Does nothing while recovering',
+                'Returns to {C:attention}#2#{}',
+                'after {C:attention}#1#{} #3#'
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity =
+            BM.stage_rarity(stage),
+
+        cost = 0,
+
+        atlas = 'Joker',
+        pos = {x=3,y=15},
+
+        blueprint_compat = false,
+        eternal_compat = true,
+        perishable_compat = false,
+
+        balatromon = true,
+        balatromon_stage = stage,
+        balatromon_evolves_to = '-',
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            local rounds =
+                e.recovery_rounds or 2
+
+            local recover_slug =
+                e.recover_slug
+
+            local recover_name =
+                'Digimon'
+
+            if recover_slug
+            and BM.joker_defs
+            and BM.joker_defs[
+                recover_slug
+            ] then
+                recover_name =
+                    BM.joker_defs[
+                        recover_slug
+                    ].name
+
+                BM.add_digimon_tooltip(
+                    info_queue,
+                    recover_slug
+                )
+            end
+
+            return {
+                vars = {
+                    rounds,
+                    recover_name,
+                    rounds == 1
+                        and 'round'
+                        or 'rounds'
+                }
+            }
+        end,
+
+        in_pool = function()
+            return false
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            return BM.tick_recovery_digitama(
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = 'Digitama',
+        stage = stage,
+        evolves_to = '-',
+        effect =
+            'Does nothing while recovering. Returns to its previous Digimon after 2 rounds'
+    }
+end
+
+local function bm_register_new_digimon(def)
+    local slug = def.slug
+    local stage = def.stage
+
+    local extra = {
+        hunger = 1,
+        bond = 0,
+        care_mistakes = 0,
+        care_rounds = 0
+    }
+
+    for k, v in pairs(
+        def.extra or {}
+    ) do
+        extra[k] = v
+    end
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = def.name,
+            text = {
+                def.text,
+                {
+                    BM.care_status_text(
+                        stage
+                    ),
+                }
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity =
+            BM.stage_rarity(stage),
+
+        cost = 5,
+
+        atlas = 'Joker',
+        pos = def.pos,
+
+        blueprint_compat =
+            def.blueprint_compat
+                ~= false,
+
+        eternal_compat = true,
+        perishable_compat = true,
+
+        balatromon = true,
+
+        balatromon_stage =
+            stage,
+
+        balatromon_evolves_to =
+            def.evolves_to,
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            for _, seal in ipairs(
+                def.seal_tooltips
+                or {}
+            ) do
+                BM.add_seal_tooltip(
+                    info_queue,
+                    seal
+                )
+            end
+
+            for _, digimon in ipairs(
+                def.digimon_tooltips
+                or {}
+            ) do
+                BM.add_digimon_tooltip(
+                    info_queue,
+                    digimon
+                )
+            end
+
+            if def.negative_tooltip
+            and G.P_CENTERS
+            and G.P_CENTERS.e_negative then
+                info_queue[
+                    #info_queue + 1
+                ] =
+                    G.P_CENTERS.e_negative
+            end
+
+            local vars = {
+                e.hunger or 1,
+                e.bond or 0,
+                e.care_mistakes or 0
+            }
+
+            vars.elements = {
+                BM.care_bars(
+                    e,
+                    stage
+                )
+            }
+
+            if def.dynamic_vars then
+                local dynamic =
+                    def.dynamic_vars(
+                        card,
+                        e
+                    )
+                    or {}
+
+                for _, value in ipairs(
+                    dynamic
+                ) do
+                    vars[#vars + 1] =
+                        value
+                end
+            end
+
+            return {
+                vars = vars
+            }
+        end,
+
+        in_pool = function(self, args)
+            return stage == 'Fresh'
+                or stage == 'In-Training'
+                or stage == 'Rookie'
+                or stage == 'Champion'
+                or stage == 'Rare'
+        end,
+
+        add_to_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_add(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        remove_from_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_remove(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        can_sell = function(
+            self,
+            card,
+            context
+        )
+            return BM.can_sell(
+                card,
+                slug
+            )
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            BM.care_tick(
+                card,
+                context
+            )
+
+            if card.ability.extra
+                .permanently_disabled then
+                return
+            end
+
+            return BM.run_effect(
+                slug,
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = def.name,
+        stage = stage,
+        evolves_to =
+            def.evolves_to,
+        effect =
+            def.effect
+    }
+
+    local weight =
+        BM.stage_shop_weight(
+            stage
+        )
+
+    if weight > 0 then
+        BM.shop_joker_keys[
+            #BM.shop_joker_keys + 1
+        ] = {
+            key =
+                BM.center_key(
+                    slug
+                ),
+            weight = weight,
+            stage = stage
+        }
+    end
+end
+
+bm_register_new_digimon({
+    slug = 'twins',
+    name = 'Tsubumon & Pabumon',
+    stage = 'Fresh',
+    evolves_to = 'Upamon, Motimon',
+    pos = {x=4,y=15},
+    blueprint_compat = false,
+    seal_tooltips = {
+        'Gold',
+        'Blue',
+        'digital'
+    },
+    text = {
+        'If played hand is exactly a {C:attention}Pair{}, apply',
+        'a {C:attention}Gold Seal{}, {C:attention}Blue Seal{}, or {C:attention}Digital Seal{}',
+        'to the first scoring card',
+    },
+    effect = 'If played hand is a Pair, apply a Gold Seal, Blue Seal, or Digital Seal to the first scoring card'
+})
+
+bm_register_new_digimon({
+    slug = 'upamon',
+    name = 'Upamon',
+    stage = 'In-Training',
+    evolves_to = 'Armadillomon',
+    pos = {x=5,y=15},
+    blueprint_compat = false,
+    seal_tooltips = {
+        'Gold',
+        'farm'
+    },
+    text = {
+        'If played hand is {C:attention}High Card{}, apply',
+        'a {C:attention}Gold Seal{} or {C:attention}Farm Seal{}',
+        'to the scoring card',
+    },
+    effect = 'If played hand is High Card, apply a Gold Seal or Farm Seal to the scoring card'
+})
+
+bm_register_new_digimon({
+    slug = 'motimon',
+    name = 'Motimon',
+    stage = 'In-Training',
+    evolves_to = 'Tentomon',
+    pos = {x=6,y=15},
+    seal_tooltips = {
+        'Blue'
+    },
+    text = {
+        '{C:attention}Blue Seals{} held in hand each give',
+        '{C:money}$3{} at the end of the round',
+    },
+    effect = 'Blue Seals held in hand each give $3 at the end of the round'
+})
+
+bm_register_new_digimon({
+    slug = 'armadillomon',
+    name = 'Armadillomon',
+    stage = 'Rookie',
+    evolves_to = 'Ankiromon, Digmon, Monochromon, Tortomon',
+    pos = {x=7,y=15},
+    seal_tooltips = {
+        'Gold'
+    },
+    text = {
+        'Scoring cards with a {C:attention}Gold Seal{}',
+        'trigger its money effect {C:attention}1 additional time{}',
+    },
+    effect = 'Gold Seal cards trigger their money effect 1 additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'tentomon',
+    name = 'Tentomon',
+    stage = 'Rookie',
+    evolves_to = 'Kabuterimon, Kuwagamon',
+    pos = {x=8,y=15},
+    blueprint_compat = false,
+    seal_tooltips = {
+        'Purple'
+    },
+    text = {
+        'Discarded cards with a {C:attention}Purple Seal{}',
+        'trigger its Tarot effect {C:attention}1 additional time{}',
+    },
+    effect = 'Purple Seal cards trigger their Tarot effect 1 additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'ankiromon',
+    name = 'Ankiromon',
+    stage = 'Champion',
+    evolves_to = 'Triceramon, Tankdramon',
+    pos = {x=9,y=15},
+    seal_tooltips = {
+        'Red'
+    },
+    text = {
+        '{C:attention}Red Seal{} cards retrigger',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Red Seal cards retrigger 1 additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'digmon',
+    name = 'Digmon',
+    stage = 'Champion',
+    evolves_to = 'MegaKabuterimon, Okuwamon',
+    pos = {x=0,y=16},
+    blueprint_compat = false,
+    text = {
+        'If played hand contains {C:attention}#5#{} and',
+        'a scoring {C:attention}#4#{}, create a {C:spectral}Spectral{} card',
+        '{C:inactive}(rank and poker hand change at end of round){}',
+    },
+    dynamic_vars = function(card, e)
+        local rank =
+            e.target_rank
+            or 14
+
+        local hand =
+            e.target_hand
+            or 'High Card'
+
+        if card then
+            rank =
+                BM.ensure_target(
+                    card,
+                    'target_rank',
+                    BM.deck_ranks(),
+                    'digmon_rank'
+                )
+                or rank
+
+            hand =
+                BM.ensure_target(
+                    card,
+                    'target_hand',
+                    BM.HANDS,
+                    'digmon_hand'
+                )
+                or hand
+        end
+
+        return {
+            BM.rank_name(rank),
+            hand
+        }
+    end,
+    effect = 'Creates a Spectral card if the hand contains the target poker hand and target rank; both targets change each round'
+})
+
+bm_register_new_digimon({
+    slug = 'tortomon',
+    name = 'Tortomon',
+    stage = 'Champion',
+    evolves_to = 'Triceramon, Tankdramon',
+    pos = {x=1,y=16},
+    text = {
+        'Each sealed card played or held in hand',
+        'gives {X:mult,C:white}X1.25{} Mult',
+    },
+    effect = 'Each sealed card played or held in hand gives X1.25 Mult'
+})
+
+bm_register_new_digimon({
+    slug = 'kabuterimon',
+    name = 'Kabuterimon',
+    stage = 'Champion',
+    evolves_to = 'MegaKabuterimon',
+    pos = {x=2,y=16},
+    blueprint_compat = false,
+    text = {
+        'If the first hand of the round is a single {C:attention}8{},',
+        'destroy it and create a {C:spectral}Spectral{} card',
+        '{C:inactive}(Must have room){}',
+    },
+    effect = 'If the first hand of the round is a single 8, destroy it and create a Spectral card'
+})
+
+bm_register_new_digimon({
+    slug = 'kuwagamon',
+    name = 'Kuwagamon',
+    stage = 'Champion',
+    evolves_to = 'Okuwamon',
+    pos = {x=3,y=16},
+    blueprint_compat = false,
+    text = {
+        'If played poker hand is a {C:attention}Straight Flush{}',
+        'or {C:attention}Flush Five{}, create a random {C:spectral}Spectral{} card',
+        '{C:inactive}(Must have room){}',
+    },
+    effect = 'Creates a random Spectral card when a Straight Flush or Flush Five is played'
+})
+
+bm_register_new_digimon({
+    slug = 'megakabuterimon',
+    name = 'MegaKabuterimon',
+    stage = 'Ultimate',
+    evolves_to = 'HerculesKabuterimon',
+    pos = {x=4,y=16},
+    blueprint_compat = false,
+    negative_tooltip = true,
+    text = {
+        'When a scoring {C:attention}#4#{} scores, destroy it',
+        'and create a {C:dark_edition}Negative{} {C:spectral}Spectral{} card',
+        '{C:inactive}(rank changes at end of round){}',
+    },
+    dynamic_vars = function(card, e)
+        local rank =
+            e.target_rank
+            or 14
+
+        if card then
+            rank =
+                BM.ensure_target(
+                    card,
+                    'target_rank',
+                    BM.deck_ranks(),
+                    'megakabuterimon_rank'
+                )
+                or rank
+        end
+
+        return {
+            BM.rank_name(rank)
+        }
+    end,
+    effect = 'When the target rank scores, destroy it and create a Negative Spectral card; target rank changes each round'
+})
+
+bm_register_new_digimon({
+    slug = 'okuwamon',
+    name = 'Okuwamon',
+    stage = 'Ultimate',
+    evolves_to = 'HerculesKabuterimon',
+    pos = {x=5,y=16},
+    blueprint_compat = false,
+    text = {
+        'If played hand is one of your most played poker hands,',
+        'create a {C:spectral}Spectral{} card and permanently',
+        '{C:red}debuff{} all cards played in that hand',
+        '{C:inactive}(Must have room){}',
+    },
+    effect = 'When one of your most played poker hands is played, create a Spectral card and permanently debuff all cards played'
+})
+
+bm_register_new_digimon({
+    slug = 'herculeskabuterimon',
+    name = 'HerculesKabuterimon',
+    stage = 'Mega',
+    evolves_to = '-',
+    pos = {x=6,y=16},
+    blueprint_compat = false,
+    negative_tooltip = true,
+    digimon_tooltips = {
+        'megakabuterimon',
+        'okuwamon'
+    },
+    text = {
+        '{C:spectral}Spectral{} cards appear frequently in the shop',
+        'Also applies {C:attention}MegaKabuterimon{} and',
+        '{C:attention}Okuwamon{} effects',
+        '{C:inactive}(MegaKabuterimon target: {C:attention}#4#{C:inactive}){}',
+    },
+    dynamic_vars = function(card, e)
+        local rank =
+            e.target_rank
+            or 14
+
+        if card then
+            rank =
+                BM.ensure_target(
+                    card,
+                    'target_rank',
+                    BM.deck_ranks(),
+                    'megakabuterimon_rank'
+                )
+                or rank
+        end
+
+        return {
+            BM.rank_name(rank)
+        }
+    end,
+    effect = 'Spectral cards appear frequently in the shop and applies MegaKabuterimon and Okuwamon effects'
+})
+
+bm_register_new_digimon({
+    slug = 'leafmon',
+    name = 'Leafmon',
+    stage = 'Fresh',
+    evolves_to = 'Minomon',
+    pos = {x=7,y=16},
+    text = {
+        'Retrigger each played {C:attention}9{}',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger each played 9 one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'minomon',
+    name = 'Minomon',
+    stage = 'In-Training',
+    evolves_to = 'Wormmon',
+    pos = {x=8,y=16},
+    text = {
+        'Retrigger each played {C:attention}7{} and {C:attention}4{}',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger each played 7 and 4 one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'wormmon',
+    name = 'Wormmon',
+    stage = 'Rookie',
+    evolves_to = 'Stingmon',
+    pos = {x=9,y=16},
+    text = {
+        'Retrigger each played {C:attention}3{}, {C:attention}4{}, or {C:attention}5{}',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger each played 3, 4, or 5 one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'stingmon',
+    name = 'Stingmon',
+    stage = 'Champion',
+    evolves_to = 'Dinobeemon',
+    pos = {x=0,y=17},
+    text = {
+        'Retrigger each played {C:attention}2{}, {C:attention}3{}, {C:attention}4{},',
+        '{C:attention}5{}, or {C:attention}10{} {C:attention}2 additional times{}',
+    },
+    effect = 'Retrigger each played 2, 3, 4, 5, or 10 two additional times'
+})
+
+bm_register_new_digimon({
+    slug = 'dinobeemon',
+    name = 'Dinobeemon',
+    stage = 'Ultimate',
+    evolves_to = 'Imperialdramon Fighter Mode, Imperialdramon Dragon Mode',
+    pos = {x=1,y=17},
+    text = {
+        'Retrigger all played cards in the',
+        'first hand of each round',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger all played cards in the first hand of each round one additional time'
+})

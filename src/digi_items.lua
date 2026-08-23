@@ -920,3 +920,140 @@ SMODS.Consumable {
     end,
 }
 
+SMODS.Consumable {
+    key = 'graveyard',
+    set = 'Spectral',
+
+    discovered = true,
+    unlocked = true,
+
+    atlas = 'Consumable',
+    pos = {x=0,y=3},
+
+    cost = 4,
+
+    loc_txt = {
+        name = 'Graveyard',
+        text = {
+            'Bring back {C:attention}1 selected',
+            '{C:red}disabled{} Digimon as a',
+            '{C:attention}Digitama{} for {C:attention}2 rounds'
+        }
+    },
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        BM.add_digimon_tooltip(
+            info_queue,
+            'recovery_digitama'
+        )
+
+        return {}
+    end,
+
+    can_use = function(self, card)
+        local targets =
+            selected_digimon(2)
+
+        if #targets ~= 1 then
+            return false
+        end
+
+        local target =
+            targets[1]
+
+        if BM.get_card_slug(target)
+            == 'recovery_digitama' then
+            return false
+        end
+
+        local e =
+            target.ability
+            and target.ability.extra
+            or {}
+
+        return e.permanently_disabled
+            == true
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        local target =
+            selected_digimon(1)[1]
+
+        if not target then
+            return
+        end
+
+        BM.make_recovery_digitama(
+            target
+        )
+
+        if G.jokers
+        and G.jokers.unhighlight_all then
+            G.jokers:unhighlight_all()
+        end
+    end,
+}
+
+SMODS.Consumable {
+    key = 'digivice_ic',
+    set = 'Spectral',
+
+    discovered = true,
+    unlocked = true,
+
+    atlas = 'Consumable',
+    pos = {x=1,y=3},
+
+    cost = 4,
+
+    loc_txt = {
+        name = 'Digivice iC',
+        text = {
+            'De-Digivolve {C:attention}1 selected',
+            'Digimon evolved by you',
+            'by {C:attention}1 stage'
+        }
+    },
+
+    can_use = function(self, card)
+        local targets =
+            selected_digimon(2)
+
+        return #targets == 1
+            and BM.can_dedigivolve_one_stage(
+                targets[1]
+            )
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        local target =
+            selected_digimon(1)[1]
+
+        if not target then
+            return
+        end
+
+        BM.dedigivolve_one_stage(
+            target
+        )
+
+        if G.jokers
+        and G.jokers.unhighlight_all then
+            G.jokers:unhighlight_all()
+        end
+    end,
+}

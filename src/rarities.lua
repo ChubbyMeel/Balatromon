@@ -11,6 +11,7 @@ local defs = {
     {stage='Ultimate',    key='ultimate',    colour='9B72D0'},
     {stage='Mega',        key='mega',        colour='E45C9C'},
     {stage='Rare',        key='rare_digimon',colour='F2C94C'},
+    {stage='Digitama', key='digitama_stage', colour='D8C26E'},
 }
 
 for _, def in ipairs(defs) do

@@ -1359,7 +1359,600 @@ if not BM._redvegiemon_cost_patched then
     end
 end
 
+
+
 function BM.has_sunflowmon_effect()
     return BM.has_active_digimon('sunflowmon')
         or BM.has_active_digimon('lilamon')
+end
+
+local function bm_insect_seed(prefix, card)
+    return prefix
+        .. ':'
+        .. tostring(
+            G.GAME
+            and G.GAME.hands_played
+            or 0
+        )
+        .. ':'
+        .. tostring(
+            card
+            and card.sort_id
+            or 0
+        )
+end
+
+local function bm_apply_random_seal(
+    target,
+    seals,
+    seed
+)
+    if not target then
+        return false
+    end
+
+    local seal =
+        BM.random_element(
+            seals,
+            seed
+        )
+
+    if not seal then
+        return false
+    end
+
+    target:set_seal(
+        seal,
+        true,
+        false
+    )
+
+    target:juice_up(
+        0.7,
+        0.5
+    )
+
+    return true
+end
+
+local function bm_create_negative_spectral(seed)
+    if not G.consumeables then
+        return nil
+    end
+
+    local created =
+        SMODS.create_card {
+            set = 'Spectral',
+            area = G.consumeables,
+            key_append = seed
+        }
+
+    if not created then
+        return nil
+    end
+
+    created:set_edition(
+        {negative = true},
+        true
+    )
+
+    created:add_to_deck()
+    G.consumeables:emplace(created)
+
+    return created
+end
+
+local function bm_most_played_hand(hand)
+    if not hand
+    or not G.GAME
+    or not G.GAME.hands
+    or not G.GAME.hands[hand] then
+        return false
+    end
+
+    local data =
+        G.GAME.hands[hand]
+
+    if data.visible == false then
+        return false
+    end
+
+    local most = -math.huge
+
+    for _, other in pairs(
+        G.GAME.hands
+    ) do
+        if other.visible ~= false then
+            most = math.max(
+                most,
+                other.played or 0
+            )
+        end
+    end
+
+    return (data.played or 0) == most
+end
+
+local function bm_playing_card_id(card)
+    if not card then
+        return nil
+    end
+
+    return tostring(
+        card.playing_card
+        or card.sort_id
+        or card
+    )
+end
+
+local function bm_rank_retrigger(
+    context,
+    ranks,
+    repetitions
+)
+    if not (
+        context.repetition
+        and context.cardarea == G.play
+        and context.other_card
+        and not context.other_card.debuff
+    ) then
+        return
+    end
+
+    local rank =
+        BM.get_rank(
+            context.other_card
+        )
+
+    for _, wanted in ipairs(ranks) do
+        if rank == wanted then
+            return {
+                repetitions =
+                    repetitions
+            }
+        end
+    end
+end
+
+local function bm_twin_effect(card, context)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and context.scoring_name == 'Pair'
+    and context.scoring_hand
+    and context.scoring_hand[1] then
+
+        if bm_apply_random_seal(
+            context.scoring_hand[1],
+            {
+                'Gold',
+                'Blue',
+                BM.PREFIX .. '_digital'
+            },
+            bm_insect_seed(
+                'twin_seal',
+                card
+            )
+        ) then
+            return {
+                message = 'Sealed!'
+            }
+        end
+    end
+end
+
+H.twins = bm_twin_effect
+
+H.upamon = function(card, context)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and context.scoring_name == 'High Card'
+    and context.scoring_hand
+    and context.scoring_hand[1] then
+
+        if bm_apply_random_seal(
+            context.scoring_hand[1],
+            {
+                'Gold',
+                BM.PREFIX .. '_farm'
+            },
+            bm_insect_seed(
+                'upamon_seal',
+                card
+            )
+        ) then
+            return {
+                message = 'Sealed!'
+            }
+        end
+    end
+end
+
+H.motimon = function(card, context)
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        local count = 0
+
+        for _, held in ipairs(
+            G.hand
+            and G.hand.cards
+            or {}
+        ) do
+            if held.seal == 'Blue'
+            and not held.debuff then
+                count = count + 1
+            end
+        end
+
+        if count > 0 then
+            return {
+                dollars = count * 3
+            }
+        end
+    end
+end
+
+H.armadillomon = function(card, context)
+    if context.individual
+    and context.cardarea == G.play
+    and context.other_card
+    and context.other_card.seal == 'Gold'
+    and not context.other_card.debuff then
+        return {
+            dollars = 3
+        }
+    end
+end
+
+H.tentomon = function(card, context)
+    if context.discard
+    and context.other_card
+    and context.other_card.seal == 'Purple'
+    and not context.other_card.debuff
+    and not context.blueprint then
+        if BM.add_consumable(
+            'Tarot'
+        ) then
+            return {
+                message = 'Purple Seal!'
+            }
+        end
+    end
+end
+
+H.ankiromon = function(card, context)
+    if context.repetition
+    and context.cardarea == G.play
+    and context.other_card
+    and context.other_card.seal == 'Red'
+    and not context.other_card.debuff then
+        return {
+            repetitions = 1
+        }
+    end
+end
+
+H.digmon = function(card, context)
+    local e =
+        card.ability.extra
+
+    BM.ensure_target(
+        card,
+        'target_rank',
+        BM.deck_ranks(),
+        'digmon_rank'
+    )
+
+    BM.ensure_target(
+        card,
+        'target_hand',
+        BM.HANDS,
+        'digmon_hand'
+    )
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        BM.reroll_target(
+            card,
+            'target_rank',
+            BM.deck_ranks(),
+            'digmon_rank'
+        )
+
+        BM.reroll_target(
+            card,
+            'target_hand',
+            BM.HANDS,
+            'digmon_hand'
+        )
+
+        return BM.target_change_return(
+            card,
+            BM.rank_name(
+                e.target_rank
+            )
+            .. ' / '
+            .. tostring(
+                e.target_hand
+            ),
+            G.C.ATTENTION
+        )
+    end
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and BM.contains_hand(
+        context,
+        e.target_hand
+    )
+    and BM.contains_rank(
+        context.scoring_hand,
+        e.target_rank
+    ) then
+        if BM.add_consumable(
+            'Spectral'
+        ) then
+            return {
+                message = 'Spectral!',
+                colour = G.C.PURPLE
+            }
+        end
+    end
+end
+
+H.tortomon = function(card, context)
+    if context.individual
+    and not context.end_of_round
+    and not context.playing_card_end_of_round
+    and (
+        context.cardarea == G.play
+        or context.cardarea == G.hand
+    )
+    and context.other_card
+    and context.other_card.seal
+    and not context.other_card.debuff then
+        return {
+            xmult = 1.25
+        }
+    end
+end
+
+H.kabuterimon = function(card, context)
+    local e =
+        card.ability.extra
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and (
+        G.GAME.current_round.hands_played
+        or 0
+    ) == 0
+    and context.full_hand
+    and #context.full_hand == 1
+    and BM.get_rank(
+        context.full_hand[1]
+    ) == 8
+    and BM.has_room(
+        G.consumeables
+    ) then
+
+        if BM.add_consumable(
+            'Spectral'
+        ) then
+            e.kabuterimon_destroy_id =
+                bm_playing_card_id(
+                    context.full_hand[1]
+                )
+
+            return {
+                message = 'Spectral!',
+                colour = G.C.PURPLE
+            }
+        end
+    end
+
+    if context.destroying_card
+    and context.cardarea == G.play
+    and e.kabuterimon_destroy_id
+    and bm_playing_card_id(
+        context.destroying_card
+    ) == e.kabuterimon_destroy_id then
+        e.kabuterimon_destroy_id =
+            nil
+
+        return {
+            remove = true
+        }
+    end
+end
+
+H.kuwagamon = function(card, context)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and (
+        context.scoring_name
+            == 'Straight Flush'
+        or context.scoring_name
+            == 'Flush Five'
+    ) then
+        if BM.add_consumable(
+            'Spectral'
+        ) then
+            return {
+                message = 'Spectral!',
+                colour = G.C.PURPLE
+            }
+        end
+    end
+end
+
+H.megakabuterimon = function(card, context)
+    local e =
+        card.ability.extra
+
+    BM.ensure_target(
+        card,
+        'target_rank',
+        BM.deck_ranks(),
+        'megakabuterimon_rank'
+    )
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        BM.reroll_target(
+            card,
+            'target_rank',
+            BM.deck_ranks(),
+            'megakabuterimon_rank'
+        )
+
+        return BM.target_change_return(
+            card,
+            'Target: '
+            .. BM.rank_name(
+                e.target_rank
+            ),
+            G.C.ATTENTION
+        )
+    end
+
+    if context.destroying_card
+    and context.cardarea == G.play
+    and not context.blueprint
+    and BM.get_rank(
+        context.destroying_card
+    ) == e.target_rank then
+
+        local made =
+            bm_create_negative_spectral(
+                bm_insect_seed(
+                    'megakabuterimon',
+                    card
+                )
+            )
+
+        if made then
+            return {
+                remove = true,
+                message = 'Negative Spectral!',
+                colour = G.C.PURPLE
+            }
+        end
+
+        return {
+            remove = true
+        }
+    end
+end
+
+H.okuwamon = function(card, context)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and bm_most_played_hand(
+        context.scoring_name
+    )
+    and BM.has_room(
+        G.consumeables
+    ) then
+
+        local made =
+            BM.add_consumable(
+                'Spectral'
+            )
+
+        if made then
+            for _, played in ipairs(
+                context.full_hand or {}
+            ) do
+                SMODS.debuff_card(
+                    played,
+                    true,
+                    'balatromon_okuwamon'
+                )
+
+                played:juice_up(
+                    0.5,
+                    0.5
+                )
+            end
+
+            return {
+                message = 'Corrupted!',
+                colour = G.C.PURPLE
+            }
+        end
+    end
+end
+
+H.herculeskabuterimon = function(
+    card,
+    context
+)
+    local mega =
+        H.megakabuterimon(
+            card,
+            context
+        )
+
+    if mega then
+        return mega
+    end
+
+    return H.okuwamon(
+        card,
+        context
+    )
+end
+
+H.leafmon = function(card, context)
+    return bm_rank_retrigger(
+        context,
+        {9},
+        1
+    )
+end
+
+H.minomon = function(card, context)
+    return bm_rank_retrigger(
+        context,
+        {7, 4},
+        1
+    )
+end
+
+H.wormmon = function(card, context)
+    return bm_rank_retrigger(
+        context,
+        {3, 4, 5},
+        1
+    )
+end
+
+H.stingmon = function(card, context)
+    return bm_rank_retrigger(
+        context,
+        {2, 3, 4, 5, 10},
+        2
+    )
+end
+
+H.dinobeemon = function(card, context)
+    if context.repetition
+    and context.cardarea == G.play
+    and (
+        G.GAME.current_round.hands_played
+        or 0
+    ) == 0 then
+        return {
+            repetitions = 1
+        }
+    end
 end

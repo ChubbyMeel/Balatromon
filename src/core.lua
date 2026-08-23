@@ -82,6 +82,7 @@ function BM.has_passive_deck_effect(slug)
         or slug == 'hawkmon'
         or slug == 'aquilamon'
         or slug == 'halsemon'
+        or slug == 'herculeskabuterimon'
 end
 
 function BM.apply_passive_deck_effect(card, slug)
@@ -121,6 +122,14 @@ function BM.apply_passive_deck_effect(card, slug)
     elseif slug == 'halsemon' then
         G.GAME.round_resets.discards = G.GAME.round_resets.discards + 3
         G.hand:change_size(-1)
+
+    elseif slug == 'herculeskabuterimon' then
+        e.hercules_spectral_rate =
+            e.hercules_spectral_rate or 6
+
+        G.GAME.spectral_rate =
+            (G.GAME.spectral_rate or 0)
+            + e.hercules_spectral_rate
     end
 end
 
@@ -156,6 +165,17 @@ function BM.remove_passive_deck_effect(card, slug)
     elseif applied_slug == 'halsemon' then
         G.GAME.round_resets.discards = G.GAME.round_resets.discards - 3
         G.hand:change_size(1)
+
+    elseif slug == 'herculeskabuterimon' then
+        local rate =
+            e.hercules_spectral_rate or 6
+
+        G.GAME.spectral_rate =
+            math.max(
+                0,
+                (G.GAME.spectral_rate or 0)
+                - rate
+            )
     end
 
     e._bm_passive_applied = nil
@@ -1083,6 +1103,34 @@ function BM.add_digimon_tooltip(info_queue, slug)
     }
 end
 
+function BM.add_seal_tooltip(info_queue, key)
+    if not info_queue or not key then return end
+
+    local vanilla = {
+        Gold = true,
+        Blue = true,
+        Purple = true,
+        Red = true
+    }
+
+    local loc_key
+
+    if vanilla[key] then
+        loc_key = string.lower(key) .. '_seal'
+    else
+        loc_key =
+            BM.PREFIX
+            .. '_'
+            .. BM.slug(key)
+            .. '_seal'
+    end
+
+    info_queue[#info_queue + 1] = {
+        set = 'Other',
+        key = loc_key
+    }
+end
+
 
 
 function BM.get_hunger_rounds(card)
@@ -1369,6 +1417,11 @@ function BM.stage_rarity(stage)
 end
 
 function BM.on_add(card, slug)
+    if card
+    and card._bm_suppress_on_add then
+        return
+    end
+
     if BM.has_passive_deck_effect(slug) then
         BM.apply_passive_deck_effect(card, slug)
     end
