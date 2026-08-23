@@ -6,9 +6,9 @@ BM.digital_pack_keys = BM.digital_pack_keys or {
     mega = {},
 }
 
-local REGULAR_TOTAL_WEIGHT = 1.20
-local JUMBO_TOTAL_WEIGHT = 0.40
-local MEGA_TOTAL_WEIGHT = 0.20
+local REGULAR_TOTAL_WEIGHT = 4.00
+local JUMBO_TOTAL_WEIGHT = 1.40
+local MEGA_TOTAL_WEIGHT = 0.60
 
 local REGULAR_WEIGHT = REGULAR_TOTAL_WEIGHT / 4
 local JUMBO_WEIGHT = JUMBO_TOTAL_WEIGHT / 2
