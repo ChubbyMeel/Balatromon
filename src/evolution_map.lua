@@ -182,7 +182,18 @@ local function set_signature(set)
     return table.concat(keys, '|')
 end
 
+local function route_base_slug(slug)
+    if type(slug) == 'string' and slug:sub(1, 2) == 'x_' then
+        return slug:sub(3)
+    end
+
+    return slug
+end
+
 local function route_rule(from_slug, to_slug)
+    from_slug = route_base_slug(from_slug)
+    to_slug = route_base_slug(to_slug)
+
     return BM.evolution_rules
         and BM.evolution_rules[from_slug]
         and BM.evolution_rules[from_slug][to_slug]
@@ -494,6 +505,44 @@ local function layout_page(page, nodes, all_edges)
     page.initial_pan_y = math.max(0, math.min(max_pan_y, lane_zero_y - CANVAS_H / 2))
 end
 
+local function x_compatible(slug)
+    if BM.can_x_evolve_to then
+        return BM.can_x_evolve_to(slug)
+    end
+
+    return BM.x_antibody_viable
+        and BM.x_antibody_viable[slug] == true
+end
+
+local function make_x_map_node(slug)
+    local def = BM.joker_defs and BM.joker_defs[slug]
+
+    if not def or not x_compatible(slug) then
+        return nil
+    end
+
+    local col = STAGE_COL[def.stage]
+
+    if not col then
+        return nil
+    end
+
+    local form = BM.x_antibody_forms and BM.x_antibody_forms[slug]
+
+    return {
+        slug = 'x_' .. slug,
+        base_slug = slug,
+        name = (def.name or slug) .. ' X',
+        stage = def.stage,
+        col = col,
+        x_form = true,
+        atlas_key = form and form.atlas or BM.X_ANTIBODY_ATLAS,
+        pos = form and form.pos or nil,
+        parents = {},
+        children = {},
+    }
+end
+
 function BM.build_evolution_map_layout()
     local nodes = {}
     local edges = {}
@@ -526,7 +575,7 @@ function BM.build_evolution_map_layout()
                 edges[#edges + 1] = {
                     from = slug,
                     to = target,
-                    rule = BM.evolution_rules and BM.evolution_rules[slug] and BM.evolution_rules[slug][target]
+                    rule = route_rule(slug, target),
                 }
             end
         end
@@ -535,7 +584,7 @@ function BM.build_evolution_map_layout()
     local roots = {}
 
     for slug, node in pairs(nodes) do
-        if #node.parents == 0 then
+        if not node.x_form and #node.parents == 0 then
             roots[#roots + 1] = slug
         end
     end
@@ -569,7 +618,7 @@ function BM.build_evolution_map_layout()
         end
     end
 
-    local pages = {}
+    local normal_pages = {}
     local signature_pages = {}
     local forced_pages = {}
     local covered = {}
@@ -587,10 +636,11 @@ function BM.build_evolution_map_layout()
                     roots = {},
                     node_set = {},
                     forced_name = forced_groups[forced_key].name,
+                    x_page = false,
                 }
 
                 forced_pages[forced_key] = page
-                pages[#pages + 1] = page
+                normal_pages[#normal_pages + 1] = page
             end
 
             for slug in pairs(set) do
@@ -604,10 +654,11 @@ function BM.build_evolution_map_layout()
                 page = {
                     roots = {},
                     node_set = set,
+                    x_page = false,
                 }
 
                 signature_pages[signature] = page
-                pages[#pages + 1] = page
+                normal_pages[#normal_pages + 1] = page
             end
         end
 
@@ -618,8 +669,8 @@ function BM.build_evolution_map_layout()
         end
     end
 
-    for slug in pairs(nodes) do
-        if not covered[slug] then
+    for slug, node in pairs(nodes) do
+        if not node.x_form and not covered[slug] then
             local set = {}
             local queue = {slug}
             local index = 1
@@ -628,7 +679,7 @@ function BM.build_evolution_map_layout()
                 local current = queue[index]
                 index = index + 1
 
-                if nodes[current] and not set[current] and not covered[current] then
+                if nodes[current] and not nodes[current].x_form and not set[current] and not covered[current] then
                     set[current] = true
                     covered[current] = true
 
@@ -642,9 +693,10 @@ function BM.build_evolution_map_layout()
                 end
             end
 
-            pages[#pages + 1] = {
+            normal_pages[#normal_pages + 1] = {
                 roots = {slug},
                 node_set = set,
+                x_page = false,
             }
         end
     end
@@ -657,7 +709,8 @@ function BM.build_evolution_map_layout()
 
         if key then
             for slug, node in pairs(nodes) do
-                if node.col == 1
+                if not node.x_form
+                and node.col == 1
                 and not baby_order[slug]
                 and BM.center_key(slug) == key then
                     baby_order[slug] = next_baby_order
@@ -671,7 +724,7 @@ function BM.build_evolution_map_layout()
     local fallback_babies = {}
 
     for slug, node in pairs(nodes) do
-        if node.col == 1 and not baby_order[slug] then
+        if not node.x_form and node.col == 1 and not baby_order[slug] then
             fallback_babies[#fallback_babies + 1] = slug
         end
     end
@@ -692,7 +745,7 @@ function BM.build_evolution_map_layout()
         next_baby_order = next_baby_order + 1
     end
 
-    for _, page in ipairs(pages) do
+    for _, page in ipairs(normal_pages) do
         page.name = page.forced_name or page_name(page.roots, nodes)
 
         if page.forced_name == 'Leafmon / Chibomon Line' then
@@ -711,13 +764,145 @@ function BM.build_evolution_map_layout()
         layout_page(page, nodes, edges)
     end
 
-    table.sort(pages, function(a, b)
+    table.sort(normal_pages, function(a, b)
         if a.sort_order ~= b.sort_order then
             return a.sort_order < b.sort_order
         end
 
         return a.name < b.name
     end)
+
+    local x_slugs = {}
+
+    for slug in pairs(BM.joker_defs or {}) do
+        if x_compatible(slug) then
+            local x_node = make_x_map_node(slug)
+
+            if x_node then
+                nodes[x_node.slug] = x_node
+                x_slugs[#x_slugs + 1] = slug
+            end
+        end
+    end
+
+    table.sort(x_slugs, function(a, b)
+        local an = BM.joker_defs[a] and BM.joker_defs[a].name or a
+        local bn = BM.joker_defs[b] and BM.joker_defs[b].name or b
+        return an < bn
+    end)
+
+    local x_edges = {}
+
+    for _, slug in ipairs(x_slugs) do
+        local from_id = 'x_' .. slug
+        local from_node = nodes[from_id]
+        local def = BM.joker_defs[slug]
+
+        if from_node and def then
+            for _, target in ipairs(split_targets(def.evolves_to)) do
+                local to_id = 'x_' .. target
+
+                if x_compatible(target) and nodes[to_id] then
+                    from_node.children[#from_node.children + 1] = to_id
+                    nodes[to_id].parents[#nodes[to_id].parents + 1] = from_id
+
+                    local edge = {
+                        from = from_id,
+                        to = to_id,
+                        rule = route_rule(slug, target),
+                        x_route = true,
+                    }
+
+                    x_edges[#x_edges + 1] = edge
+                    edges[#edges + 1] = edge
+                end
+            end
+        end
+    end
+
+    local x_roots = {}
+
+    for _, slug in ipairs(x_slugs) do
+        local id = 'x_' .. slug
+        local node = nodes[id]
+
+        if node and #node.parents == 0 then
+            x_roots[#x_roots + 1] = id
+        end
+    end
+
+    table.sort(x_roots, function(a, b)
+        local an = nodes[a] and nodes[a].name or a
+        local bn = nodes[b] and nodes[b].name or b
+        return an < bn
+    end)
+
+    local x_pages = {}
+    local x_signatures = {}
+
+    for _, root in ipairs(x_roots) do
+        local set = collect_descendants(root, nodes)
+        local signature = set_signature(set)
+        local page = x_signatures[signature]
+
+        if not page then
+            page = {
+                roots = {},
+                node_set = set,
+                x_page = true,
+            }
+
+            x_signatures[signature] = page
+            x_pages[#x_pages + 1] = page
+        end
+
+        page.roots[#page.roots + 1] = root
+    end
+
+    local x_covered = {}
+
+    for _, page in ipairs(x_pages) do
+        for slug in pairs(page.node_set) do
+            x_covered[slug] = true
+        end
+    end
+
+    for _, slug in ipairs(x_slugs) do
+        local id = 'x_' .. slug
+
+        if nodes[id] and not x_covered[id] then
+            local set = collect_descendants(id, nodes)
+
+            x_pages[#x_pages + 1] = {
+                roots = {id},
+                node_set = set,
+                x_page = true,
+            }
+
+            for node_id in pairs(set) do
+                x_covered[node_id] = true
+            end
+        end
+    end
+
+    for _, page in ipairs(x_pages) do
+        page.name = 'X-ANTIBODY - ' .. page_name(page.roots, nodes)
+        layout_page(page, nodes, x_edges)
+    end
+
+    table.sort(x_pages, function(a, b)
+        return a.name < b.name
+    end)
+
+    local pages = {}
+
+    for _, page in ipairs(normal_pages) do
+        pages[#pages + 1] = page
+    end
+
+    for _, page in ipairs(x_pages) do
+        pages[#pages + 1] = page
+    end
 
     BM.evolution_map_layout = {
         nodes = nodes,
@@ -728,6 +913,25 @@ function BM.build_evolution_map_layout()
     BM.evolution_map_page = math.max(1, math.min(BM.evolution_map_page or 1, math.max(1, #pages)))
 
     return BM.evolution_map_layout
+end
+
+local function resolve_atlas_key(key)
+    if not key then
+        return nil
+    end
+
+    local candidates = {
+        key,
+        BM.PREFIX .. '_' .. key,
+    }
+
+    for _, candidate in ipairs(candidates) do
+        if candidate and G.ASSET_ATLAS and G.ASSET_ATLAS[candidate] then
+            return G.ASSET_ATLAS[candidate]
+        end
+    end
+
+    return nil
 end
 
 local function resolve_atlas(center)
@@ -756,9 +960,18 @@ local function prepare_node_sprite(node)
         return true
     end
 
-    local atlas = resolve_atlas(node.center)
+    local atlas
+    local pos
 
-    if not atlas or not atlas.image or not node.center.pos then
+    if node.x_form then
+        atlas = resolve_atlas_key(node.atlas_key or BM.X_ANTIBODY_ATLAS)
+        pos = node.pos
+    else
+        atlas = resolve_atlas(node.center)
+        pos = node.center and node.center.pos
+    end
+
+    if not atlas or not atlas.image or not pos then
         return false
     end
 
@@ -768,8 +981,8 @@ local function prepare_node_sprite(node)
 
     node.atlas = atlas
     node.quad = love.graphics.newQuad(
-        node.center.pos.x * px,
-        node.center.pos.y * py,
+        pos.x * px,
+        pos.y * py,
         px,
         py,
         image_w,

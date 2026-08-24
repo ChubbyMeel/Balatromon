@@ -78,6 +78,13 @@ SMODS.Atlas {
     }
 }
 
+SMODS.Atlas {
+    key = 'XDigimon',
+    path = 'DigiMeel_Xanti.png',
+    px = 71,
+    py = 95
+}
+
 SMODS.current_mod.menu_cards = function()
     return {
         remove_original = true,
@@ -149,25 +156,7 @@ Game.main_menu = function(change_context)
     return ret
 end
 
-SMODS.current_mod.process_loc_text = function()
-    G.localization.descriptions.Mod[
-        SMODS.current_mod.id
-    ] = {
-        name = 'Balatromon',
-        text = {
-            'Play Balatro as you try to take care of these',
-            'digital monsters.',
-            '',
-            '{C:attention}Created by:{} ChubbyMeel',
-            '{C:attention}Art by:{} ChubbyMeel and StarRush',
-            '',
-            'Digimon characters and related intellectual property',
-            'belong to Bandai Namco Entertainment Inc.',
-            'Some visual assets are adapted from',
-            'the mobile game Digimon Up.'
-        }
-    }
-end
+
 
 
 assert(SMODS.load_file('src/core.lua'))()
@@ -187,6 +176,7 @@ assert(SMODS.load_file('src/collections.lua'))()
 assert(SMODS.load_file('src/editions.lua'))()
 assert(SMODS.load_file('src/stickers.lua'))()
 assert(SMODS.load_file('src/evolution_map.lua'))()
+assert(SMODS.load_file('src/x_antibody.lua'))()
 
 SMODS.current_mod.process_loc_text = function()
     G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {

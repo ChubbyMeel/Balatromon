@@ -44,6 +44,71 @@ function BM.emult(card, amount)
     )
 end
 
+function BM.echips(card, amount)
+    if not amount
+    or amount == 1 then
+        return
+    end
+
+    local chips_param =
+        SMODS.Scoring_Parameters
+        and SMODS.Scoring_Parameters.chips
+
+    if chips_param then
+        local current =
+            chips_param.current
+            or hand_chips
+            or 0
+
+        local target =
+            current ^ amount
+
+        chips_param:modify(
+            target - current
+        )
+    else
+        hand_chips =
+            mod_chips(
+                hand_chips ^ amount
+            )
+
+        update_hand_text(
+            {
+                delay = 0
+            },
+            {
+                chips =
+                    hand_chips
+            }
+        )
+    end
+
+    if card
+    and card.juice_up then
+        card:juice_up(
+            0.8,
+            0.5
+        )
+    end
+
+    card_eval_status_text(
+        card,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message =
+                '^'
+                .. tostring(amount)
+                .. ' Chips',
+
+            colour =
+                G.C.CHIPS
+        }
+    )
+end
+
 BM.joker_defs = BM.joker_defs or {}
 BM.shop_joker_keys = BM.shop_joker_keys or {}
 BM.last_sold_joker_key = BM.last_sold_joker_key or nil

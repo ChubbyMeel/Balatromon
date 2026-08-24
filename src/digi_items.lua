@@ -1,8 +1,6 @@
 local BM = Balatromon
 
--- Balatromon's custom care-item pool.
--- A positive shop_rate allows Digi Items to naturally occupy consumable shop
--- slots. Individual card weights can be tuned later without changing the API.
+
 SMODS.ConsumableType {
     key = 'DigiItem',
     primary_colour = G.C.ORANGE,
@@ -1056,4 +1054,74 @@ SMODS.Consumable {
             G.jokers:unhighlight_all()
         end
     end,
+}
+
+SMODS.Consumable {
+    set = 'DigiItem',
+
+    key = 'x_antibody',
+
+    atlas = 'Consumable',
+
+    pos = {
+        x = 2,
+        y = 3
+    },
+
+    discovered = true,
+    unlocked = true,
+
+    cost = 5,
+
+    loc_txt = {
+        name =
+            'X-Antibody',
+
+        text = {
+            'Give {C:attention}1 selected{} viable',
+            'Digimon the {C:attention}X-Antibody{}',
+            'for {C:attention}5 rounds{}'
+        }
+    },
+
+    can_use = function(
+        self,
+        card
+    )
+        local targets =
+            selected_digimon(2)
+
+        return #targets == 1
+            and BM.is_x_antibody_viable(
+                targets[1]
+            )
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        BM.remember_digi_item(
+            card
+        )
+
+        local target =
+            selected_digimon(1)[1]
+
+        if not target then
+            return
+        end
+
+        BM.apply_x_antibody(
+            target
+        )
+
+        if G.jokers
+        and G.jokers.unhighlight_all then
+            G.jokers:
+                unhighlight_all()
+        end
+    end
 }

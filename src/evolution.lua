@@ -716,8 +716,12 @@ function BM.get_valid_evolutions(card, device_key, opts)
     for _, name in ipairs(BM.parse_evolution_names(card)) do
         local center, key, slug = BM.find_digimon_center(name)
         local rule = get_rule(source_slug, slug)
+        local x_allowed =
+            not BM.has_x_antibody(card)
+            or BM.can_x_evolve_to(slug)
 
-        if center then
+
+        if center and x_allowed then
             local bad = is_bad_rule(rule)
 
             if crisis then
@@ -848,6 +852,16 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     local old_slug = BM.get_card_slug(card)
     local e = card.ability.extra or {}
+
+    local had_x_antibody =
+        BM.has_x_antibody
+        and BM.has_x_antibody(card)
+
+    local x_antibody_rounds =
+        had_x_antibody
+        and BM.get_x_antibody_rounds(card)
+        or 0
+
     local history = copy_evolution_history(e.evolution_history)
 
     if option.is_dedigivolution then
@@ -915,6 +929,14 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     if option.slug and BM.on_add then BM.on_add(card, option.slug) end
     if card.set_cost then card:set_cost() end
+
+    if had_x_antibody
+    and BM.can_x_evolve_to(option.slug) then
+            BM.restore_x_antibody(
+                card,
+                x_antibody_rounds
+            )
+    end
 
     G.E_MANAGER:add_event(Event({
         trigger = 'after',
