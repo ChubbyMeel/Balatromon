@@ -1,5 +1,5 @@
 local BM = Balatromon
-
+BM.X_ANTIBODY_ATLAS = 'XDigimon'
 SMODS.Sticker {
     key = 'x_antibody',
 
@@ -91,6 +91,12 @@ BM.x_antibody_viable = {
     crabmon = true,
     seadramon = true,
     megaseadramon = true,
+}
+
+BM.x_antibody_extra_evolutions = {
+    gomamon = {
+        'seadramon'
+    }
 }
 
 BM.x_antibody_forms = BM.x_antibody_forms or {}
@@ -988,13 +994,15 @@ end
 
 function BM.has_x_antibody(card)
     if not card
-    or not card.ability then
+    or not card.ability
+    or not card.ability.extra then
         return false
     end
 
-    return card.ability[
-        x_sticker_key()
-    ] ~= nil
+    return (
+        card.ability.extra.x_antibody_rounds
+        or 0
+    ) > 0
 end
 
 function BM.get_x_antibody_rounds(card)
@@ -1055,7 +1063,8 @@ function BM.set_x_antibody_sprite(card)
         BM.get_card_slug(card)
 
     local form =
-        BM.x_antibody_forms[slug]
+        BM.x_antibody_forms
+        and BM.x_antibody_forms[slug]
 
     if not form then
         return
@@ -1071,16 +1080,25 @@ function BM.set_x_antibody_sprite(card)
 
     local atlas_key =
         form.atlas
-        or card.config.center.atlas
+        or BM.X_ANTIBODY_ATLAS
 
     local atlas =
-        G.ASSET_ATLAS[
-            atlas_key
-        ]
+        G.ASSET_ATLAS
+        and (
+            G.ASSET_ATLAS[atlas_key]
+            or G.ASSET_ATLAS[
+                BM.PREFIX
+                .. '_'
+                .. atlas_key
+            ]
+        )
 
-    if atlas then
-        sprite.atlas = atlas
+    if not atlas then
+        return
     end
+
+    sprite.atlas =
+        atlas
 
     if form.pos
     and sprite.set_sprite_pos then
@@ -1274,10 +1292,7 @@ end
 
 function BM.remove_x_antibody(card)
     if not card
-    or card.REMOVED
-    or not BM.has_x_antibody(
-        card
-    ) then
+    or card.REMOVED then
         return false
     end
 
@@ -1339,10 +1354,6 @@ function BM.remove_x_antibody(card)
                     card
                 )
 
-                card:remove_sticker(
-                    x_sticker_key()
-                )
-
                 if card.ability
                 and card.ability.extra then
                     card.ability.extra
@@ -1352,6 +1363,16 @@ function BM.remove_x_antibody(card)
                     card.ability.extra
                         ._x_antibody_ticked =
                         nil
+                end
+
+                card:remove_sticker(
+                    x_sticker_key()
+                )
+
+                if card.ability then
+                    card.ability[
+                        x_sticker_key()
+                    ] = nil
                 end
             end
 
@@ -1388,6 +1409,7 @@ function BM.remove_x_antibody(card)
                     {
                         message =
                             'X-Antibody expired',
+
                         colour =
                             G.C.FILTER
                     }
@@ -1857,50 +1879,50 @@ function BM.install_x_antibody_tooltips()
                     or {}
 
                 if card
-                and BM.has_x_antibody(
-                    card
-                ) then
-                    result.key =
-                        self.key
-                        .. '_x_antibody'
+and BM.has_x_antibody(
+    card
+) then
+    result.key =
+        self.key
+        .. '_x_antibody'
 
-                    if slug
-                        == 'wargrowlmon' then
+    local e =
+        card.ability
+        and card.ability.extra
+        or {}
 
-                        local e =
-                            card.ability
-                            and card.ability.extra
-                            or {}
+    if slug == 'wargrowlmon' then
+        result.vars[5] =
+            e.x_antibody_wargrowl_xmult
+            or math.max(
+                1,
+                (e.mult or 0)
+                / 10
+            )
 
-                        result.vars[5] =
-                            e.x_antibody_wargrowl_xmult
-                            or math.max(
-                                1,
-                                (e.mult or 0)
-                                / 10
-                            )
-                    elseif slug == 'gabumon' then
-                        result.vars[4] =
-                        e.x_gabumon_chips
-                        or 1
+    elseif slug == 'gabumon' then
+        result.vars[4] =
+            e.x_gabumon_chips
+            or 1
 
-                    elseif slug == 'garurumon' then
-                    result.vars[4] =
-                        e.x_garurumon_chips
-                        or e.x_gabumon_chips
-                        or 1
+    elseif slug == 'garurumon' then
+        result.vars[4] =
+            e.x_garurumon_chips
+            or e.x_gabumon_chips
+            or 1
 
-                    elseif slug == 'leomon' then
-                        result.vars[5] =
-                            e.x_leomon_chips
-                            or e.x_gabumon_chips
-                            or 1
+    elseif slug == 'leomon' then
+        result.vars[5] =
+            e.x_leomon_chips
+            or e.x_gabumon_chips
+            or 1
 
-                    elseif slug == 'weregarurumon' then
-                        result.vars[5] =
-                        e.x_weregarurumon_chips
-                            or 1
-                end
+    elseif slug == 'weregarurumon' then
+        result.vars[5] =
+            e.x_weregarurumon_chips
+            or 1
+    end
+
             end
 
                 return result
@@ -1943,7 +1965,7 @@ and G.localization.descriptions.Joker then
     end
 end
 
-BM.X_ANTIBODY_ATLAS = 'XDigimon'
+
 
 BM.x_antibody_forms = {
     agumon = {
@@ -1991,47 +2013,94 @@ BM.x_antibody_forms = {
     },
 
     gallantmon = {
-        pos = {x = 6, y = 0}
+        pos = {x = 1, y = 1}
+    },
+
+    gabumon = {
+        pos = {x = 2, y = 1}
+    },
+
+    garurumon = {
+        pos = {x = 3, y = 1}
+    },
+
+    leomon = {
+        pos = {x = 4, y = 1}
+    },
+
+    weregarurumon = {
+        pos = {x = 5, y = 1}
+    },
+
+    metalgarurumon = {
+        pos = {x = 6, y = 1}
+    },
+
+    monzaemon = {
+        pos = {x = 7, y = 1}
+    },
+
+    gomamon = {
+        pos = {x = 8, y = 1}
+    },
+
+    crabmon = {
+        pos = {x = 9, y = 1}
+    },
+
+    seadramon = {
+        pos = {x = 0, y = 2}
+    },
+
+    megaseadramon = {
+        pos = {x = 1, y = 2}
     }
 }
 
 
 
 
-
-
-
-
-
 function BM.get_x_evolution_targets(slug)
     local out = {}
+    local seen = {}
 
     local def =
         BM.joker_defs
         and BM.joker_defs[slug]
 
-    if not def then
-        return out
+    if def then
+        for part in tostring(
+            def.evolves_to or ''
+        ):gmatch('[^,]+') do
+            local name =
+                part:match(
+                    '^%s*(.-)%s*$'
+                )
+
+            local target =
+                BM.slug(name)
+
+            if target ~= ''
+            and target ~= '-'
+            and BM.can_x_evolve_to(target)
+            and not seen[target] then
+                seen[target] = true
+                out[#out + 1] = target
+            end
+        end
     end
 
-    for part in tostring(
-        def.evolves_to or ''
-    ):gmatch('[^,]+') do
-        local name =
-            part:match(
-                '^%s*(.-)%s*$'
-            )
+    local extras =
+        BM.x_antibody_extra_evolutions
+        and BM.x_antibody_extra_evolutions[slug]
 
-        local target =
-            BM.slug(name)
-
-        if target ~= ''
-        and target ~= '-'
-        and BM.can_x_evolve_to(
-            target
-        ) then
-            out[#out + 1] =
-                target
+    for _, target in ipairs(
+        extras or {}
+    ) do
+        if BM.can_x_evolve_to(target)
+        and not seen[target] then
+            seen[target] = true
+            out[#out + 1] = target
         end
     end
 

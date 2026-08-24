@@ -797,12 +797,35 @@ function BM.build_evolution_map_layout()
         local from_id = 'x_' .. slug
         local from_node = nodes[from_id]
         local def = BM.joker_defs[slug]
+        local targets = {}
+        local seen_targets = {}
 
         if from_node and def then
             for _, target in ipairs(split_targets(def.evolves_to)) do
+                if x_compatible(target) and not seen_targets[target] then
+                    seen_targets[target] = true
+                    targets[#targets + 1] = target
+                end
+            end
+
+            local extras = BM.x_antibody_extra_evolutions
+                and BM.x_antibody_extra_evolutions[slug]
+
+            for _, target in ipairs(extras or {}) do
+                target = BM.slug(target)
+
+                if target ~= ''
+                and x_compatible(target)
+                and not seen_targets[target] then
+                    seen_targets[target] = true
+                    targets[#targets + 1] = target
+                end
+            end
+
+            for _, target in ipairs(targets) do
                 local to_id = 'x_' .. target
 
-                if x_compatible(target) and nodes[to_id] then
+                if nodes[to_id] then
                     from_node.children[#from_node.children + 1] = to_id
                     nodes[to_id].parents[#nodes[to_id].parents + 1] = from_id
 
@@ -837,23 +860,65 @@ function BM.build_evolution_map_layout()
         return an < bn
     end)
 
+    local x_forced_groups = {
+        gomamon_crabmon = {
+            name = 'Gomamon / Crabmon Line',
+            roots = {
+                x_gomamon = true,
+                x_crabmon = true,
+            },
+        },
+    }
+
+    local x_forced_by_root = {}
+
+    for key, group in pairs(x_forced_groups) do
+        for root in pairs(group.roots) do
+            x_forced_by_root[root] = key
+        end
+    end
+
     local x_pages = {}
     local x_signatures = {}
+    local x_forced_pages = {}
 
     for _, root in ipairs(x_roots) do
         local set = collect_descendants(root, nodes)
-        local signature = set_signature(set)
-        local page = x_signatures[signature]
+        local forced_key = x_forced_by_root[root]
+        local page
 
-        if not page then
-            page = {
-                roots = {},
-                node_set = set,
-                x_page = true,
-            }
+        if forced_key then
+            page = x_forced_pages[forced_key]
 
-            x_signatures[signature] = page
-            x_pages[#x_pages + 1] = page
+            if not page then
+                page = {
+                    roots = {},
+                    node_set = {},
+                    x_page = true,
+                    forced_name = x_forced_groups[forced_key].name,
+                }
+
+                x_forced_pages[forced_key] = page
+                x_pages[#x_pages + 1] = page
+            end
+
+            for node_id in pairs(set) do
+                page.node_set[node_id] = true
+            end
+        else
+            local signature = set_signature(set)
+            page = x_signatures[signature]
+
+            if not page then
+                page = {
+                    roots = {},
+                    node_set = set,
+                    x_page = true,
+                }
+
+                x_signatures[signature] = page
+                x_pages[#x_pages + 1] = page
+            end
         end
 
         page.roots[#page.roots + 1] = root
@@ -862,8 +927,8 @@ function BM.build_evolution_map_layout()
     local x_covered = {}
 
     for _, page in ipairs(x_pages) do
-        for slug in pairs(page.node_set) do
-            x_covered[slug] = true
+        for node_id in pairs(page.node_set) do
+            x_covered[node_id] = true
         end
     end
 
@@ -886,7 +951,7 @@ function BM.build_evolution_map_layout()
     end
 
     for _, page in ipairs(x_pages) do
-        page.name = 'X-ANTIBODY - ' .. page_name(page.roots, nodes)
+        page.name = 'X-ANTIBODY - ' .. (page.forced_name or page_name(page.roots, nodes))
         layout_page(page, nodes, x_edges)
     end
 

@@ -696,50 +696,152 @@ end
 function BM.get_valid_evolutions(card, device_key, opts)
     opts = opts or {}
 
-    if not BM.is_digimon(card) then return {} end
+    if not BM.is_digimon(card) then
+        return {}
+    end
 
     if BM.is_digivolution_blocked
     and BM.is_digivolution_blocked(card) then
         return {}
     end
 
-    local e = card.ability and card.ability.extra or {}
-    if e.permanently_disabled then return {} end
+    local e =
+        card.ability
+        and card.ability.extra
+        or {}
 
-    local crisis = BM.is_care_crisis(card)
+    if e.permanently_disabled then
+        return {}
+    end
 
-    if not crisis and not opts.ignore_bond and not BM.card_ready_for_digivolution(card) then return {} end
+    local crisis =
+        BM.is_care_crisis(card)
 
-    local source_slug = BM.get_card_slug(card)
+    if not crisis
+    and not opts.ignore_bond
+    and not BM.card_ready_for_digivolution(card) then
+        return {}
+    end
+
+    local source_slug =
+        BM.get_card_slug(card)
+
+    local evolution_names =
+        BM.parse_evolution_names(card)
+
+    if BM.has_x_antibody
+    and BM.has_x_antibody(card) then
+        local extras =
+            BM.x_antibody_extra_evolutions
+            and BM.x_antibody_extra_evolutions[
+                source_slug
+            ]
+
+        for _, target_slug in ipairs(
+            extras or {}
+        ) do
+            local target_def =
+                BM.joker_defs
+                and BM.joker_defs[
+                    target_slug
+                ]
+
+            if target_def then
+                evolution_names[
+                    #evolution_names + 1
+                ] =
+                    target_def.name
+                    or target_slug
+            end
+        end
+    end
+
     local options = {}
 
-    for _, name in ipairs(BM.parse_evolution_names(card)) do
-        local center, key, slug = BM.find_digimon_center(name)
-        local rule = get_rule(source_slug, slug)
+    for _, name in ipairs(
+        evolution_names
+    ) do
+        local center,
+            key,
+            slug =
+            BM.find_digimon_center(
+                name
+            )
+
+        local rule =
+            get_rule(
+                source_slug,
+                slug
+            )
+
         local x_allowed =
-            not BM.has_x_antibody(card)
-            or BM.can_x_evolve_to(slug)
+            not (
+                BM.has_x_antibody
+                and BM.has_x_antibody(
+                    card
+                )
+            )
+            or (
+                BM.can_x_evolve_to
+                and BM.can_x_evolve_to(
+                    slug
+                )
+            )
 
-
-        if center and x_allowed then
-            local bad = is_bad_rule(rule)
+        if center
+        and x_allowed then
+            local bad =
+                is_bad_rule(rule)
 
             if crisis then
-
-                if bad and rule_allows(card, center, slug, device_key, rule) then
-                    options[#options + 1] = make_option(name, center, key, slug, rule)
+                if bad
+                and rule_allows(
+                    card,
+                    center,
+                    slug,
+                    device_key,
+                    rule
+                ) then
+                    options[
+                        #options + 1
+                    ] =
+                        make_option(
+                            name,
+                            center,
+                            key,
+                            slug,
+                            rule
+                        )
                 end
             else
-
-                if not bad and rule_allows(card, center, slug, device_key, rule) then
-                    options[#options + 1] = make_option(name, center, key, slug, rule)
+                if not bad
+                and rule_allows(
+                    card,
+                    center,
+                    slug,
+                    device_key,
+                    rule
+                ) then
+                    options[
+                        #options + 1
+                    ] =
+                        make_option(
+                            name,
+                            center,
+                            key,
+                            slug,
+                            rule
+                        )
                 end
             end
         end
     end
 
-    if crisis and #options == 0 then
-        return BM.get_care_crisis_baby_options(card)
+    if crisis
+    and #options == 0 then
+        return BM.get_care_crisis_baby_options(
+            card
+        )
     end
 
     return options
@@ -889,6 +991,10 @@ function BM.perform_digivolution(card, option, device_key, opts)
         evolution_history = history,
         previous_form = option.is_dedigivolution and nil or old_slug,
         previous_form_value = option.is_dedigivolution and nil or previous_form_value,
+        chips = e.chips,
+        mult = e.mult,
+        xmult = e.xmult,
+        xchips = e.xchips,
     }
 
     -- Give every form change a visible two-beat Digivolution animation, even
@@ -906,12 +1012,46 @@ function BM.perform_digivolution(card, option, device_key, opts)
     if old_slug and BM.on_remove then BM.on_remove(card, old_slug) end
 
     card:set_ability(option.center, nil, true)
-    card.ability.extra = card.ability.extra or {}
-    card.ability.extra.hunger = carry.hunger
-    card.ability.extra.care_rounds = carry.care_rounds
-    card.ability.extra.evolution_history = carry.evolution_history
-    card.ability.extra.previous_form = carry.previous_form
-    card.ability.extra.previous_form_value = carry.previous_form_value
+
+    if not option.is_dedigivolution then
+        if old_slug == 'gabumon'
+        and (
+            option.slug == 'garurumon'
+            or option.slug == 'leomon'
+        ) then
+            card.ability.extra.chips =
+                carry.chips or 0
+        end
+    end
+
+    card.ability.extra =
+        card.ability.extra or {}
+
+    card.ability.extra.hunger =
+        carry.hunger
+
+    card.ability.extra.care_rounds =
+        carry.care_rounds
+
+    card.ability.extra.evolution_history =
+        carry.evolution_history
+
+    card.ability.extra.previous_form =
+        carry.previous_form
+
+    card.ability.extra.previous_form_value =
+        carry.previous_form_value
+
+    if not option.is_dedigivolution then
+        if old_slug == 'gabumon'
+        and (
+            option.slug == 'garurumon'
+            or option.slug == 'leomon'
+        ) then
+            card.ability.extra.chips =
+                e.chips or 0
+        end
+    end
 
     -- Every form change starts the new form at 0 Bond.
     card.ability.extra.bond = 0
@@ -932,10 +1072,27 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     if had_x_antibody
     and BM.can_x_evolve_to(option.slug) then
-            BM.restore_x_antibody(
-                card,
-                x_antibody_rounds
-            )
+        BM.restore_x_antibody(
+            card,
+            x_antibody_rounds
+        )
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.30,
+
+            func = function()
+                if card
+                and not card.REMOVED
+                and BM.has_x_antibody(card) then
+                    BM.set_x_antibody_sprite(
+                        card
+                    )
+                end
+
+                return true
+            end
+        }))
     end
 
     G.E_MANAGER:add_event(Event({
@@ -1724,31 +1881,118 @@ function BM.get_display_evolutions(card)
         return {}
     end
 
-    local source_slug = BM.get_card_slug(card)
+    local source_slug =
+        BM.get_card_slug(card)
+
+    local evolution_names =
+        BM.parse_evolution_names(card)
+
+    local is_x =
+        BM.has_x_antibody
+        and BM.has_x_antibody(card)
+
+    if is_x then
+        local extras =
+            BM.x_antibody_extra_evolutions
+            and BM.x_antibody_extra_evolutions[
+                source_slug
+            ]
+
+        for _, target_slug in ipairs(
+            extras or {}
+        ) do
+            local def =
+                BM.joker_defs
+                and BM.joker_defs[
+                    target_slug
+                ]
+
+            if def then
+                evolution_names[
+                    #evolution_names + 1
+                ] =
+                    def.name
+                    or target_slug
+            end
+        end
+    end
+
     local options = {}
 
-    for _, name in ipairs(BM.parse_evolution_names(card)) do
-        local center, key, slug = BM.find_digimon_center(name)
+    for _, name in ipairs(
+        evolution_names
+    ) do
+        local center,
+            key,
+            slug =
+            BM.find_digimon_center(
+                name
+            )
 
-        if center then
+        local x_allowed =
+            not is_x
+            or (
+                BM.can_x_evolve_to
+                and BM.can_x_evolve_to(
+                    slug
+                )
+            )
+
+        if center
+        and x_allowed then
             local rule =
                 BM.evolution_rules
-                and BM.evolution_rules[source_slug]
-                and BM.evolution_rules[source_slug][slug]
+                and BM.evolution_rules[
+                    source_slug
+                ]
+                and BM.evolution_rules[
+                    source_slug
+                ][slug]
 
-            local route_note = 'Standard route'
-            local bad_path = false
+            local route_note =
+                'Standard route'
+
+            local bad_path =
+                false
 
             if type(rule) == 'table' then
-                route_note = rule.note or route_note
-                bad_path = rule.bad_path == true
+                route_note =
+                    rule.note
+                    or route_note
+
+                bad_path =
+                    rule.bad_path
+                    == true
             end
 
             local def =
                 BM.joker_defs
-                and BM.joker_defs[slug]
+                and BM.joker_defs[
+                    slug
+                ]
 
-            options[#options + 1] = {
+            if is_x
+            and BM.x_antibody_extra_evolutions
+            and BM.x_antibody_extra_evolutions[
+                source_slug
+            ] then
+                for _, extra_slug in ipairs(
+                    BM.x_antibody_extra_evolutions[
+                        source_slug
+                    ]
+                ) do
+                    if extra_slug == slug then
+                        route_note =
+                            'X-Antibody route'
+
+                        break
+                    end
+                end
+            end
+
+            options[
+                #options + 1
+            ] = {
                 name =
                     (def and def.name)
                     or name,
@@ -1762,8 +2006,14 @@ function BM.get_display_evolutions(card)
                 key = key,
                 center = center,
 
-                route_note = route_note,
-                bad_path = bad_path,
+                route_note =
+                    route_note,
+
+                bad_path =
+                    bad_path,
+
+                x_form =
+                    is_x
             }
         end
     end
@@ -1789,6 +2039,23 @@ local function make_display_preview(option)
     preview.states.drag.can = false
     preview.states.click.can = false
     preview.states.hover.can = true
+
+    if option.x_form
+    and BM.x_antibody_forms
+    and BM.x_antibody_forms[
+        option.slug
+    ] then
+        preview.ability.extra =
+            preview.ability.extra or {}
+
+        preview.ability.extra
+            .x_antibody_rounds =
+            1
+
+        BM.set_x_antibody_sprite(
+            preview
+        )
+    end
 
     return preview
 end
