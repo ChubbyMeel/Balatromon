@@ -141,7 +141,7 @@ local function make_digital_pack(args)
         cost = args.cost,
         weight = args.weight,
         no_collection = false,
-        discovered = true,
+        discovered = false,
 
         config = {
             extra = args.extra,

@@ -258,13 +258,13 @@ local COMMON_CARD = {
     set = 'DigiItem',
     atlas = 'Joker',
     pos = {x=0,y=0},
-    discovered = true,
+    discovered = false,
     unlocked = true,
 }
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'food', atlas = 'Consumable', pos = {x=0,y=0},
-    discovered = true, unlocked = true, cost = 3,
+    discovered = false, unlocked = true, cost = 3,
     loc_txt = {name='Food', text={
         'Reduce {C:attention}Hunger{} by {C:attention}1{}',
         'for up to {C:attention}2{} selected Digimon'
@@ -297,7 +297,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'hefty_food', atlas = 'Consumable', pos = {x=1,y=0},
-    discovered = true, unlocked = true, cost = 4,
+    discovered = false, unlocked = true, cost = 4,
     loc_txt = {name='Hefty Food', text={
         'Reduce {C:attention}Hunger{} by {C:attention}2{}',
         'for {C:attention}1{} selected Digimon'
@@ -319,7 +319,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'playball', atlas = 'Consumable', pos = {x=2,y=0},
-    discovered = true, unlocked = true, cost = 3,
+    discovered = false, unlocked = true, cost = 3,
     loc_txt = {name='PlayBall', text={
         'Increase {C:green}Bond{} of',
         '{C:attention}1{} selected Digimon by {C:green}1{}'
@@ -334,7 +334,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'bandaid', atlas = 'Consumable', pos = {x=3,y=0},
-    discovered = true, unlocked = true, cost = 3,
+    discovered = false, unlocked = true, cost = 3,
     loc_txt = {name='Bandaid', text={
         'Remove {C:red}1 Care Mistake{}',
         'from {C:attention}1{} selected Digimon'
@@ -352,7 +352,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'digivice', atlas = 'Consumable', pos = {x=4,y=0},
-    discovered = true, unlocked = true, cost = 4,
+    discovered = false, unlocked = true, cost = 4,
     loc_txt = {name='Digivice', text={
         'Digivolve the leftmost {C:attention}Fresh{},',
         '{C:attention}In-Training{}, or {C:attention}Rookie{} Digimon',
@@ -367,7 +367,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'd_3', atlas = 'Consumable', pos = {x=0,y=1},
-    discovered = true, unlocked = true, cost = 5,
+    discovered = false, unlocked = true, cost = 5,
     loc_txt = {name='D-3', text={
         'Digivolve {C:attention}2 random{}',
         '{C:attention}In-Training{} or {C:attention}Rookie{} Digimon',
@@ -382,7 +382,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'd_ark', atlas = 'Consumable', pos = {x=1,y=1},
-    discovered = true, unlocked = true, cost = 5,
+    discovered = false, unlocked = true, cost = 5,
     loc_txt = {name='D-Ark', text={
         'Digivolve the leftmost {C:attention}Rookie{}',
         'or {C:attention}Champion{} Digimon',
@@ -397,7 +397,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = COMMON_CARD.set, key = 'digitama', atlas = 'Consumable', pos = {x=2,y=1},
-    discovered = true, unlocked = true, cost = 5,
+    discovered = false, unlocked = true, cost = 5,
     loc_txt = {name='Digitama', text={
         'Create {C:attention}2 random In-Training{} Digimon',
         '{C:inactive}(Must have room){}'
@@ -412,7 +412,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = 'Spectral', key = 'golden_d_ark', atlas = 'Consumable', pos = {x=1,y=2},
-    discovered = true, unlocked = true, cost = 4,
+    discovered = false, unlocked = true, cost = 4,
     loc_txt = {name='Golden D-Ark', text={
         'Digivolve the leftmost {C:attention}Ultimate{}',
         'or {C:attention}Mega{} Digimon',
@@ -424,7 +424,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = 'Spectral', key = 'golden_digitama', atlas = 'Consumable', pos = {x=2,y=2},
-    discovered = true, unlocked = true, cost = 4,
+    discovered = false, unlocked = true, cost = 4,
     loc_txt = {name='Golden Digitama', text={
         'Create {C:attention}1 random Ultimate{} Digimon',
         '{C:inactive}(Must have room){}'
@@ -437,7 +437,7 @@ SMODS.Consumable {
     key = 'shooting_starmon',
     set = 'Spectral',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     -- Placeholder art
@@ -537,7 +537,7 @@ SMODS.Consumable {
     key = 'error404',
     set = 'Spectral',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     atlas = 'Consumable', pos = {x=4,y=2},
@@ -642,7 +642,7 @@ SMODS.Consumable {
 
     atlas = 'Consumable', pos = {x=3,y=1},
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     cost = 4,
@@ -736,7 +736,7 @@ SMODS.Consumable {
     key = 'rosemons_blessing',
     set = 'DigiItem',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     atlas = 'Consumable', pos = {x=4,y=1},
@@ -830,7 +830,7 @@ SMODS.Consumable {
     key = 'digital_armor',
     set = 'DigiItem',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     atlas = 'Consumable', pos = {x=0,y=2},
@@ -922,7 +922,7 @@ SMODS.Consumable {
     key = 'graveyard',
     set = 'Spectral',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     atlas = 'Consumable',
@@ -1005,7 +1005,7 @@ SMODS.Consumable {
     key = 'digivice_ic',
     set = 'Spectral',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     atlas = 'Consumable',
@@ -1068,7 +1068,7 @@ SMODS.Consumable {
         y = 3
     },
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     cost = 5,

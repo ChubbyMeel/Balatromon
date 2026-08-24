@@ -69,7 +69,7 @@ SMODS.Edition {
     key = 'bloom',
     shader = 'bloom',
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     in_shop = true,

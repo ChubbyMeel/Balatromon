@@ -4,7 +4,7 @@
   "author": [
     "ChubbyMeel"
   ],
-  "description": "Balatromon - A Digimon mod for Balatro.\n\nCreated by ChubbyMeel\nAdditional art by StarRush\nDigimon characters and related intellectual property belong to Bandai Namco Entertainment Inc.\nSome visual assets are adapted from the mobile game Digimon Up.",
+  "description": "Balatromon - A Digimon mod for Balatro.",
   "prefix": "DigiMeel",
   "main_file": "main.lua",
   "version": "0.7.1",

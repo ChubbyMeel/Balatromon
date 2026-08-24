@@ -180,7 +180,7 @@ SMODS.Seal {
     atlas = 'Seal',
     pos = { x = 0, y = 0 },
 
-    discovered = true,
+    discovered = false,
     badge_colour = HEX('C97A40'),
 
     loc_txt = {
@@ -244,7 +244,7 @@ SMODS.Seal {
     atlas = 'Seal',
     pos = { x = 1, y = 0 },
 
-    discovered = true,
+    discovered = false,
 
     badge_colour = HEX('42C9FF'),
 
@@ -325,7 +325,7 @@ SMODS.Seal {
     atlas = 'Seal',
     pos = { x = 2, y = 0 },
 
-    discovered = true,
+    discovered = false,
 
     badge_colour = HEX('C8CDD5'),
 
@@ -380,7 +380,7 @@ SMODS.Seal {
     atlas = 'Seal',
     pos = { x = 3, y = 0 },
 
-    discovered = true,
+    discovered = false,
 
     badge_colour = HEX('8F67FF'),
 

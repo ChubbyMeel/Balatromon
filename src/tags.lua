@@ -40,7 +40,7 @@ SMODS.Tag {
     key = 'meal',
     atlas = 'Tag',
     pos = {x = 0, y = 0},
-    discovered = true,
+    discovered = false,
     config = {type = 'immediate'},
 
     loc_txt = {
@@ -77,7 +77,7 @@ SMODS.Tag {
     key = 'digitag',
     atlas = 'Tag',
     pos = {x = 1, y = 0},
-    discovered = true,
+    discovered = false,
     config = {type = 'new_blind_choice'},
 
     loc_txt = {
@@ -153,7 +153,7 @@ SMODS.Tag {
     key = 'evolution_tag',
     atlas = 'Tag',
     pos = {x = 2, y = 0},
-    discovered = true,
+    discovered = false,
 
     loc_txt = {
         name = 'Evolution Tag',
@@ -174,7 +174,7 @@ SMODS.Tag {
     key = 'cute',
     atlas = 'Tag',
     pos = {x = 3, y = 0},
-    discovered = true,
+    discovered = false,
     config = {type = 'immediate'},
 
     loc_txt = {
