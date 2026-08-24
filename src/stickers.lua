@@ -65,7 +65,7 @@ SMODS.Sticker {
         text = {
             'This Digimon gets',
             '{C:red}hungry{} every',
-            '{C:attention}4{} rounds instead of 1'
+            '{C:attention}4{} rounds instead of 2'
         }
     },
 

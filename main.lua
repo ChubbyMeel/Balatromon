@@ -177,6 +177,7 @@ assert(SMODS.load_file('src/editions.lua'))()
 assert(SMODS.load_file('src/stickers.lua'))()
 assert(SMODS.load_file('src/evolution_map.lua'))()
 assert(SMODS.load_file('src/x_antibody.lua'))()
+assert(SMODS.load_file('src/artist_badges.lua'))()
 assert(SMODS.load_file('src/vanilla_patches.lua'))()
 assert(SMODS.load_file("ui.lua"))()
 
