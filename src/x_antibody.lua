@@ -91,12 +91,43 @@ BM.x_antibody_viable = {
     crabmon = true,
     seadramon = true,
     megaseadramon = true,
+    tokomon = true,
+    pegasusmon = true,
+    salamon = true,
+    gatomon = true,
+    nefertimon = true,
+    angewomon = true,
+    magnadramon = true,
+    ladydevimon = true,
+    myotismon = true,
+    renamon = true,
+    sakuyamon = true,
 }
 
 BM.x_antibody_extra_evolutions = {
     gomamon = {
         'seadramon'
+    },
+    tokomon = {
+        'salamon',
+        'renamon'
+    },
+    angewomon = {
+        'sakuyamon'
+    },
+    salamon = {
+        'pegasusmon'
+    },
+    gatomon = {
+        'myotismon',
+        'ladydevimon'
     }
+
+}
+
+BM.evolution_rules.salamon.pegasusmon = {
+    device = 'd3',
+    note = 'D-3 Armor route'
 }
 
 BM.x_antibody_forms = BM.x_antibody_forms or {}
@@ -993,6 +1024,336 @@ local function x_sticker_key()
     return BM.PREFIX .. '_x_antibody'
 end
 
+local function x_first_hand_transform(context, enhancement, limit)
+    if not context.before
+    or not context.main_eval
+    or context.blueprint
+    or (G.GAME.current_round.hands_played or 0) ~= 0 then
+        return false
+    end
+
+    local changed = false
+
+    for i, played in ipairs(context.full_hand or {}) do
+        if not limit or i <= limit then
+            changed =
+                BM.set_enhancement(
+                    played,
+                    enhancement
+                )
+                or changed
+        end
+    end
+
+    return changed
+end
+
+local function x_angewomon_emult(e)
+    if e.x_angewomon_emult == nil then
+        e.x_angewomon_emult =
+            1
+            + math.max(
+                0,
+                (e.xmult or 1) - 1
+            ) / 100
+    end
+
+    return e.x_angewomon_emult
+end
+
+local function x_money_emult()
+    local dollars =
+        G.GAME
+        and G.GAME.dollars
+        or 0
+
+    return
+        1
+        + 0.1
+        * math.max(
+            0,
+            math.floor(dollars / 10)
+        )
+end
+
+BM.x_antibody_effects.tokomon =
+function(card, context, base)
+    if x_first_hand_transform(
+        context,
+        'm_lucky'
+    ) then
+        return {
+            message = 'Lucky!',
+            colour = G.C.GREEN
+        }
+    end
+end
+
+BM.x_antibody_effects.pegasusmon =
+function(card, context, base)
+    if context.pseudorandom_result
+    and context.result
+    and context.trigger_obj
+    and SMODS.is_playing_card(
+        context.trigger_obj
+    )
+    and BM.has_enhancement(
+        context.trigger_obj,
+        'm_lucky'
+    ) then
+        return {
+            xmult = 2
+        }
+    end
+
+    if context.mod_probability then
+        return base()
+    end
+end
+
+BM.x_antibody_effects.salamon =
+function(card, context, base)
+    if x_first_hand_transform(
+        context,
+        'm_glass',
+        2
+    ) then
+        return {
+            message = 'Glass!',
+            colour = G.C.MULT
+        }
+    end
+end
+
+BM.x_antibody_effects.gatomon =
+function(card, context, base)
+    if x_first_hand_transform(
+        context,
+        'm_glass'
+    ) then
+        return {
+            message = 'Glass!',
+            colour = G.C.MULT
+        }
+    end
+end
+
+BM.x_antibody_effects.nefertimon =
+function(card, context, base)
+    if context.individual
+    and context.cardarea == G.play
+    and context.other_card
+    and BM.has_enhancement(
+        context.other_card,
+        'm_glass'
+    ) then
+        return {
+            xchips = 1.25
+        }
+    end
+
+    if context.mod_probability then
+        return base()
+    end
+end
+
+BM.x_antibody_effects.angewomon =
+function(card, context, base)
+    local e =
+        card.ability.extra
+
+    if context.remove_playing_cards
+    and not context.blueprint then
+        local count = 0
+
+        for _, removed in ipairs(
+            context.removed or {}
+        ) do
+            if BM.has_enhancement(
+                removed,
+                'm_glass'
+            ) then
+                count = count + 1
+            end
+        end
+
+        if count > 0 then
+            e.x_angewomon_emult =
+                x_angewomon_emult(e)
+                + 0.069 * count
+
+            return {
+                message =
+                    '^'
+                    .. tostring(
+                        e.x_angewomon_emult
+                    )
+                    .. ' Mult',
+                colour = G.C.MULT
+            }
+        end
+    end
+
+    if context.joker_main then
+        BM.emult(
+            card,
+            x_angewomon_emult(e)
+        )
+    end
+end
+
+BM.x_antibody_effects.magnadramon =
+function(card, context, base)
+    if context.individual
+    and context.cardarea == G.play
+    and context.other_card
+    and BM.has_enhancement(
+        context.other_card,
+        'm_glass'
+    ) then
+        return {
+            xmult = 3
+        }
+    end
+end
+
+BM.x_antibody_effects.ladydevimon =
+function(card, context, base)
+    if context.individual
+    and context.cardarea == G.hand
+    and not context.end_of_round
+    and not context.playing_card_end_of_round
+    and context.other_card
+    and BM.has_enhancement(
+        context.other_card,
+        'm_steel'
+    ) then
+        return {
+            dollars = 3
+        }
+    end
+end
+
+BM.x_antibody_effects.myotismon =
+function(card, context, base)
+    if context.joker_main then
+        local count =
+            BM.count_deck_enhancement(
+                'm_steel'
+            )
+
+        BM.emult(
+            card,
+            1 + 0.05 * count
+        )
+    end
+end
+
+BM.x_antibody_effects.renamon =
+function(card, context, base)
+    local e =
+        card.ability.extra
+
+    BM.ensure_target(
+        card,
+        'target_suit',
+        BM.deck_suits(),
+        'x_renamon_suit'
+    )
+
+    if context.discard
+    and context.other_card
+    and context.other_card:is_suit(
+        e.target_suit
+    ) then
+        return {
+            dollars = 6
+        }
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        BM.reroll_target(
+            card,
+            'target_suit',
+            BM.deck_suits(),
+            'x_renamon_suit'
+        )
+
+        return BM.target_change_return(
+            card,
+            'Target: '
+                .. tostring(
+                    e.target_suit
+                ),
+            (
+                G.C.SUITS
+                and G.C.SUITS[
+                    e.target_suit
+                ]
+            )
+            or G.C.FILTER
+        )
+    end
+end
+
+BM.x_antibody_effects.sakuyamon =
+function(card, context, base)
+    local e =
+        card.ability.extra
+
+    BM.ensure_target(
+        card,
+        'target_suit',
+        BM.deck_suits(),
+        'x_sakuyamon_suit'
+    )
+
+    if context.discard
+    and context.other_card
+    and context.other_card:is_suit(
+        e.target_suit
+    ) then
+        return {
+            dollars = 6
+        }
+    end
+
+    if context.joker_main then
+        BM.emult(
+            card,
+            x_money_emult()
+        )
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        BM.reroll_target(
+            card,
+            'target_suit',
+            BM.deck_suits(),
+            'x_sakuyamon_suit'
+        )
+
+        return BM.target_change_return(
+            card,
+            'Target: '
+                .. tostring(
+                    e.target_suit
+                ),
+            (
+                G.C.SUITS
+                and G.C.SUITS[
+                    e.target_suit
+                ]
+            )
+            or G.C.FILTER
+        )
+    end
+end
+
 function BM.has_x_antibody(card)
     if not card
     or not card.ability
@@ -1793,6 +2154,127 @@ megaseadramon = {
         '{X:chips,C:white}X1.02{} Chips'
     }
 },
+
+tokomon = {
+    name = 'Tokomon X',
+    stage = 'In-Training',
+
+    text = {
+        'All cards played in the',
+        '{C:attention}first hand{} of round become',
+        '{C:attention}Lucky Cards{}'
+    }
+},
+
+pegasusmon = {
+    name = 'Pegasusmon X',
+    stage = 'Champion',
+
+    text = {
+        'When a {C:attention}Lucky Card{} successfully triggers,',
+        'it gives {X:mult,C:white}X2{} Mult',
+        'Also applies {C:attention}Pegasusmon{} effect'
+    }
+},
+
+salamon = {
+    name = 'Salamon X',
+    stage = 'Rookie',
+
+    text = {
+        'The first {C:attention}2{} cards played in the',
+        'first hand of round become',
+        '{C:attention}Glass Cards{}'
+    }
+},
+
+gatomon = {
+    name = 'Gatomon X',
+    stage = 'Champion',
+
+    text = {
+        'All cards played in the',
+        '{C:attention}first hand{} of round become',
+        '{C:attention}Glass Cards{}'
+    }
+},
+
+nefertimon = {
+    name = 'Nefertimon X',
+    stage = 'Champion',
+
+    text = {
+        'Scoring {C:attention}Glass Cards{} give',
+        '{X:chips,C:white}X1.25{} Chips',
+        'Also applies {C:attention}Nefertimon{} effect'
+    }
+},
+
+angewomon = {
+    name = 'Angewomon X',
+    stage = 'Ultimate',
+
+    text = {
+        'Gain {X:mult,C:white}^0.069{} Mult every time',
+        'a {C:attention}Glass Card{} breaks',
+        '{C:inactive}(Carries 1/100 of Angewomon growth){}',
+        '{C:inactive}(Currently {X:mult,C:white}^#4#{C:inactive} Mult){}'
+    }
+},
+
+magnadramon = {
+    name = 'Magnadramon X',
+    stage = 'Mega',
+
+    text = {
+        'Scoring {C:attention}Glass Cards{} additionally give',
+        '{X:mult,C:white}X3{} Mult'
+    }
+},
+
+ladydevimon = {
+    name = 'LadyDevimon X',
+    stage = 'Ultimate',
+
+    text = {
+        'Triggered {C:attention}Steel Cards{} give',
+        '{C:money}$3{}'
+    }
+},
+
+myotismon = {
+    name = 'Myotismon X',
+    stage = 'Ultimate',
+
+    text = {
+        'Each {C:attention}Steel Card{} in deck gives',
+        '{X:mult,C:white}^0.05{} Mult',
+        '{C:inactive}(Currently {X:mult,C:white}^#4#{C:inactive} Mult){}'
+    }
+},
+
+renamon = {
+    name = 'Renamon X',
+    stage = 'Rookie',
+
+    text = {
+        'Earn {C:money}$6{} for each discarded {V:1}#4#{}',
+        '{C:inactive}(suit changes at end of round){}'
+    }
+},
+
+sakuyamon = {
+    name = 'Sakuyamon X',
+    stage = 'Mega',
+
+    text = {
+        'Gain {X:mult,C:white}^0.1{} Mult for every',
+        '{C:money}$10{} owned',
+        'Earn {C:money}$6{} for each discarded {V:1}#4#{}',
+        '{C:inactive}(suit changes at end of round){}',
+        '{C:inactive}(Currently {X:mult,C:white}^#5#{C:inactive} Mult){}'
+    }
+},
 }
 
 local old_process_loc_text =
@@ -1861,6 +2343,11 @@ function BM.install_x_antibody_tooltips()
                 info_queue,
                 card
             )
+                local info_queue_start =
+                    info_queue
+                    and #info_queue
+                    or 0
+
                 local result
 
                 if old_loc_vars then
@@ -1880,51 +2367,125 @@ function BM.install_x_antibody_tooltips()
                     or {}
 
                 if card
-and BM.has_x_antibody(
-    card
-) then
-    result.key =
-        self.key
-        .. '_x_antibody'
+                and BM.has_x_antibody(
+                    card
+                ) then
+                    result.key =
+                        self.key
+                        .. '_x_antibody'
 
-    local e =
-        card.ability
-        and card.ability.extra
-        or {}
+                    local e =
+                        card.ability
+                        and card.ability.extra
+                        or {}
 
-    if slug == 'wargrowlmon' then
-        result.vars[5] =
-            e.x_antibody_wargrowl_xmult
-            or math.max(
-                1,
-                (e.mult or 0)
-                / 10
-            )
+                    if slug == 'wargrowlmon' then
+                        result.vars[5] =
+                            e.x_antibody_wargrowl_xmult
+                            or math.max(
+                                1,
+                                (e.mult or 0)
+                                / 10
+                            )
 
-    elseif slug == 'gabumon' then
-        result.vars[4] =
-            e.x_gabumon_chips
-            or 1
+                    elseif slug == 'gabumon' then
+                        result.vars[4] =
+                            e.x_gabumon_chips
+                            or 1
 
-    elseif slug == 'garurumon' then
-        result.vars[4] =
-            e.x_garurumon_chips
-            or e.x_gabumon_chips
-            or 1
+                    elseif slug == 'garurumon' then
+                        result.vars[4] =
+                            e.x_garurumon_chips
+                            or e.x_gabumon_chips
+                            or 1
 
-    elseif slug == 'leomon' then
-        result.vars[5] =
-            e.x_leomon_chips
-            or e.x_gabumon_chips
-            or 1
+                    elseif slug == 'leomon' then
+                        result.vars[5] =
+                            e.x_leomon_chips
+                            or e.x_gabumon_chips
+                            or 1
 
-    elseif slug == 'weregarurumon' then
-        result.vars[5] =
-            e.x_weregarurumon_chips
-            or 1
-    end
+                    elseif slug == 'weregarurumon' then
+                        result.vars[5] =
+                            e.x_weregarurumon_chips
+                            or 1
 
-            end
+                    elseif slug == 'angewomon' then
+                        result.vars[4] =
+                            e.x_angewomon_emult
+                            or (
+                                1
+                                + math.max(
+                                    0,
+                                    (e.xmult or 1) - 1
+                                ) / 100
+                            )
+
+                    elseif slug == 'myotismon' then
+                        result.vars[4] =
+                            1
+                            + 0.05
+                            * BM.count_deck_enhancement(
+                                'm_steel'
+                            )
+
+                    elseif slug == 'renamon' then
+                        local target_suit =
+                            BM.ensure_target(
+                                card,
+                                'target_suit',
+                                BM.deck_suits(),
+                                'x_renamon_suit'
+                            )
+
+                        result.vars[4] =
+                            target_suit
+
+                        result.vars.colours = {
+                            (
+                                G.C.SUITS
+                                and G.C.SUITS[
+                                    target_suit
+                                ]
+                            )
+                            or G.C.FILTER
+                        }
+
+                    elseif slug == 'sakuyamon' then
+                        if info_queue then
+                            while #info_queue
+                            > info_queue_start do
+                                table.remove(
+                                    info_queue
+                                )
+                            end
+                        end
+
+                        local target_suit =
+                            BM.ensure_target(
+                                card,
+                                'target_suit',
+                                BM.deck_suits(),
+                                'x_sakuyamon_suit'
+                            )
+
+                        result.vars[4] =
+                            target_suit
+
+                        result.vars[5] =
+                            x_money_emult()
+
+                        result.vars.colours = {
+                            (
+                                G.C.SUITS
+                                and G.C.SUITS[
+                                    target_suit
+                                ]
+                            )
+                            or G.C.FILTER
+                        }
+                    end
+                end
 
                 return result
             end
@@ -2055,6 +2616,49 @@ BM.x_antibody_forms = {
 
     megaseadramon = {
         pos = {x = 1, y = 2}
+    },
+    tokomon = {
+        pos = {x = 2, y = 2}
+    },
+
+    pegasusmon = {
+        pos = {x = 3, y = 2}
+    },
+
+    salamon = {
+        pos = {x = 4, y = 2}
+    },
+
+    gatomon = {
+        pos = {x = 5, y = 2}
+    },
+
+    nefertimon = {
+        pos = {x = 6, y = 2}
+    },
+
+    angewomon = {
+        pos = {x = 7, y = 2}
+    },
+
+    magnadramon = {
+        pos = {x = 8, y = 2}
+    },
+
+    ladydevimon = {
+        pos = {x = 9, y = 2}
+    },
+
+    myotismon = {
+        pos = {x = 0, y = 3}
+    },
+
+    renamon = {
+        pos = {x = 1, y = 3}
+    },
+
+    sakuyamon = {
+        pos = {x = 2, y = 3}
     }
 }
 

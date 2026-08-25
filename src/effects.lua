@@ -1099,7 +1099,9 @@ local function lillymon_base_effect(card, context, seed)
     return H.togemon(card, context)
 end
 
-H.sunflowmon = plant_boss_food
+H.sunflowmon = function(card, context)
+    return H.lalamon(card, context)
+end
 
 H.redvegiemon = function()
 end

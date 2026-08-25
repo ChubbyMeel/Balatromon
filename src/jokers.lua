@@ -2730,7 +2730,7 @@ do
         key = slug,
         loc_txt = {name='Patamon', text={
             {
-                'If the first played card is a single card,',
+                'If the played hand is a single card,',
                 'turn it into a lucky card',
             },
             {
@@ -3044,7 +3044,7 @@ do
         key = slug,
         loc_txt = {name='Salamon', text={
             {
-                'If the first played card is a single card,',
+                'If the played hand is a single card,',
                 'turn it into a glass card',
             },
             {
@@ -3381,13 +3381,13 @@ do
         key = slug,
         loc_txt = {name='DemiDevimon', text={
             {
-                'If the first played card is a single card,',
+                'If the played hand is a single card,',
                 'turn it into a steel card',
             },
             {
                 BM.care_status_text(stage),
             }
-            
+
         }},
         config = {extra=extra},
         rarity = BM.stage_rarity(stage),
@@ -8116,7 +8116,7 @@ do
                     'Feeds itself at the end of each round',
                     'All {C:attention}Digital Packs{} in the shop',
                     'become {C:attention}Mega Digital Packs{}',
-                    'Also applies {C:attention}Tanemon{} effect',
+                    'Also applies {C:attention}Lalamon{} effect',
                 },
                 {
                     BM.care_status_text(stage),
@@ -8142,7 +8142,7 @@ do
 
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            BM.add_digimon_tooltip(info_queue,'tanemon')
+            BM.add_digimon_tooltip(info_queue,'lalamon')
             return {
                 vars={
                     e.hunger or 1,
@@ -8192,7 +8192,7 @@ elements={BM.care_bars(e,stage)}
         name='Sunflowmon',
         stage=stage,
         evolves_to='Lilamon, Pumpkinmon',
-        effect='All Digital Packs in the shop become Mega Digital Packs, also applies Tanemon effect'
+        effect='All Digital Packs in the shop become Mega Digital Packs, also applies Lalamon effect'
     }
 
     local weight=BM.stage_shop_weight(stage)
