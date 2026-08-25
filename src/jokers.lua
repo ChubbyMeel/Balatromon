@@ -1704,8 +1704,9 @@ do
         loc_txt = {name='WereGarurumon', text={
             {
                 'Gain {C:chips}+20{} Chips if {C:attention}#4#{} is discarded.',
-                '{C:inactive}(can upgrade once per discard){} {C:inactive}(rank changes',
-                'every round){}',
+                '{C:inactive}(can upgrade once per discard){}',
+                '{C:inactive}(rank changes every round){}',
+                '{C:inactive}(carried over Chips from Garurumon){}',
                 '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
             },
             {
@@ -1738,7 +1739,7 @@ elements={BM.care_bars(e,stage)},BM.rank_name(target_rank),e.chips or 0}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='WereGarurumon', stage=stage, evolves_to='MetalGarurumon', effect='Gain +20 Chips if [Rank] is discarded. (can upgrade once per discard) (rank changes at end of round)'}
+    BM.joker_defs[slug] = {name='WereGarurumon', stage=stage, evolves_to='MetalGarurumon', effect='Gain +20 Chips if [Rank] is discarded. (can upgrade once per discard) (carried over Chips from Garurumon) (rank changes at end of round)'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end

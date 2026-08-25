@@ -156,10 +156,22 @@ Game.main_menu = function(change_context)
     return ret
 end
 
+SMODS.Sound {
+    key = 'music_menu',
+    path = 'butterfly8.ogg',
+    pitch = 1,
+    volume = 0.6,
 
+    select_music_track = function(self)
+        if G.STAGE == G.STAGES.MAIN_MENU then
+            return 100
+        end
+    end
+}
 
 
 assert(SMODS.load_file('src/core.lua'))()
+assert(SMODS.load_file('src/element_compat.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()
 assert(SMODS.load_file('src/evolution.lua'))()
 assert(SMODS.load_file('src/digi_items.lua'))()

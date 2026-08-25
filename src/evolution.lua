@@ -995,6 +995,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         mult = e.mult,
         xmult = e.xmult,
         xchips = e.xchips,
+        x_garurumon_chips = e.x_garurumon_chips,
     }
 
     -- Give every form change a visible two-beat Digivolution animation, even
@@ -1014,10 +1015,16 @@ function BM.perform_digivolution(card, option, device_key, opts)
     card:set_ability(option.center, nil, true)
 
     if not option.is_dedigivolution then
-        if old_slug == 'gabumon'
-        and (
-            option.slug == 'garurumon'
-            or option.slug == 'leomon'
+        if (
+            old_slug == 'gabumon'
+            and (
+                option.slug == 'garurumon'
+                or option.slug == 'leomon'
+            )
+        )
+        or (
+            old_slug == 'garurumon'
+            and option.slug == 'weregarurumon'
         ) then
             card.ability.extra.chips =
                 carry.chips or 0
@@ -1041,12 +1048,25 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     card.ability.extra.previous_form_value =
         carry.previous_form_value
+    
+    if old_slug == 'garurumon'
+        and option.slug == 'weregarurumon'
+        and had_x_antibody then
+            card.ability.extra.x_weregarurumon_chips =
+                carry.x_garurumon_chips or 1
+    end
 
     if not option.is_dedigivolution then
-        if old_slug == 'gabumon'
-        and (
-            option.slug == 'garurumon'
-            or option.slug == 'leomon'
+        if (
+            old_slug == 'gabumon'
+            and (
+                option.slug == 'garurumon'
+                or option.slug == 'leomon'
+            )
+        )
+        or (
+            old_slug == 'garurumon'
+            and option.slug == 'weregarurumon'
         ) then
             card.ability.extra.chips =
                 e.chips or 0

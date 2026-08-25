@@ -683,6 +683,7 @@ function(card, context, base)
 
     e.x_weregarurumon_chips =
         e.x_weregarurumon_chips
+        or e.x_garurumon_chips
         or 1
 
     if context.pre_discard
