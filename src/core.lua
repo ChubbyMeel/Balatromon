@@ -797,7 +797,7 @@ function BM.care_bars(e, stage)
 end
 
 function BM.care_status_text(stage)
-    return '{element:1}'
+    return '{element:1} '
 end
 
 function BM.is_boss()
