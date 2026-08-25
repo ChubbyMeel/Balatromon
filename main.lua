@@ -85,6 +85,13 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'Tamer',
+    path = 'DigiMeel_Tamer.png',
+    px = 71,
+    py = 95
+}
+
 SMODS.current_mod.menu_cards = function()
     return {
         remove_original = true,
@@ -187,6 +194,7 @@ assert(SMODS.load_file('src/vouchers.lua'))()
 assert(SMODS.load_file('src/collections.lua'))()
 assert(SMODS.load_file('src/editions.lua'))()
 assert(SMODS.load_file('src/stickers.lua'))()
+assert(SMODS.load_file('src/tamers.lua'))()
 assert(SMODS.load_file('src/evolution_map.lua'))()
 assert(SMODS.load_file('src/x_antibody.lua'))()
 assert(SMODS.load_file('src/artist_badges.lua'))()

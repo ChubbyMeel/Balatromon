@@ -346,12 +346,34 @@ local function crest_create_card(
 )
     local index = i or 1
 
-    local key = weighted_digimon_key(
-        'balatromon_crest_'
-        .. tostring(self.key)
-        .. '_'
-        .. tostring(index)
-    )
+    local tamer_key =
+        BM.roll_crest_tamer(
+            'balatromon_crest_tamer_'
+            .. tostring(self.key)
+            .. '_'
+            .. tostring(index)
+        )
+
+    if tamer_key then
+        return {
+            set = 'Tamer',
+            area = G.pack_cards,
+            key = tamer_key,
+            skip_materialize = true,
+            soulable = false,
+            key_append =
+                'balatromon_crest_tamer_'
+                .. tostring(index)
+        }
+    end
+
+    local key =
+        weighted_digimon_key(
+            'balatromon_crest_'
+            .. tostring(self.key)
+            .. '_'
+            .. tostring(index)
+        )
 
     return {
         set = 'Joker',
@@ -361,7 +383,7 @@ local function crest_create_card(
         soulable = false,
         key_append =
             'balatromon_crest_'
-            .. tostring(index),
+            .. tostring(index)
     }
 end
 

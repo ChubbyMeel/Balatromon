@@ -14,6 +14,15 @@ SMODS.ConsumableType {
     shop_rate = 1.0,
 }
 
+if SMODS.UndiscoveredSprite then
+    SMODS.UndiscoveredSprite {
+        key = 'DigiItem',
+        atlas = 'Consumable',
+        pos = {x = 3, y = 3},
+        no_overlay = true
+    }
+end
+
 local function selected_digimon(max_count)
     local selected = {}
     for _, c in ipairs(G.jokers and G.jokers.highlighted or {}) do

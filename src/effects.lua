@@ -587,32 +587,59 @@ H.tankdramon = function(card,context)
 end
 H.megagargomon = function(card, context)
     if context.ending_shop then
-        if G.consumeables and G.consumeables.cards[1] then
-            G.E_MANAGER:add_event(Event({
-                func = function()
-                    local target = pseudorandom_element(
-                        G.consumeables.cards,
-                        pseudoseed('megagargomon')
-                    )
+        local candidates =
+            BM.get_copyable_consumables()
 
-                    local copy = copy_card(target, nil)
+        if #candidates == 0 then
+            return
+        end
+
+        G.E_MANAGER:add_event(
+            Event({
+                func = function()
+                    local target =
+                        pseudorandom_element(
+                            candidates,
+                            pseudoseed(
+                                'megagargomon'
+                            )
+                        )
+
+                    if not target then
+                        return true
+                    end
+
+                    local copy =
+                        copy_card(
+                            target,
+                            nil
+                        )
+
+                    if not copy then
+                        return true
+                    end
 
                     copy:set_edition(
-                        {negative = true},
+                        {
+                            negative = true
+                        },
                         true
                     )
 
                     copy:add_to_deck()
-                    G.consumeables:emplace(copy)
+
+                    G.consumeables:emplace(
+                        copy
+                    )
 
                     return true
                 end
-            }))
+            })
+        )
 
-            return {
-                message = 'Copied!'
-            }
-        end
+        return {
+            message = 'Copied!'
+        }
     end
 end
 H.hiandromon = function(card,context)
