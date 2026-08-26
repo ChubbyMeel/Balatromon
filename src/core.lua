@@ -231,7 +231,7 @@ function BM.remove_passive_deck_effect(card, slug)
         G.GAME.round_resets.discards = G.GAME.round_resets.discards - 3
         G.hand:change_size(1)
 
-    elseif slug == 'herculeskabuterimon' then
+    elseif applied_slug == 'herculeskabuterimon' then
         local rate =
             e.hercules_spectral_rate or 6
 
@@ -1580,7 +1580,7 @@ end
 local function getEnhancements()
     -- Rebuild every time so enhancements registered
     -- by other mods are always included.
-    enhancements = {"c_base"}
+    local enhancements = {"c_base"}
 
     local pool = {}
 

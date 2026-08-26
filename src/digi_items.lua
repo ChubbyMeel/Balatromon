@@ -271,58 +271,173 @@ local COMMON_CARD = {
     unlocked = true,
 }
 
+local function spoil_food(card)
+    if not card or card.REMOVED or card._bm_spoiling then
+        return
+    end
+
+    card._bm_spoiling = true
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.35,
+        func = function()
+            if card and not card.REMOVED then
+                card:start_dissolve()
+            end
+
+            return true
+        end
+    }))
+end
+
+local function tick_food_spoilage(card, context)
+    if not card
+    or card.REMOVED
+    or card._bm_spoiling
+    or not context.after
+    or not context.main_eval then
+        return
+    end
+
+    local extra = card.ability and card.ability.extra
+    if not extra then
+        return
+    end
+
+    extra.spoil_turns = math.max(0, (extra.spoil_turns or 1) - 1)
+
+    if extra.spoil_turns <= 0 then
+        spoil_food(card)
+
+        return {
+            message = 'Spoiled!',
+            colour = G.C.RED
+        }
+    end
+end
+
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'food', atlas = 'Consumable', pos = {x=0,y=0},
-    discovered = false, unlocked = true, cost = 3,
-    loc_txt = {name='Food', text={
-        'Reduce {C:attention}Hunger{} by {C:attention}1{}',
-        'for up to {C:attention}2{} selected Digimon'
-    }},
+    set = COMMON_CARD.set,
+    key = 'food',
+    atlas = 'Consumable',
+    pos = {x=0,y=0},
+    discovered = false,
+    unlocked = true,
+    cost = 3,
+
+    config = {
+        extra = {
+            spoil_turns = 6
+        }
+    },
+
+    loc_txt = {
+        name = 'Food',
+        text = {
+            'Reduce {C:attention}Hunger{} by {C:attention}1{}',
+            'for up to {C:attention}2{} selected Digimon',
+            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} turns{}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        local turns = card
+            and card.ability
+            and card.ability.extra
+            and card.ability.extra.spoil_turns
+            or 6
+
+        return {
+            vars = {turns}
+        }
+    end,
 
     update = function(self, card, dt)
         update_multi_joker_targeting(card, 2)
+    end,
+
+    calculate = function(self, card, context)
+        return tick_food_spoilage(card, context)
     end,
 
     can_use = function(self, card)
         local t = selected_digimon(3)
         return #t >= 1 and #t <= 2
     end,
-    use = function(self, card, area, copier)
 
+    use = function(self, card, area, copier)
         local targets = selected_digimon(2)
 
-    BM.remember_digi_item(card)
-    for _, target in ipairs(targets) do
-        BM.feed(target, 1)
-    end
-    if BM.on_food_used then
-        BM.on_food_used()
-    end
+        BM.remember_digi_item(card)
 
+        for _, target in ipairs(targets) do
+            BM.feed(target, 1)
+        end
+
+        if BM.on_food_used then
+            BM.on_food_used()
+        end
 
         stop_multi_joker_targeting(card, true)
     end,
 }
 
 SMODS.Consumable {
-    set = COMMON_CARD.set, key = 'hefty_food', atlas = 'Consumable', pos = {x=1,y=0},
-    discovered = false, unlocked = true, cost = 4,
-    loc_txt = {name='Hefty Food', text={
-        'Reduce {C:attention}Hunger{} by {C:attention}2{}',
-        'for {C:attention}1{} selected Digimon'
-    }},
-    can_use = function(self, card) return #selected_digimon(2) == 1 end,
+    set = COMMON_CARD.set,
+    key = 'hefty_food',
+    atlas = 'Consumable',
+    pos = {x=1,y=0},
+    discovered = false,
+    unlocked = true,
+    cost = 4,
+
+    config = {
+        extra = {
+            spoil_turns = 4
+        }
+    },
+
+    loc_txt = {
+        name = 'Hefty Food',
+        text = {
+            'Reduce {C:attention}Hunger{} by {C:attention}2{}',
+            'for {C:attention}1{} selected Digimon',
+            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} turns{}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        local turns = card
+            and card.ability
+            and card.ability.extra
+            and card.ability.extra.spoil_turns
+            or 4
+
+        return {
+            vars = {turns}
+        }
+    end,
+
+    calculate = function(self, card, context)
+        return tick_food_spoilage(card, context)
+    end,
+
+    can_use = function(self, card)
+        return #selected_digimon(2) == 1
+    end,
+
     use = function(self, card, area, copier)
-    BM.remember_digi_item(card)
-    local t = selected_digimon(1)[1]
-    if t then
-        BM.feed(t, 2)
-    end
-    if BM.on_food_used then
-        BM.on_food_used()
-    end
+        BM.remember_digi_item(card)
+
         local t = selected_digimon(1)[1]
-        if t then BM.feed(t, 2) end
+        if t then
+            BM.feed(t, 2)
+        end
+
+        if BM.on_food_used then
+            BM.on_food_used()
+        end
     end,
 }
 

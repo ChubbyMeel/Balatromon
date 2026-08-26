@@ -348,8 +348,6 @@ H.angewomon = function(card,context)
 end
 H.magnadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_glass') and SMODS.pseudorandom_probability(card,'magnadramon',1,2) then return {xmult=3} end end
 H.pagumon = boss_negative_tarot('c_chariot',2)
-H.deminon = function() end
-H.damidevimon = function() end
 H.demidevimon = single_to('m_steel')
 H.devimon = function(card,context)
     if (context.hand_drawn or context.first_hand_drawn) and context.main_eval and not context.blueprint then
