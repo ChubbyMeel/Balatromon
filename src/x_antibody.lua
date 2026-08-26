@@ -102,6 +102,18 @@ BM.x_antibody_viable = {
     myotismon = true,
     renamon = true,
     sakuyamon = true,
+    terriermon = true,
+    rapidmon = true,
+    garudamon = true,
+    phoenixmon = true,
+    keramon = true,
+    palmon = true,
+    togemon = true,
+    lillymon = true,
+    rosemon = true,
+    kuwagamon = true,
+    okuwamon = true,
+    herculeskabuterimon = true,
 }
 
 BM.x_antibody_extra_evolutions = {
@@ -110,7 +122,8 @@ BM.x_antibody_extra_evolutions = {
     },
     tokomon = {
         'salamon',
-        'renamon'
+        'renamon',
+        'terriermon'
     },
     angewomon = {
         'sakuyamon'
@@ -121,6 +134,19 @@ BM.x_antibody_extra_evolutions = {
     gatomon = {
         'myotismon',
         'ladydevimon'
+    },
+    terriermon = {
+        'rapidmon'
+    },
+    nefertimon = {
+        'garudamon'
+    },
+    pegasusmon = {
+        'garudamon'
+    },
+    keramon = {
+        'monzaemon',
+        'kuwagamon'
     }
 
 }
@@ -1354,6 +1380,430 @@ function(card, context, base)
     end
 end
 
+local function x_most_played_hand(hand)
+    if not hand
+    or not G.GAME
+    or not G.GAME.hands
+    or not G.GAME.hands[hand] then
+        return false
+    end
+
+    local data = G.GAME.hands[hand]
+
+    if data.visible == false then
+        return false
+    end
+
+    local most = -math.huge
+
+    for _, other in pairs(G.GAME.hands) do
+        if other.visible ~= false then
+            most = math.max(
+                most,
+                other.played or 0
+            )
+        end
+    end
+
+    return (data.played or 0) == most
+end
+
+local function x_feed_random_digimon(card, count, seed)
+    if not G.jokers then
+        return 0
+    end
+
+    local pool = {}
+
+    for _, joker in ipairs(G.jokers.cards or {}) do
+        if joker ~= card
+        and BM.is_digimon(joker) then
+            pool[#pool + 1] = joker
+        end
+    end
+
+    local fed = 0
+
+    for i = 1, math.min(count or 1, #pool) do
+        local target = BM.random_element(
+            pool,
+            (seed or 'x_feed_')
+                .. tostring(card.sort_id or 0)
+                .. '_'
+                .. tostring(i)
+        )
+
+        if target then
+            BM.feed(target, 1)
+            fed = fed + 1
+
+            for j = #pool, 1, -1 do
+                if pool[j] == target then
+                    table.remove(pool, j)
+                    break
+                end
+            end
+        end
+    end
+
+    return fed
+end
+
+BM.x_antibody_effects.terriermon =
+function(card, context, base)
+    local played = context.other_card
+
+    if context.individual
+    and context.cardarea == G.play
+    and played
+    and not context.blueprint then
+        local rank = BM.get_rank(played)
+
+        if rank == 8
+        or rank == 10
+        or BM.is_face(played) then
+            if SMODS.pseudorandom_probability(
+                card,
+                'x_terriermon',
+                1,
+                2
+            ) then
+                if BM.add_consumable('Tarot') then
+                    return {
+                        mult = 10,
+                        message = 'Tarot!'
+                    }
+                end
+            end
+        end
+    end
+end
+
+BM.x_antibody_effects.rapidmon =
+function(card, context, base)
+    local e = card.ability.extra
+
+    if context.setting_blind
+    and context.main_eval
+    and not context.blueprint then
+        e.x_rapidmon_first_discard_seen = false
+        e.x_rapidmon_destroy_ids = nil
+        e.x_rapidmon_paid = false
+    end
+
+    if context.pre_discard
+    and context.main_eval
+    and not context.blueprint
+    and not e.x_rapidmon_first_discard_seen then
+        e.x_rapidmon_first_discard_seen = true
+        e.x_rapidmon_destroy_ids = nil
+        e.x_rapidmon_paid = false
+
+        local highlighted =
+            G.hand
+            and G.hand.highlighted
+            or {}
+
+        if #highlighted == 2 then
+            e.x_rapidmon_destroy_ids = {}
+
+            for _, played in ipairs(highlighted) do
+                e.x_rapidmon_destroy_ids[
+                    x_card_id(played)
+                ] = true
+            end
+        end
+    end
+
+    if context.discard
+    and context.other_card
+    and e.x_rapidmon_destroy_ids
+    and not context.blueprint then
+        local id =
+            x_card_id(context.other_card)
+
+        if e.x_rapidmon_destroy_ids[id] then
+            e.x_rapidmon_destroy_ids[id] = nil
+
+            local result = {
+                remove = true
+            }
+
+            if not e.x_rapidmon_paid then
+                e.x_rapidmon_paid = true
+                result.dollars = 9
+                result.message = '$9'
+            end
+
+            return result
+        end
+    end
+end
+
+BM.x_antibody_effects.garudamon =
+function(card, context, base)
+    if not context.individual
+    or context.cardarea ~= G.play
+    or not context.other_card then
+        return
+    end
+
+    local played = context.other_card
+    local result = {}
+    local triggered = false
+
+    if played:is_suit('Hearts')
+    and SMODS.pseudorandom_probability(
+        card,
+        'x_garudamon_bloodstone',
+        1,
+        2
+    ) then
+        result.xmult = 1.5
+        triggered = true
+    end
+
+    if played:is_suit('Spades') then
+        result.chips = 50
+        triggered = true
+    end
+
+    if played:is_suit('Clubs') then
+        result.mult = 7
+        triggered = true
+    end
+
+    if played:is_suit('Diamonds') then
+        result.dollars = 1
+        triggered = true
+    end
+
+    if triggered then
+        return result
+    end
+end
+
+BM.x_antibody_effects.phoenixmon =
+function(card, context, base)
+    if context.blind_defeated
+    and BM.is_boss()
+    and not context.blueprint
+    and G.jokers then
+        local pool = {}
+
+        for _, joker in ipairs(
+            G.jokers.cards or {}
+        ) do
+            if joker ~= card then
+                pool[#pool + 1] = joker
+            end
+        end
+
+        if #pool == 0 then
+            return
+        end
+
+        local target =
+            BM.random_element(
+                pool,
+                'x_phoenixmon_'
+                    .. tostring(
+                        card.sort_id or 0
+                    )
+            )
+
+        if not target then
+            return
+        end
+
+        local copy =
+            copy_card(
+                target,
+                nil
+            )
+
+        if not copy then
+            return
+        end
+
+        copy:set_edition(
+            {
+                negative = true
+            },
+            true
+        )
+
+        copy:add_to_deck()
+        G.jokers:emplace(copy)
+
+        return {
+            message = 'Reborn!',
+            colour = G.C.DARK_EDITION
+        }
+    end
+end
+
+BM.x_antibody_effects.keramon =
+function(card, context, base)
+    if context.joker_main then
+        local empty =
+            BM.empty_joker_slots({
+                keramon = true
+            })
+
+        return {
+            xmult = empty * 2
+        }
+    end
+end
+
+BM.x_antibody_effects.palmon =
+function(card, context, base)
+    if context.joker_main then
+        return {
+            xmult =
+                1
+                + 0.25
+                * BM.count_food()
+        }
+    end
+
+    return BM._run_effect_without_x(
+        'tanemon',
+        card,
+        context
+    )
+end
+
+BM.x_antibody_effects.togemon =
+function(card, context, base)
+    if context.joker_main then
+        BM.emult(
+            card,
+            1
+                + 0.1
+                * BM.count_food()
+        )
+    end
+
+    return BM._run_effect_without_x(
+        'tanemon',
+        card,
+        context
+    )
+end
+
+BM.x_antibody_effects.lillymon =
+function(card, context, base)
+    local inherited =
+        BM.x_antibody_effects.togemon(
+            card,
+            context,
+            base
+        )
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        local fed =
+            x_feed_random_digimon(
+                card,
+                2,
+                'x_lillymon_feed_'
+            )
+
+        if fed > 0 then
+            return {
+                message = 'Fed!'
+            }
+        end
+    end
+
+    return inherited
+end
+
+BM.x_antibody_effects.rosemon =
+function(card, context, base)
+    return BM.x_antibody_effects.lillymon(
+        card,
+        context,
+        base
+    )
+end
+
+BM.x_antibody_effects.kuwagamon =
+function(card, context, base)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and (
+        context.scoring_name == 'Straight Flush'
+        or context.scoring_name == 'Flush Five'
+    ) then
+        local made = 0
+
+        for _ = 1, 2 do
+            if BM.add_consumable(
+                'Spectral',
+                nil,
+                'e_negative'
+            ) then
+                made = made + 1
+            end
+        end
+
+        if made > 0 then
+            return {
+                message =
+                    made == 2
+                    and '2 Negative Spectrals!'
+                    or 'Negative Spectral!',
+                colour = G.C.PURPLE
+            }
+        end
+    end
+end
+
+BM.x_antibody_effects.okuwamon =
+function(card, context, base)
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and x_most_played_hand(
+        context.scoring_name
+    ) then
+        if BM.add_consumable(
+            'Spectral',
+            nil,
+            'e_negative'
+        ) then
+            return {
+                message = 'Negative Spectral!',
+                colour = G.C.PURPLE
+            }
+        end
+    end
+end
+
+BM.x_antibody_effects.herculeskabuterimon =
+function(card, context, base)
+    local kuwagamon =
+        BM.x_antibody_effects.kuwagamon(
+            card,
+            context,
+            base
+        )
+
+    local okuwamon =
+        BM.x_antibody_effects.okuwamon(
+            card,
+            context,
+            base
+        )
+
+    return okuwamon or kuwagamon
+end
+
 function BM.has_x_antibody(card)
     if not card
     or not card.ability
@@ -2275,6 +2725,138 @@ sakuyamon = {
         '{C:inactive}(Currently {X:mult,C:white}^#5#{C:inactive} Mult){}'
     }
 },
+
+terriermon = {
+    name = 'Terriermon X',
+    stage = 'Rookie',
+
+    text = {
+        '{C:green}1 in 2{} chance for each played',
+        '{C:attention}8{}, {C:attention}10{} and {C:attention}face card{}',
+        'to create a {C:tarot}Tarot{} card when scored',
+        'Successful creation also gives {C:mult}+10{} Mult'
+    }
+},
+
+rapidmon = {
+    name = 'Rapidmon X',
+    stage = 'Ultimate',
+
+    text = {
+        'If the first discard of round has',
+        'exactly {C:attention}2{} cards, destroy both',
+        'and earn {C:money}$9{}'
+    }
+},
+
+garudamon = {
+    name = 'Garudamon X',
+    stage = 'Ultimate',
+
+    text = {
+        'Has the effects of {C:attention}Bloodstone{},',
+        '{C:attention}Arrowhead{}, {C:attention}Onyx Agate{} and',
+        '{C:attention}Rough Gem{} simultaneously'
+    }
+},
+
+phoenixmon = {
+    name = 'Phoenixmon X',
+    stage = 'Mega',
+
+    text = {
+        'When a {C:attention}Boss Blind{} is defeated,',
+        'create a {C:dark_edition}Negative{} copy',
+        'of a random other Joker'
+    }
+},
+
+keramon = {
+    name = 'Keramon X',
+    stage = 'Rookie',
+
+    text = {
+        '{X:mult,C:white}X2{} Mult for every empty Joker slot',
+        '{C:inactive}(Keramon is ignored when counting occupied slots){}'
+    }
+},
+
+palmon = {
+    name = 'Palmon X',
+    stage = 'Rookie',
+
+    text = {
+        'Each {C:attention}Food{} and {C:attention}Hefty Food{} gives',
+        '{X:mult,C:white}X0.25{} Mult',
+        'Also applies {C:attention}Tanemon{} effect'
+    }
+},
+
+togemon = {
+    name = 'Togemon X',
+    stage = 'Champion',
+
+    text = {
+        'Each {C:attention}Food{} and {C:attention}Hefty Food{} gives',
+        '{X:mult,C:white}^0.1{} Mult',
+        'Also applies {C:attention}Tanemon{} effect'
+    }
+},
+
+lillymon = {
+    name = 'Lillymon X',
+    stage = 'Ultimate',
+
+    text = {
+        'At the end of round, feed',
+        '{C:attention}2{} random other Digimon',
+        'Also applies {C:attention}Togemon X{} effect'
+    }
+},
+
+rosemon = {
+    name = 'Rosemon X',
+    stage = 'Mega',
+
+    text = {
+        'Applies {C:attention}Lillymon X{} effect'
+    }
+},
+
+kuwagamon = {
+    name = 'Kuwagamon X',
+    stage = 'Champion',
+
+    text = {
+        'If played poker hand is a {C:attention}Straight Flush{}',
+        'or {C:attention}Flush Five{}, create',
+        '{C:attention}2{} random {C:dark_edition}Negative{}',
+        '{C:spectral}Spectral{} cards',
+        '{C:inactive}(Must have room){}'
+    }
+},
+
+okuwamon = {
+    name = 'Okuwamon X',
+    stage = 'Ultimate',
+
+    text = {
+        'If played hand is one of your',
+        'most played poker hands, create a',
+        '{C:dark_edition}Negative{} {C:spectral}Spectral{} card',
+        '{C:inactive}(Must have room){}'
+    }
+},
+
+herculeskabuterimon = {
+    name = 'HerculesKabuterimon X',
+    stage = 'Mega',
+
+    text = {
+        'Also applies {C:attention}Kuwagamon X{} and',
+        '{C:attention}Okuwamon X{} effects'
+    }
+},
 }
 
 local old_process_loc_text =
@@ -2659,8 +3241,57 @@ BM.x_antibody_forms = {
 
     sakuyamon = {
         pos = {x = 2, y = 3}
+    },
+
+    terriermon = {
+        pos = {x = 3, y = 3}
+    },
+
+    rapidmon = {
+        pos = {x = 4, y = 3}
+    },
+
+    garudamon = {
+        pos = {x = 5, y = 3}
+    },
+
+    phoenixmon = {
+        pos = {x = 6, y = 3}
+    },
+
+    keramon = {
+        pos = {x = 7, y = 3}
+    },
+
+    palmon = {
+        pos = {x = 8, y = 3}
+    },
+
+    togemon = {
+        pos = {x = 9, y = 3}
+    },
+
+    lillymon = {
+        pos = {x = 0, y = 4}
+    },
+
+    rosemon = {
+        pos = {x = 1, y = 4}
+    },
+
+    kuwagamon = {
+        pos = {x = 2, y = 4}
+    },
+
+    okuwamon = {
+        pos = {x = 3, y = 4}
+    },
+
+    herculeskabuterimon = {
+        pos = {x = 4, y = 4}
     }
 }
+
 
 
 
