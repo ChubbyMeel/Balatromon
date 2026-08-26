@@ -199,6 +199,7 @@ assert(SMODS.load_file('src/evolution_map.lua'))()
 assert(SMODS.load_file('src/x_antibody.lua'))()
 assert(SMODS.load_file('src/artist_badges.lua'))()
 assert(SMODS.load_file('src/vanilla_patches.lua'))()
+assert(SMODS.load_file('src/boss_blinds.lua'))()
 assert(SMODS.load_file("ui.lua"))()
 
 SMODS.current_mod.process_loc_text = function()
