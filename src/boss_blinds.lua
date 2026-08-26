@@ -508,7 +508,7 @@ SMODS.Blind {
         text = {
             'At the end of the round,',
             'the {C:attention}rightmost Joker{}',
-            'becomes permanently {C:attention}Pinned{}'
+            'becomes permanently {C:attention}Pinned to the left{}'
         }
     },
 

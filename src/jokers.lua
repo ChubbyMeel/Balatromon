@@ -3649,7 +3649,7 @@ do
         key = slug,
         loc_txt = {name='Sakumon', text={
             {
-                'If the first played card is a single card,',
+                'If played card is a single card,',
                 'turn it into a gold card',
             },
             {
