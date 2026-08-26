@@ -386,6 +386,350 @@ local function line_calculate(root)
     end
 end
 
+local function current_blind_key()
+    local blind =
+        G.GAME
+        and G.GAME.blind
+
+    local center =
+        blind
+        and blind.config
+        and blind.config.blind
+
+    return center
+        and center.key
+        or nil
+end
+
+local function blind_is(key)
+    return
+        current_blind_key()
+        ==
+        'bl_'
+        .. BM.PREFIX
+        .. '_'
+        .. key
+end
+
+local function restore_chain_drag(card)
+    if not card then
+        return
+    end
+
+    if card.states
+    and card.states.drag then
+        if card._balatromon_chain_old_drag ~= nil then
+            card.states.drag.can =
+                card._balatromon_chain_old_drag
+        else
+            card.states.drag.can = true
+        end
+    end
+
+    card._balatromon_chain_old_drag =
+        nil
+end
+
+local function lock_chain_card(card)
+    if not card
+    or card.REMOVED
+    or not card.states
+    or not card.states.drag then
+        return
+    end
+
+    if card._balatromon_chain_old_drag == nil then
+        card._balatromon_chain_old_drag =
+            card.states.drag.can
+    end
+
+    card.states.drag.can = false
+end
+
+local function clear_chain()
+    if not G.GAME then
+        return
+    end
+
+    restore_chain_drag(
+        G.GAME.balatromon_chain_left
+    )
+
+    restore_chain_drag(
+        G.GAME.balatromon_chain_right
+    )
+
+    G.GAME.balatromon_chain_left =
+        nil
+
+    G.GAME.balatromon_chain_right =
+        nil
+end
+
+local function start_chain()
+    clear_chain()
+
+    if not G.jokers
+    or not G.jokers.cards
+    or #G.jokers.cards == 0 then
+        return
+    end
+
+    local left =
+        G.jokers.cards[1]
+
+    local right =
+        G.jokers.cards[
+            #G.jokers.cards
+        ]
+
+    G.GAME.balatromon_chain_left =
+        left
+
+    G.GAME.balatromon_chain_right =
+        right
+
+    lock_chain_card(left)
+
+    if right ~= left then
+        lock_chain_card(right)
+    end
+end
+
+local function enforce_chain_positions()
+    if not blind_is('chain')
+    or not G.jokers
+    or not G.jokers.cards then
+        return
+    end
+
+    local cards =
+        G.jokers.cards
+
+    local left =
+        G.GAME.balatromon_chain_left
+
+    local right =
+        G.GAME.balatromon_chain_right
+
+    if left
+    and not left.REMOVED then
+        for i = #cards, 1, -1 do
+            if cards[i] == left then
+                table.remove(
+                    cards,
+                    i
+                )
+
+                table.insert(
+                    cards,
+                    1,
+                    left
+                )
+
+                break
+            end
+        end
+
+        lock_chain_card(left)
+    end
+
+    if right
+    and right ~= left
+    and not right.REMOVED then
+        for i = #cards, 1, -1 do
+            if cards[i] == right then
+                table.remove(
+                    cards,
+                    i
+                )
+
+                cards[
+                    #cards + 1
+                ] = right
+
+                break
+            end
+        end
+
+        lock_chain_card(right)
+    end
+end
+
+if CardArea
+and CardArea.align_cards
+and not BM._chain_align_wrapped then
+    BM._chain_align_wrapped = true
+
+    local old_align_cards =
+        CardArea.align_cards
+
+    CardArea.align_cards =
+    function(self, ...)
+        if self == G.jokers then
+            enforce_chain_positions()
+        end
+
+        local result =
+            old_align_cards(
+                self,
+                ...
+            )
+
+        if self == G.jokers then
+            enforce_chain_positions()
+        end
+
+        return result
+    end
+end
+
+local YGGDRASIL_DEBUFF_SOURCE =
+    'balatromon_yggdrasil'
+
+local function yggdrasil_clear_debuffs()
+    for _, card in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        SMODS.debuff_card(
+            card,
+            false,
+            YGGDRASIL_DEBUFF_SOURCE
+        )
+    end
+end
+
+local function yggdrasil_restore_card(card)
+    if not card
+    or card.REMOVED
+    or not card.ability
+    or not card.ability.extra then
+        return
+    end
+
+    local e =
+        card.ability.extra
+
+    if not e._yggdrasil_forced_x then
+        return
+    end
+
+    e._yggdrasil_forced_x =
+        nil
+
+    e.x_antibody_rounds =
+        nil
+
+    e._x_antibody_ticked =
+        nil
+
+    card:remove_sticker(
+        BM.PREFIX
+        .. '_x_antibody'
+    )
+
+    if card.ability then
+        card.ability[
+            BM.PREFIX
+            .. '_x_antibody'
+        ] = nil
+    end
+
+    BM.restore_normal_digimon_sprite(
+        card
+    )
+
+    card:juice_up(
+        0.4,
+        0.4
+    )
+end
+
+local function yggdrasil_clear()
+    yggdrasil_clear_debuffs()
+
+    for _, card in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        yggdrasil_restore_card(
+            card
+        )
+    end
+end
+
+local function yggdrasil_apply_card(card)
+    if not BM.is_digimon(card) then
+        return
+    end
+
+    if BM.has_x_antibody
+    and BM.has_x_antibody(card) then
+        return
+    end
+
+    if BM.is_x_antibody_viable
+    and BM.is_x_antibody_viable(card) then
+        card.ability.extra =
+            card.ability.extra or {}
+
+        card.ability.extra
+            ._yggdrasil_forced_x =
+            true
+
+        BM.restore_x_antibody(
+            card,
+            999
+        )
+
+        card:juice_up(
+            0.4,
+            0.4
+        )
+
+        return
+    end
+
+    SMODS.debuff_card(
+        card,
+        true,
+        YGGDRASIL_DEBUFF_SOURCE
+    )
+end
+
+local function yggdrasil_apply_all()
+    for _, card in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        yggdrasil_apply_card(
+            card
+        )
+    end
+end
+
+local function yggdrasil_recalc(card)
+    if not BM.is_digimon(card) then
+        return
+    end
+
+    if BM.has_x_antibody
+    and BM.has_x_antibody(card) then
+        return false
+    end
+
+    if BM.is_x_antibody_viable
+    and BM.is_x_antibody_viable(card) then
+        return false
+    end
+
+    return true
+end
+
 SMODS.Blind {
     key = 'palm',
 
@@ -603,6 +947,154 @@ SMODS.Blind {
 }
 
 SMODS.Blind {
+    key = 'chain',
+
+    loc_txt = {
+        name = 'The Chain',
+        text = {
+            'The {C:attention}leftmost{} and',
+            '{C:attention}rightmost Jokers{}',
+            'cannot be moved'
+        }
+    },
+
+    atlas = 'BossBlinds',
+    pos = {
+        x = 0,
+        y = 7
+    },
+
+    discovered = false,
+    dollars = 5,
+    mult = 2,
+
+    boss = {
+        min = 2
+    },
+
+    boss_colour =
+        HEX('6F7682'),
+
+    set_blind =
+    function(self)
+        start_chain()
+    end,
+
+    disable =
+    function(self)
+        clear_chain()
+    end,
+
+    defeat =
+    function(self)
+        clear_chain()
+    end
+}
+
+SMODS.Blind {
+    key = 'yggdrasil',
+
+    loc_txt = {
+        name = 'Yggdrasil',
+        text = {
+            'All viable Digimon become',
+            'their {C:attention}X-Antibody{} forms',
+            'All other Digimon are debuffed'
+        }
+    },
+
+    atlas = 'BossBlinds',
+    pos = {
+        x = 0,
+        y = 8
+    },
+
+    discovered = false,
+    dollars = 8,
+
+    mult = 1.5,
+
+    boss = {
+        showdown = true
+    },
+
+    boss_colour =
+        HEX('3B9F86'),
+
+    set_blind =
+    function(self)
+        yggdrasil_apply_all()
+    end,
+
+    calculate =
+    function(
+        self,
+        blind,
+        context
+    )
+        if context.card_added
+        and context.card
+        and G.GAME.blind
+        and not G.GAME.blind.disabled then
+            yggdrasil_apply_card(
+                context.card
+            )
+        end
+    end,
+
+    recalc_debuff =
+    function(
+        self,
+        card,
+        from_blind
+    )
+        return
+            yggdrasil_recalc(
+                card
+            )
+    end,
+
+    disable =
+    function(self)
+        yggdrasil_clear()
+    end,
+
+    defeat =
+    function(self)
+        yggdrasil_clear()
+    end
+}
+
+SMODS.Blind {
+    key = 'hacked_decoder',
+
+    loc_txt = {
+        name = 'Hacked Decoder',
+        text = {
+            'Digimon have a {C:green}1 in 2{}',
+            'chance to not activate'
+        }
+    },
+
+    atlas = 'BossBlinds',
+    pos = {
+        x = 0,
+        y = 9
+    },
+
+    discovered = false,
+    dollars = 5,
+    mult = 2,
+
+    boss = {
+        min = 2
+    },
+
+    boss_colour =
+        HEX('4E87A8')
+}
+
+SMODS.Blind {
     key = 'cowardice',
 
     loc_txt = {
@@ -766,3 +1258,91 @@ SMODS.Blind {
             'yuramon'
         )
 }
+
+
+if BM.run_effect
+and not BM._hacked_decoder_wrapped then
+    BM._hacked_decoder_wrapped =
+        true
+
+    local old_run_effect =
+        BM.run_effect
+
+    BM.run_effect =
+    function(
+        slug,
+        card,
+        context
+    )
+        if blind_is(
+            'hacked_decoder'
+        )
+        and card
+        and BM.is_digimon(card)
+        and not card.debuff
+        and context
+        and not context.blueprint then
+
+            local roll =
+                SMODS.pseudorandom_probability(
+                    card,
+                    'balatromon_hacked_decoder_'
+                    .. tostring(slug)
+                    .. '_'
+                    .. tostring(
+                        context.joker_main
+                        and 'main'
+                        or context.before
+                        and 'before'
+                        or context.after
+                        and 'after'
+                        or context.individual
+                        and tostring(
+                            context.other_card
+                            and context.other_card.sort_id
+                            or 'individual'
+                        )
+                        or context.repetition
+                        and 'repetition'
+                        or tostring(
+                            G.GAME.current_round
+                            and G.GAME.current_round
+                                .hands_played
+                            or 0
+                        )
+                    ),
+                    1,
+                    2
+                )
+
+            if not roll then
+                if context.joker_main
+                or context.before
+                or context.after
+                or context.individual then
+                    card_eval_status_text(
+                        card,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message =
+                                'HACKED!',
+                            colour =
+                                G.C.RED
+                        }
+                    )
+                end
+
+                return
+            end
+        end
+
+        return old_run_effect(
+            slug,
+            card,
+            context
+        )
+    end
+end

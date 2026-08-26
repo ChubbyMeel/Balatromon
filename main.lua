@@ -276,3 +276,4 @@ SMODS.current_mod.process_loc_text = function(self)
         )
     end
 end
+
