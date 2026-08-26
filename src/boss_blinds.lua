@@ -1087,7 +1087,7 @@ SMODS.Blind {
     mult = 2,
 
     boss = {
-        min = 2
+        showdown = true
     },
 
     boss_colour =
