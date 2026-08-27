@@ -92,6 +92,13 @@ SMODS.Atlas {
     py = 95
 }
 
+SMODS.Atlas {
+    key = 'Undiscovered',
+    path = 'DigiMeel_Undiscovered.png',
+    px = 71,
+    py = 95
+}
+
 SMODS.current_mod.menu_cards = function()
     return {
         remove_original = true,

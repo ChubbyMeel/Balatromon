@@ -8,7 +8,7 @@ SMODS.Voucher {
 
     cost = 10,
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     loc_txt = {
@@ -36,7 +36,7 @@ SMODS.Voucher {
 
     cost = 10,
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     requires = {
@@ -69,7 +69,7 @@ SMODS.Voucher {
 
     cost = 10,
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     loc_txt = {
@@ -96,7 +96,7 @@ SMODS.Voucher {
 
     cost = 10,
 
-    discovered = true,
+    discovered = false,
     unlocked = true,
 
     requires = {

@@ -276,113 +276,16 @@ local function increase_all_hunger()
     end
 end
 
-local function line_source(root)
-    return
-        'balatromon_blind_line_'
-        .. BM.slug(root)
-end
-
-local function apply_line_debuff(
-    card,
-    root
-)
-    if not digimon_in_line(
-        card,
-        root
-    ) then
-        return
-    end
-
-    SMODS.debuff_card(
-        card,
-        true,
-        line_source(root)
-    )
-end
-
-local function apply_line_to_all(root)
-    for _, card in ipairs(
-        G.jokers
-        and G.jokers.cards
-        or {}
-    ) do
-        apply_line_debuff(
-            card,
-            root
-        )
-    end
-end
-
-local function clear_line(root)
-    local source =
-        line_source(root)
-
-    for _, card in ipairs(
-        G.jokers
-        and G.jokers.cards
-        or {}
-    ) do
-        SMODS.debuff_card(
-            card,
-            false,
-            source
-        )
-    end
-end
-
-local function line_set_blind(root)
-    return function(self)
-        apply_line_to_all(root)
-    end
-end
-
-local function line_disable(root)
-    return function(self)
-        clear_line(root)
-    end
-end
-
-local function line_defeat(root)
-    return function(self)
-        clear_line(root)
-    end
-end
-
 local function line_recalc(root)
     return function(
         self,
         card,
         from_blind
     )
-        if digimon_in_line(
+        return digimon_in_line(
             card,
             root
-        ) then
-            return true
-        end
-    end
-end
-
-local function line_calculate(root)
-    return function(
-        self,
-        a,
-        b
-    )
-        local context =
-            get_context(a, b)
-
-        if not context then
-            return
-        end
-
-        if context.card_added
-        and context.card then
-            apply_line_debuff(
-                context.card,
-                root
-            )
-        end
+        )
     end
 end
 
@@ -1071,8 +974,9 @@ SMODS.Blind {
     loc_txt = {
         name = 'Hacked Decoder',
         text = {
-            'Digimon have a {C:green}1 in 2{}',
-            'chance to not activate'
+            'Each Digimon has a {C:green}1 in 2{} chance',
+            'to be {C:red}Hacked{} each played hand',
+            '{C:inactive}Hacked Digimon do not activate{}'
         }
     },
 
@@ -1123,28 +1027,8 @@ SMODS.Blind {
     boss_colour =
         HEX('138FD0'),
 
-    set_blind =
-        line_set_blind(
-            'botamon'
-        ),
-
-    calculate =
-        line_calculate(
-            'botamon'
-        ),
-
     recalc_debuff =
         line_recalc(
-            'botamon'
-        ),
-
-    disable =
-        line_disable(
-            'botamon'
-        ),
-
-    defeat =
-        line_defeat(
             'botamon'
         )
 }
@@ -1178,28 +1062,8 @@ SMODS.Blind {
     boss_colour =
         HEX('B99B22'),
 
-    set_blind =
-        line_set_blind(
-            'punimon'
-        ),
-
-    calculate =
-        line_calculate(
-            'punimon'
-        ),
-
     recalc_debuff =
         line_recalc(
-            'punimon'
-        ),
-
-    disable =
-        line_disable(
-            'punimon'
-        ),
-
-    defeat =
-        line_defeat(
             'punimon'
         )
 }
@@ -1233,28 +1097,8 @@ SMODS.Blind {
     boss_colour =
         HEX('9D52C7'),
 
-    set_blind =
-        line_set_blind(
-            'yuramon'
-        ),
-
-    calculate =
-        line_calculate(
-            'yuramon'
-        ),
-
     recalc_debuff =
         line_recalc(
-            'yuramon'
-        ),
-
-    disable =
-        line_disable(
-            'yuramon'
-        ),
-
-    defeat =
-        line_defeat(
             'yuramon'
         )
 }
@@ -1262,11 +1106,160 @@ SMODS.Blind {
 
 if BM.run_effect
 and not BM._hacked_decoder_wrapped then
-    BM._hacked_decoder_wrapped =
-        true
+    BM._hacked_decoder_wrapped = true
 
     local old_run_effect =
         BM.run_effect
+
+    local function hacked_context_group(context)
+        if context.before
+        or context.individual
+        or context.repetition
+        or context.joker_main
+        or context.after then
+            return 'hand'
+        end
+
+        if context.pre_discard
+        or context.discard then
+            return 'discard'
+        end
+
+        if context.end_of_round then
+            return 'end_round'
+        end
+
+        if context.setting_blind then
+            return 'setting_blind'
+        end
+
+        if context.remove_playing_cards then
+            return 'remove_playing_cards'
+        end
+
+        if context.selling_card then
+            return 'selling_card'
+        end
+
+        if context.selling_self then
+            return 'selling_self'
+        end
+
+        if context.buying_card then
+            return 'buying_card'
+        end
+
+        if context.reroll_shop then
+            return 'reroll_shop'
+        end
+
+        if context.open_booster then
+            return 'open_booster'
+        end
+
+        if context.skipping_booster then
+            return 'skipping_booster'
+        end
+
+        if context.using_consumeable then
+            return 'using_consumable'
+        end
+
+        if context.skip_blind then
+            return 'skip_blind'
+        end
+
+        if context.first_hand_drawn then
+            return 'first_hand_drawn'
+        end
+
+        return nil
+    end
+
+    local function hacked_context_id(group)
+        local round =
+            G.GAME
+            and G.GAME.current_round
+            or {}
+
+        if group == 'hand' then
+            return
+                'hand_'
+                .. tostring(
+                    round.hands_played
+                    or 0
+                )
+        end
+
+        if group == 'discard' then
+            return
+                'discard_'
+                .. tostring(
+                    round.discards_used
+                    or 0
+                )
+        end
+
+        if group == 'end_round' then
+            return
+                'end_round_'
+                .. tostring(
+                    G.GAME
+                    and G.GAME.round
+                    or 0
+                )
+        end
+
+        if group == 'setting_blind' then
+            return
+                'blind_'
+                .. tostring(
+                    G.GAME
+                    and G.GAME.round
+                    or 0
+                )
+        end
+
+        return
+            group
+            .. '_'
+            .. tostring(
+                round.hands_played
+                or 0
+            )
+            .. '_'
+            .. tostring(
+                round.discards_used
+                or 0
+            )
+    end
+
+    local function should_show_hacked(context, group)
+        if group == 'hand' then
+            return
+                context.joker_main
+        end
+
+        if group == 'discard' then
+            return
+                context.pre_discard
+                and context.main_eval
+        end
+
+        if group == 'end_round' then
+            return
+                context.end_of_round
+                and context.main_eval
+        end
+
+        if group == 'setting_blind' then
+            return
+                context.setting_blind
+                and context.main_eval
+        end
+
+        return false
+    end
 
     BM.run_effect =
     function(
@@ -1274,69 +1267,99 @@ and not BM._hacked_decoder_wrapped then
         card,
         context
     )
-        if blind_is(
+        if not blind_is(
             'hacked_decoder'
         )
-        and card
-        and BM.is_digimon(card)
-        and not card.debuff
-        and context
-        and not context.blueprint then
+        or not card
+        or not BM.is_digimon(card)
+        or card.debuff
+        or not context
+        or context.blueprint
+        or context.mod_probability
+        or context.fix_probability
+        or context.pseudorandom_result
+        or context.check_eternal
+        or context.retrigger_joker_check then
+            return old_run_effect(
+                slug,
+                card,
+                context
+            )
+        end
 
-            local roll =
-                SMODS.pseudorandom_probability(
-                    card,
+        local group =
+            hacked_context_group(
+                context
+            )
+
+        if not group then
+            return old_run_effect(
+                slug,
+                card,
+                context
+            )
+        end
+
+        local id =
+            hacked_context_id(
+                group
+            )
+
+        card.ability.extra =
+            card.ability.extra
+            or {}
+
+        local e =
+            card.ability.extra
+
+        e.hacked_decoder =
+            e.hacked_decoder
+            or {}
+
+        local state =
+            e.hacked_decoder
+
+        if state.id ~= id then
+            state.id = id
+
+            state.hacked =
+                pseudorandom(
                     'balatromon_hacked_decoder_'
-                    .. tostring(slug)
-                    .. '_'
                     .. tostring(
-                        context.joker_main
-                        and 'main'
-                        or context.before
-                        and 'before'
-                        or context.after
-                        and 'after'
-                        or context.individual
-                        and tostring(
-                            context.other_card
-                            and context.other_card.sort_id
-                            or 'individual'
-                        )
-                        or context.repetition
-                        and 'repetition'
-                        or tostring(
-                            G.GAME.current_round
-                            and G.GAME.current_round
-                                .hands_played
-                            or 0
-                        )
-                    ),
-                    1,
-                    2
-                )
-
-            if not roll then
-                if context.joker_main
-                or context.before
-                or context.after
-                or context.individual then
-                    card_eval_status_text(
-                        card,
-                        'extra',
-                        nil,
-                        nil,
-                        nil,
-                        {
-                            message =
-                                'HACKED!',
-                            colour =
-                                G.C.RED
-                        }
+                        card.sort_id
+                        or slug
+                        or 'digimon'
                     )
-                end
+                    .. '_'
+                    .. tostring(id)
+                )
+                < 0.5
 
-                return
+            state.shown = false
+        end
+
+        if state.hacked then
+            if not state.shown
+            and should_show_hacked(
+                context,
+                group
+            ) then
+                state.shown = true
+
+                card_eval_status_text(
+                    card,
+                    'extra',
+                    nil,
+                    nil,
+                    nil,
+                    {
+                        message = 'HACKED!',
+                        colour = G.C.RED
+                    }
+                )
             end
+
+            return
         end
 
         return old_run_effect(

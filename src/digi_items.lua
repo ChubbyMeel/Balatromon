@@ -17,8 +17,8 @@ SMODS.ConsumableType {
 if SMODS.UndiscoveredSprite then
     SMODS.UndiscoveredSprite {
         key = 'DigiItem',
-        atlas = 'Consumable',
-        pos = {x = 3, y = 3},
+        atlas = 'Undiscovered',
+        pos = {x = 0, y = 0},
         no_overlay = true
     }
 end

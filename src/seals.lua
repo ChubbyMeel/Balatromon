@@ -1,9 +1,56 @@
 local BM = Balatromon
 
+local GLITCH_SHADER_KEY =
+    BM.PREFIX .. '_glitch'
 
--- ============================================================
--- HELPERS
--- ============================================================
+SMODS.Shader {
+    key = 'glitch',
+    path = 'glitch.fs',
+
+    send_vars = function(sprite, card)
+        return {
+            glitch_time = G.TIMERS.REAL,
+            glitch_seed = sprite and sprite.ID or 1
+        }
+    end
+}
+
+SMODS.DrawStep {
+    key = 'glitch_seal_shader',
+    order = 15,
+
+    conditions = {
+        facing = 'front'
+    },
+
+    func = function(card, layer)
+        if card.seal ~= 'DigiMeel_glitch'
+        and card.seal ~= 'glitch' then
+            return
+        end
+
+        if not card.children then
+            return
+        end
+
+        if card.children.center then
+            card.children.center:draw_shader(
+                GLITCH_SHADER_KEY,
+                nil,
+                nil
+            )
+        end
+
+        if card.children.front
+        and not card:should_hide_front() then
+            card.children.front:draw_shader(
+                GLITCH_SHADER_KEY,
+                nil,
+                nil
+            )
+        end
+    end
+}
 
 local function digi_item_pool()
     return G.P_CENTER_POOLS and G.P_CENTER_POOLS.DigiItem or {}
@@ -361,18 +408,6 @@ SMODS.Seal {
 }
 
 
-
--- ============================================================
--- GLITCH SEAL
---
--- Scored:
--- +1..24 Mult
--- +3..20 Chips
---
--- Held in hand after a hand:
--- if hand WON blind -> create Spectral
--- otherwise -> discard itself
--- ============================================================
 
 SMODS.Seal {
     key = 'glitch',

@@ -141,8 +141,7 @@ function BM.get_card_slug(card)
 end
 
 function BM.has_passive_deck_effect(slug)
-    return slug == 'vikemon'
-        or slug == 'pururumon'
+    return slug == 'pururumon'
         or slug == 'poromon'
         or slug == 'hawkmon'
         or slug == 'aquilamon'
@@ -162,10 +161,7 @@ function BM.apply_passive_deck_effect(card, slug)
     e._bm_passive_removed = nil
     e._bm_passive_slug = slug
 
-    if slug == 'vikemon' then
-        G.hand:change_size(-3)
-
-    elseif slug == 'pururumon' then
+    if slug == 'pururumon' then
         G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1
 
     elseif slug == 'poromon' then
@@ -205,10 +201,7 @@ function BM.remove_passive_deck_effect(card, slug)
 
     local applied_slug = e._bm_passive_slug or slug
 
-    if applied_slug == 'vikemon' then
-        G.hand:change_size(3)
-
-    elseif applied_slug == 'pururumon' then
+    if applied_slug == 'pururumon' then
         G.GAME.round_resets.hands = G.GAME.round_resets.hands - 1
 
     elseif applied_slug == 'poromon' then

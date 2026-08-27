@@ -2516,7 +2516,10 @@ do
             }
             
         }},
-        config = {extra=extra},
+        config = {
+            extra = extra,
+            h_size = -3
+        },
         rarity = BM.stage_rarity(stage),
         cost = 5,
         atlas = 'Joker', pos = {x=3,y=5},

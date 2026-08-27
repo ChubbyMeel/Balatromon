@@ -59,8 +59,8 @@ SMODS.ConsumableType {
 if SMODS.UndiscoveredSprite then
     SMODS.UndiscoveredSprite {
         key = 'Tamer',
-        atlas = 'Tamer',
-        pos = {x = 3, y = 1},
+        atlas = 'Undiscovered',
+        pos = {x = 1, y = 0},
         no_overlay = true
     }
 end

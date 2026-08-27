@@ -180,62 +180,138 @@ SMODS.Tag {
     loc_txt = {
         name = 'Cute Tag',
         text = {
-            'Create {C:attention}4{} random',
+            'Create up to {C:attention}4{} random',
             '{C:attention}Fresh{} Digimon',
             '{C:inactive}(Must have room)',
         },
     },
 
     apply = function(self, tag, context)
-        if context.type ~= 'immediate' or tag.triggered then return end
-        if not G.jokers then return end
-
-        local free_slots = (G.jokers.config.card_limit or 0) - #G.jokers.cards
-        if free_slots < 4 then return end
-
-        local pool = get_fresh_digimon_pool()
-        if #pool == 0 then
-            print('[Balatromon] Cute Tag: Fresh Digimon pool is empty')
+        if context.type ~= 'immediate'
+        or tag.triggered then
             return
         end
 
-        local lock = tag.ID
-        G.CONTROLLER.locks[lock] = true
-        tag.triggered = true -- set BEFORE events so it cannot queue twice
-
-        tag:yep('So Cute!', G.C.GREEN, function()
-            for i = 1, 4 do
-                G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.12 * i,
-                    func = function()
-                        local center = BM.random_element(
-                            pool,
-                            'balatromon_cute_tag_spawn_' .. tostring(i)
-                        )
-                        if center then
-                            local joker = SMODS.add_card {
-                                set = 'Joker',
-                                area = G.jokers,
-                                key = center.key,
-                            }
-                            if joker then joker:juice_up(0.7, 0.5) end
-                        end
-                        return true
-                    end,
-                }))
-            end
-
-            G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.55,
-                func = function()
-                    G.CONTROLLER.locks[lock] = nil
-                    return true
-                end,
-            }))
+        if not G.jokers then
+            tag:nope()
+            tag.triggered = true
             return true
-        end)
+        end
+
+        local card_limit =
+            G.jokers.config.card_limit
+            or 0
+
+        local current_cards =
+            #G.jokers.cards
+
+        local free_slots =
+            math.max(
+                0,
+                card_limit - current_cards
+            )
+
+        local spawn_count =
+            math.min(
+                4,
+                free_slots
+            )
+
+        if spawn_count <= 0 then
+            tag:nope()
+            tag.triggered = true
+            return true
+        end
+
+        local pool =
+            get_fresh_digimon_pool()
+
+        if #pool == 0 then
+            tag:nope()
+            tag.triggered = true
+            return true
+        end
+
+        local lock = tag.ID
+
+        G.CONTROLLER.locks[lock] = true
+        tag.triggered = true
+
+        tag:yep(
+            'So Cute!',
+            G.C.GREEN,
+            function()
+                for i = 1, spawn_count do
+                    G.E_MANAGER:add_event(
+                        Event({
+                            trigger = 'after',
+                            delay = 0.12 * i,
+
+                            func = function()
+                                if not G.jokers then
+                                    return true
+                                end
+
+                                local available =
+                                    (
+                                        G.jokers.config.card_limit
+                                        or 0
+                                    )
+                                    - #G.jokers.cards
+
+                                if available <= 0 then
+                                    return true
+                                end
+
+                                local center =
+                                    BM.random_element(
+                                        pool,
+                                        'balatromon_cute_tag_spawn_'
+                                            .. tostring(i)
+                                    )
+
+                                if center then
+                                    local joker =
+                                        SMODS.add_card {
+                                            set = 'Joker',
+                                            area = G.jokers,
+                                            key = center.key,
+                                        }
+
+                                    if joker then
+                                        joker:juice_up(
+                                            0.7,
+                                            0.5
+                                        )
+                                    end
+                                end
+
+                                return true
+                            end,
+                        })
+                    )
+                end
+
+                G.E_MANAGER:add_event(
+                    Event({
+                        trigger = 'after',
+                        delay =
+                            0.12
+                            * spawn_count
+                            + 0.15,
+
+                        func = function()
+                            G.CONTROLLER.locks[lock] =
+                                nil
+
+                            return true
+                        end,
+                    })
+                )
+
+                return true
+            end
+        )
 
         return true
     end,
