@@ -93,6 +93,13 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
+    key = 'Deck',
+    path = 'DigiMeel_Deck.png',
+    px = 71,
+    py = 95
+}
+
+SMODS.Atlas {
     key = 'Undiscovered',
     path = 'DigiMeel_Undiscovered.png',
     px = 71,
@@ -208,6 +215,7 @@ assert(SMODS.load_file('src/x_collection.lua'))()
 assert(SMODS.load_file('src/artist_badges.lua'))()
 assert(SMODS.load_file('src/vanilla_patches.lua'))()
 assert(SMODS.load_file('src/boss_blinds.lua'))()
+assert(SMODS.load_file('src/decks.lua'))()
 assert(SMODS.load_file("ui.lua"))()
 assert(SMODS.load_file('src/optimiser.lua'))()
 
