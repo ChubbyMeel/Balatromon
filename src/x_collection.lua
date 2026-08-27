@@ -137,34 +137,47 @@ local function get_x_collection_tally()
     }
 end
 
+local undiscovered_x_center
+
 local function make_undiscovered_x_center()
-    local center =
-        copy_table(
-            G.P_CENTERS.j_joker
-        )
+    if undiscovered_x_center then
+        return undiscovered_x_center
+    end
 
-    center.key =
-        'j_'
-        .. BM.PREFIX
-        .. '_x_collection_undiscovered'
+    undiscovered_x_center = {
+        key =
+            'j_'
+            .. BM.PREFIX
+            .. '_x_collection_undiscovered',
 
-    center.name = 'Undiscovered'
-    center.unlocked = true
-    center.discovered = false
-    center.alerted = true
-    center.atlas = 'Joker'
-    center.pos =
-        copy_table(
-            G.j_undiscovered.pos
-        )
+        name = 'Undiscovered',
+        set = 'Joker',
 
-    center.config = {}
-    center.loc_txt = nil
-    center.loc_vars = nil
-    center.mod = nil
-    center.original_mod = nil
+        unlocked = true,
+        discovered = false,
+        alerted = true,
 
-    return center
+        atlas = 'Joker',
+
+        pos =
+            G.j_undiscovered
+            and G.j_undiscovered.pos
+            or {
+                x = 0,
+                y = 0
+            },
+
+        config = {},
+
+        rarity = 1,
+        cost = 0,
+
+        blueprint_compat = false,
+        eternal_compat = false,
+        perishable_compat = false
+    }
+
+    return undiscovered_x_center
 end
 
 local function make_x_collection_card(
@@ -177,16 +190,14 @@ local function make_x_collection_card(
         )
 
     local center
+    local params = {}
 
     if discovered then
         center =
-            copy_table(
-                entry.center
-            )
+            entry.center
 
-        center.unlocked = true
-        center.discovered = true
-        center.alerted = true
+        params.bypass_discovery_center =
+            true
     else
         center =
             make_undiscovered_x_center()
@@ -200,21 +211,23 @@ local function make_x_collection_card(
             G.CARD_W,
             G.CARD_H,
             G.P_CARDS.empty,
-            center
+            center,
+            params
         )
 
     card.states.drag.can = false
     card.states.click.can = false
 
     if discovered then
-        card.config.center_key =
-            entry.center.key
-
         card.bypass_lock = true
         card.bypass_discovery_ui = true
 
+        card.config.center_key =
+            entry.center.key
+
         card.ability.extra =
-            card.ability.extra or {}
+            card.ability.extra
+            or {}
 
         card.ability.extra.x_antibody_rounds =
             1
