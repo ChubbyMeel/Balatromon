@@ -218,6 +218,7 @@ assert(SMODS.load_file('src/boss_blinds.lua'))()
 assert(SMODS.load_file('src/decks.lua'))()
 assert(SMODS.load_file("ui.lua"))()
 assert(SMODS.load_file('src/optimiser.lua'))()
+assert(SMODS.load_file('src/music.lua'))()
 
 SMODS.current_mod.process_loc_text = function()
     G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {
