@@ -846,11 +846,53 @@ function BM.set_enhancement(card, key)
 end
 
 function BM.remember_digi_item(card)
-    if not (G and G.GAME and card and card.config and card.config.center) then return end
-    if card.config.center.set == 'DigiItem' then
-        -- Vanilla Fool already tracks Tarot/Planet through this value. Reusing
-        -- it lets our revised Fool naturally include the last Digi Item too.
-        G.GAME.last_tarot_planet = card.config.center.key
+    if not G
+    or not G.GAME
+    or not card
+    or not card.config
+    or not card.config.center then
+        return
+    end
+
+    if card.config.center.set ~= 'DigiItem' then
+        return
+    end
+
+    G.GAME.last_tarot_planet =
+        card.config.center.key
+
+    if G.GAME.seeded
+    or G.GAME.challenge then
+        return
+    end
+
+    local profile =
+        G.PROFILES
+        and G.SETTINGS
+        and G.PROFILES[G.SETTINGS.profile]
+
+    if not profile then
+        return
+    end
+
+    profile.career_stats =
+        profile.career_stats or {}
+
+    profile.career_stats.balatromon_digi_items_used =
+        (
+            profile.career_stats.balatromon_digi_items_used
+            or 0
+        )
+        + 1
+
+    if G.save_progress then
+        G:save_progress()
+    end
+
+    if check_for_unlock then
+        check_for_unlock({
+            type = 'balatromon_digi_item_used'
+        })
     end
 end
 

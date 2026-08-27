@@ -129,7 +129,21 @@ SMODS.Consumable:take_ownership('fool', {
         return {vars = {name}}
     end,
     can_use = function(self, card)
-        return BM.has_room(G.consumeables) and fool_target_key() ~= nil
+        if fool_target_key() == nil then
+            return false
+        end
+
+        if not G.consumeables then
+            return false
+        end
+
+        if #G.consumeables.cards
+            < G.consumeables.config.card_limit then
+            return true
+        end
+
+        return card
+            and card.area == G.consumeables
     end,
     use = function(self, card, area, copier)
         local key = fool_target_key()

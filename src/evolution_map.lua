@@ -999,6 +999,64 @@ local function resolve_atlas_key(key)
     return nil
 end
 
+local function evolution_map_unlock_all()
+    local profile =
+        G.PROFILES
+        and G.SETTINGS
+        and G.PROFILES[G.SETTINGS.profile]
+
+    return profile
+        and profile.all_unlocked == true
+end
+
+local function evolution_map_node_discovered(node)
+    if evolution_map_unlock_all() then
+        return true
+    end
+
+    if not node then
+        return false
+    end
+
+    if node.stage == 'Fresh' then
+        return true
+    end
+
+    if node.x_form then
+        if BM.is_x_antibody_discovered then
+            return BM.is_x_antibody_discovered(
+                node.base_slug
+            )
+        end
+
+        local center =
+            G.P_CENTERS
+            and G.P_CENTERS[
+                BM.center_key(
+                    node.base_slug
+                )
+            ]
+
+        return center
+            and center.discovered == true
+    end
+
+    return node.center
+        and node.center.discovered == true
+end
+
+local function get_undiscovered_joker_sprite()
+    local atlas =
+        G.ASSET_ATLAS
+        and G.ASSET_ATLAS.Joker
+
+    local pos =
+        G.j_undiscovered
+        and G.j_undiscovered.pos
+
+    return atlas, pos
+end
+
 local function resolve_atlas(center)
     if not center then
         return nil
@@ -1021,40 +1079,76 @@ local function resolve_atlas(center)
 end
 
 local function prepare_node_sprite(node)
-    if node.quad and node.atlas then
+    local discovered =
+        evolution_map_node_discovered(
+            node
+        )
+
+    if node.quad
+    and node.atlas
+    and node.sprite_discovered == discovered then
         return true
     end
 
     local atlas
     local pos
 
-    if node.x_form then
-        atlas = resolve_atlas_key(node.atlas_key or BM.X_ANTIBODY_ATLAS)
+    if not discovered then
+        atlas, pos =
+            get_undiscovered_joker_sprite()
+
+    elseif node.x_form then
+        atlas =
+            resolve_atlas_key(
+                node.atlas_key
+                or BM.X_ANTIBODY_ATLAS
+            )
+
         pos = node.pos
+
     else
-        atlas = resolve_atlas(node.center)
-        pos = node.center and node.center.pos
+        atlas =
+            resolve_atlas(
+                node.center
+            )
+
+        pos =
+            node.center
+            and node.center.pos
     end
 
-    if not atlas or not atlas.image or not pos then
+    if not atlas
+    or not atlas.image
+    or not pos then
         return false
     end
 
-    local image_w, image_h = atlas.image:getDimensions()
-    local px = atlas.px or 71
-    local py = atlas.py or 95
+    local image_w,
+        image_h =
+        atlas.image:getDimensions()
+
+    local px =
+        atlas.px or 71
+
+    local py =
+        atlas.py or 95
 
     node.atlas = atlas
-    node.quad = love.graphics.newQuad(
-        pos.x * px,
-        pos.y * py,
-        px,
-        py,
-        image_w,
-        image_h
-    )
+
+    node.quad =
+        love.graphics.newQuad(
+            pos.x * px,
+            pos.y * py,
+            px,
+            py,
+            image_w,
+            image_h
+        )
+
     node.source_w = px
     node.source_h = py
+    node.sprite_discovered =
+        discovered
 
     return true
 end
@@ -1212,7 +1306,22 @@ local function draw_map_canvas(sprite)
                         draw_text_centered('?', x, y + 54, CARD_W, sprite.font_large, G.C.UI.TEXT_LIGHT)
                     end
 
-                    draw_text_centered(short_name(node.name), x - 34, y + CARD_H + 7, CARD_W + 68, sprite.font_small, G.C.UI.TEXT_LIGHT)
+                    local display_name
+
+                    if evolution_map_node_discovered(node) then
+                        display_name = short_name(node.name)
+                    else
+                        display_name = 'Discover Me'
+                    end
+
+                    draw_text_centered(
+                        display_name,
+                        x - 34,
+                        y + CARD_H + 7,
+                        CARD_W + 68,
+                        sprite.font_small,
+                        G.C.UI.TEXT_LIGHT
+                    )
                 end
             end
         end

@@ -1927,6 +1927,12 @@ function BM.restore_x_antibody(card, rounds)
         return
     end
 
+    if BM.discover_x_antibody then
+        BM.discover_x_antibody(
+            BM.get_card_slug(card)
+        )
+    end
+
     card.ability.extra =
         card.ability.extra or {}
 
@@ -1983,6 +1989,12 @@ function BM.apply_x_antibody(card)
         card
     ) then
         return false
+    end
+
+    if BM.discover_x_antibody then
+        BM.discover_x_antibody(
+            BM.get_card_slug(card)
+        )
     end
 
     card.ability.extra =
