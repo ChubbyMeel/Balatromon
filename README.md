@@ -8,7 +8,7 @@ Balatromon wouldn't be possible without the them.
 
 The mod currently adds **170+ Digimon Jokers** alongside branching Digivolution lines, Digi Items, Tamers, Crest Packs, X-Antibody forms, custom Boss Blinds, custom Decks, Vouchers, Tags, Seals, Enhancements, Editions, and more. We're still currently working on a lot of the art and assets for it.
 
-We have a discord community server you can join [here](https://discord.gg/pdNYCWTmXM).
+We have a discord community server you can join [here](https://discord.gg/jCSX9QuAXv).
 
 ---
 
