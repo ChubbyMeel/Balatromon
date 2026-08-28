@@ -632,3 +632,36 @@ and not BM._custom_deck_boss_wrapped then
             old_get_new_boss(...)
     end
 end
+
+if end_round and not BM._crest_deck_ante7_boss_tag_wrapped then
+    BM._crest_deck_ante7_boss_tag_wrapped = true
+
+    local old_end_round = end_round
+
+    end_round = function(...)
+        local give_boss_tag = false
+
+        if G.GAME
+        and G.GAME.round_resets
+        and G.GAME.round_resets.ante == 7
+        and G.GAME.blind
+        and G.GAME.blind.boss then
+
+            local config =
+                G.GAME.selected_back
+                and G.GAME.selected_back.effect
+                and G.GAME.selected_back.effect.config
+
+            if config
+            and config.balatromon_ante_8_boss then
+                give_boss_tag = true
+            end
+        end
+
+        if give_boss_tag then
+            add_tag(Tag('tag_boss'))
+        end
+
+        return old_end_round(...)
+    end
+end
