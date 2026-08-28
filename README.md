@@ -13,6 +13,9 @@ We have a discord community server you can join [here](https://discord.gg/pdNYCW
 
 ## Features
 
+<img width="1043" height="885" alt="Screenshot 2026-08-29 023240" src="https://github.com/user-attachments/assets/77d385a2-c814-4ed4-8aca-550346ed8f7e" />
+
+
 - **170+ Digimon Jokers**
 - **Branching Digivolution** with multiple possible evolution routes
 - **Hunger, Bond, and Care Mistakes** that influence how your Digimon develop
@@ -75,29 +78,14 @@ When reporting a bug, including the following is extremely helpful:
 
 Suggestions, balancing feedback, bug fixes, code contributions, and artwork are welcome.
 
-If you contribute artwork, please make sure it follows the visual dimensions and formatting used by the existing Balatromon assets. Contributors and artists should be credited for work included in the mod.
-
----
-
-## Roadmap
-
-Balatromon is still growing. Current areas of expansion and polish include:
-
-- More Digimon and branching evolution lines
-- More X-Antibody forms
-- More Tamers
-- More custom Boss Blinds and Decks
-- Additional Digi Items and progression tools
-- More collection and discovery features
-- Balance and performance improvements
-- More custom artwork, effects, and music
-- Continued polish of the Digivolution Map and evolution UI
-
 ---
 
 ## Credits
 
 **Balatromon** is created by **ChubbyMeel**.
+
+<img width="696" height="715" alt="image" src="https://github.com/user-attachments/assets/47b0daee-6017-47ce-9f00-7c211099d56f" />
+
 
 Special thanks to:
 
