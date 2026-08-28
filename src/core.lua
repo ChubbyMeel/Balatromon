@@ -491,7 +491,7 @@ if not BM._digimon_double_click_hooked then
         -- Give the player a comfortable window beyond that.
         local double_click =
             same_card
-            and elapsed <= 0.85
+            and elapsed <= 0.45
 
         if double_click then
 
