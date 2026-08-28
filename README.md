@@ -1,11 +1,12 @@
 # Balatromon
 
-Thank you to [Lovely](https://github.com/ethangreen-dev/lovely-injector) and [Steamodded](https://github.com/Steamodded/smods)!
-Balatromon and many of its features would not be possible without the tools and work of the Balatro modding community.
+Special Thanks to [Lovely](https://github.com/ethangreen-dev/lovely-injector) and [Steamodded](https://github.com/Steamodded/smods)!
 
-**Balatromon** is a full-content Digimon mod for **Balatro**, built around raising, caring for, and Digivolving Digimon throughout a run.
+Balatromon wouldn't be possible without the them.
 
-The mod currently adds **170+ Digimon Jokers** alongside branching Digivolution lines, Digi Items, Tamers, Crest Packs, X-Antibody forms, custom Boss Blinds, custom Decks, Vouchers, Tags, Seals, Enhancements, Editions, and more.
+**Balatromon** is a Digimon mod for **Balatro**, built around raising, caring for, and Digivolving Digimon throughout a run.
+
+The mod currently adds **170+ Digimon Jokers** alongside branching Digivolution lines, Digi Items, Tamers, Crest Packs, X-Antibody forms, custom Boss Blinds, custom Decks, Vouchers, Tags, Seals, Enhancements, Editions, and more. We're still currently working on a lot of the art and assets for it.
 
 We have a discord community server you can join [here](https://discord.gg/pdNYCWTmXM).
 
