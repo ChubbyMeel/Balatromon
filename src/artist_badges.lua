@@ -68,3 +68,9 @@ end
 
 BM.add_artist_badge('Agumon X', 'StarRush')
 BM.add_artist_badge('Gabumon X', 'StarRush')
+BM.add_artist_badge('AoiBotamamon', 'DigiFake')
+BM.add_artist_badge('Wanyamon', 'ChubbyMeel')
+BM.add_artist_badge('Bearmon', 'ChubbyMeel')
+BM.add_artist_badge('Grizzlymon', 'ChubbyMeel')
+BM.add_artist_badge('GreatGrizzlymon', 'ChubbyMeel')
+BM.add_artist_badge('Callismon', 'ChubbyMeel')

@@ -1530,7 +1530,7 @@ do
         atlas = 'Joker', pos = {x=2,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Garurumon, Numemon, Leomon, MadLeomon',
+        balatromon_stage = stage, balatromon_evolves_to = 'Garurumon, Numemon, Leomon, MadLeomon, Grizzlymon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
@@ -1548,7 +1548,7 @@ elements={BM.care_bars(e,stage)},e.chips or 0}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Gabumon', stage=stage, evolves_to='Garurumon, Numemon, Leomon, MadLeomon', effect='Gain +8 Chips if hand played contains a scoring face card after a scoring numbered card'}
+    BM.joker_defs[slug] = {name='Gabumon', stage=stage, evolves_to='Garurumon, Numemon, Leomon, MadLeomon, Grizzlymon', effect='Gain +8 Chips if hand played contains a scoring face card after a scoring numbered card'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -9159,6 +9159,17 @@ local function bm_register_new_digimon(def)
                 )
             end
 
+            for _, center_key in ipairs(
+                def.joker_tooltips
+                or {}
+            ) do
+                if G.P_CENTERS
+                and G.P_CENTERS[center_key] then
+                    info_queue[#info_queue + 1] =
+                    G.P_CENTERS[center_key]
+                end
+            end
+
             if def.negative_tooltip
             and G.P_CENTERS
             and G.P_CENTERS.e_negative then
@@ -9651,4 +9662,112 @@ bm_register_new_digimon({
         '{C:attention}1 additional time{}',
     },
     effect = 'Retrigger all played cards in the first hand of each round one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'aoibotamamon',
+    name = 'AoiBotamamon',
+    stage = 'Fresh',
+    evolves_to = 'Wanyamon',
+    pos = {x=2,y=17},
+    text = {
+        'Each played {C:hearts}Heart{} and {C:spades}Spade{}',
+        'gives {C:mult}+3{} Mult when scored',
+    },
+    effect = 'Each played Heart and Spade gives +3 Mult'
+})
+
+bm_register_new_digimon({
+    slug = 'wanyamon',
+    name = 'Wanyamon',
+    stage = 'In-Training',
+    evolves_to = 'Bearmon',
+    pos = {x=3,y=17},
+    text = {
+        'Each played {C:diamonds}Diamond{} and {C:clubs}Club{}',
+        'gives {C:mult}+3{} Mult when scored',
+    },
+    effect = 'Each played Diamond and Club gives +3 Mult'
+})
+
+bm_register_new_digimon({
+    slug = 'bearmon',
+    name = 'Bearmon',
+    stage = 'Rookie',
+    evolves_to = 'Grizzlymon, Garurumon, Leomon, MadLeomon',
+    pos = {x=4,y=17},
+    text = {
+        'Each played card gives {C:mult}Mult{} equal to the',
+        'sum of its rank differences from scoring cards to its left',
+    },
+    effect = 'Each played card gives Mult equal to the sum of its rank differences from scoring cards to its left'
+})
+
+bm_register_new_digimon({
+    slug = 'grizzlymon',
+    name = 'Grizzlymon',
+    stage = 'Champion',
+    evolves_to = 'GreatGrizzlymon, LoaderLeomon',
+    pos = {x=5,y=17},
+    joker_tooltips = {
+        'j_bloodstone',
+        'j_arrowhead',
+        'j_onyx_agate',
+        'j_rough_gem'
+    },
+    text = {
+        'Scored {C:attention}Wild Cards{} have a {C:green}1 in 2{} chance',
+        'to activate {C:attention}Bloodstone{}, {C:attention}Arrowhead{},',
+        '{C:attention}Onyx Agate{}, or {C:attention}Rough Gem{} at random',
+    },
+    effect = 'Wild cards have a 1 in 2 chance to activate Bloodstone, Arrowhead, Onyx Agate, or Rough Gem at random'
+})
+
+bm_register_new_digimon({
+    slug = 'greatgrizzlymon',
+    name = 'GreatGrizzlymon',
+    stage = 'Ultimate',
+    evolves_to = 'Callismon',
+    pos = {x=6,y=17},
+    digimon_tooltips = {
+        'grizzlymon',
+        'bearmon'
+    },
+    joker_tooltips = {
+        'j_bloodstone',
+        'j_arrowhead',
+        'j_onyx_agate',
+        'j_rough_gem'
+    },
+    text = {
+        'Also applies {C:attention}Grizzlymon{} and',
+        '{C:attention}Bearmon{} effects',
+    },
+    effect = 'Applies Grizzlymon and Bearmon effects'
+})
+
+bm_register_new_digimon({
+    slug = 'callismon',
+    name = 'Callismon',
+    stage = 'Mega',
+    evolves_to = '-',
+    pos = {x=7,y=17},
+    digimon_tooltips = {
+        'greatgrizzlymon',
+        'grizzlymon',
+        'bearmon'
+    },
+    joker_tooltips = {
+        'j_bloodstone',
+        'j_arrowhead',
+        'j_onyx_agate',
+        'j_rough_gem'
+    },
+    text = {
+        'After the scoring hand finishes, rescore it repeatedly,',
+        'omitting the {C:attention}last card{} each time until',
+        'only {C:attention}1 card{} remains',
+        'Also applies {C:attention}GreatGrizzlymon{} effect',
+    },
+    effect = 'After the scoring hand finishes, repeatedly rescore it while omitting the last card until one remains; also applies GreatGrizzlymon'
 })

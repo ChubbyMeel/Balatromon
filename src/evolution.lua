@@ -59,6 +59,7 @@ BM.evolution_rules = {
         leomon = {min_hunger = 2, note = 'Hungry route'},
         madleomon = {min_care = 2, max_care = 2, note = '2 Care Mistakes route'},
         numemon = {bad_path = true, note = 'Care Crisis route'},
+        grizzlymon = {device = 'd3', note = 'D-3 Armor route'},
     },
     garurumon = {
         weregarurumon = {note = 'Standard route'},
@@ -476,6 +477,53 @@ BM.evolution_rules = {
         },
         imperialdramon_dragon_mode = {
             note = 'Mode choice'
+        },
+    },
+
+    aoibotamamon = {
+        wanyamon = {
+            note = 'Standard route'
+        },
+    },
+
+    wanyamon = {
+        bearmon = {
+            note = 'Standard route'
+        },
+    },
+
+    bearmon = {
+        grizzlymon = {
+            note = 'Standard route'
+        },
+        garurumon = {
+            min_hunger = 2,
+            note = 'Hungry route'
+        },
+        leomon = {
+            min_care = 1,
+            note = 'Rough-care route'
+        },
+        madleomon = {
+            min_care = 2,
+            max_care = 2,
+            note = '2 Care Mistakes route'
+        },
+    },
+
+    grizzlymon = {
+        greatgrizzlymon = {
+            note = 'Standard route'
+        },
+        loaderleomon = {
+            min_hunger = 3,
+            note = 'High-Hunger route'
+        },
+    },
+
+    greatgrizzlymon = {
+        callismon = {
+            note = 'Standard route'
         },
     },
 

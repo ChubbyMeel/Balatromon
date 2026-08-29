@@ -48,10 +48,44 @@ H.tyrannomon = function(card,context)
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_suit',BM.deck_suits(),'tyrannomon_suit'); return BM.target_change_return(card,'Target: '..tostring(e.target_suit),(G.C.SUITS and G.C.SUITS[e.target_suit]) or G.C.FILTER) end
     if context.joker_main and BM.contains_suit(context.scoring_hand,e.target_suit) then return {xmult=2} end
 end
-H.numemon = function(card,context)
-    local e=card.ability.extra; e.xmult=e.xmult or 2
-    if context.discard and not context.blueprint then e.xmult=math.max(0,e.xmult-0.01); return {message='XMult Down'} end
-    if context.joker_main then return {xmult=e.xmult} end
+H.numemon = function(card, context)
+    local e = card.ability.extra
+
+    e.xmult = e.xmult or 2
+    e.xmult_loss = e.xmult_loss or 0.01
+
+    if context.discard
+    and not context.blueprint then
+        SMODS.scale_card(card, {
+            ref_table = e,
+            ref_value = 'xmult',
+            scalar_value = 'xmult_loss',
+
+            operation = function(
+                ref_table,
+                ref_value,
+                initial,
+                change
+            )
+                ref_table[ref_value] =
+                    math.max(
+                        0,
+                        initial - change
+                    )
+            end,
+
+            message_key = 'a_xmult',
+            message_colour = G.C.RED
+        })
+
+        return
+    end
+
+    if context.joker_main then
+        return {
+            xmult = e.xmult
+        }
+    end
 end
 H.garbagemon = function(card,context)
     local e=card.ability.extra; e.round_xmult=e.round_xmult or 1
@@ -1982,4 +2016,244 @@ H.dinobeemon = function(card, context)
             repetitions = 1
         }
     end
+end
+
+H.aoibotamamon = function(card, context)
+    if context.individual
+    and context.cardarea == G.play
+    and context.other_card
+    and not context.other_card.debuff
+    and (
+        context.other_card:is_suit('Hearts')
+        or context.other_card:is_suit('Spades')
+    ) then
+        return {
+            mult = 3
+        }
+    end
+end
+
+H.wanyamon = function(card, context)
+    if context.individual
+    and context.cardarea == G.play
+    and context.other_card
+    and not context.other_card.debuff
+    and (
+        context.other_card:is_suit('Diamonds')
+        or context.other_card:is_suit('Clubs')
+    ) then
+        return {
+            mult = 3
+        }
+    end
+end
+
+H.bearmon = function(card, context)
+    if not (
+        context.individual
+        and context.cardarea == G.play
+        and context.other_card
+        and context.scoring_hand
+        and not context.other_card.debuff
+    ) then
+        return
+    end
+
+    local index
+
+    for i, scored in ipairs(
+        context.scoring_hand
+    ) do
+        if scored == context.other_card then
+            index = i
+            break
+        end
+    end
+
+    if not index or index <= 1 then
+        return
+    end
+
+    local rank =
+        BM.get_rank(
+            context.other_card
+        )
+
+    if not rank then
+        return
+    end
+
+    local gained = 0
+
+    for i = 1, index - 1 do
+        local left_rank =
+            BM.get_rank(
+                context.scoring_hand[i]
+            )
+
+        if left_rank then
+            gained = gained
+                + math.abs(
+                    rank - left_rank
+                )
+        end
+    end
+
+    if gained > 0 then
+        return {
+            mult = gained
+        }
+    end
+end
+
+H.grizzlymon = function(card, context)
+    if not (
+        context.individual
+        and context.cardarea == G.play
+        and context.other_card
+        and not context.other_card.debuff
+        and BM.has_enhancement(
+            context.other_card,
+            'm_wild'
+        )
+    ) then
+        return
+    end
+
+    local id = tostring(
+        context.other_card.playing_card
+        or context.other_card.sort_id
+        or 0
+    )
+
+    if not SMODS.pseudorandom_probability(
+        card,
+        'grizzlymon_wild_' .. id,
+        1,
+        2
+    ) then
+        return
+    end
+
+    local effect =
+        BM.random_element(
+            {
+                'bloodstone',
+                'arrowhead',
+                'onyx_agate',
+                'rough_gem'
+            },
+            'grizzlymon_effect_' .. id
+        )
+
+    if effect == 'bloodstone' then
+        return {
+            xmult = 1.5
+        }
+    elseif effect == 'arrowhead' then
+        return {
+            chips = 50
+        }
+    elseif effect == 'onyx_agate' then
+        return {
+            mult = 7
+        }
+    elseif effect == 'rough_gem' then
+        return {
+            dollars = 1
+        }
+    end
+end
+
+H.greatgrizzlymon = function(card, context)
+    local grizzly =
+        H.grizzlymon(
+            card,
+            context
+        )
+
+    local bear =
+        H.bearmon(
+            card,
+            context
+        )
+
+    if bear and bear.mult then
+        grizzly = grizzly or {}
+
+        grizzly.mult =
+            (grizzly.mult or 0)
+            + bear.mult
+    end
+
+    return grizzly or bear
+end
+
+local function bm_callismon_rescore(card, context)
+    if not (
+        context.final_scoring_step
+        and context.scoring_hand
+        and #context.scoring_hand > 1
+        and not context.balatromon_callismon_rescore
+    ) then
+        return
+    end
+
+    local original = {}
+
+    for i, scored in ipairs(
+        context.scoring_hand
+    ) do
+        original[i] = scored
+    end
+
+    card:juice_up(
+        0.8,
+        0.5
+    )
+
+    for last = #original - 1, 1, -1 do
+        local prefix = {}
+
+        for i = 1, last do
+            prefix[i] = original[i]
+        end
+
+        SMODS.calculate_main_scoring(
+            {
+                cardarea = G.play,
+                full_hand =
+                    context.full_hand
+                    or G.play.cards,
+
+                scoring_hand = prefix,
+                scoring_name =
+                    context.scoring_name,
+
+                poker_hands =
+                    context.poker_hands,
+
+                balatromon_callismon_rescore =
+                    true
+            },
+            prefix
+        )
+    end
+end
+
+H.callismon = function(card, context)
+    local inherited =
+        H.greatgrizzlymon(
+            card,
+            context
+        )
+
+    if inherited then
+        return inherited
+    end
+
+    return bm_callismon_rescore(
+        card,
+        context
+    )
 end
