@@ -7,6 +7,6 @@
   "description": "Balatromon - A Digimon mod for Balatro.",
   "prefix": "DigiMeel",
   "main_file": "main.lua",
-  "version": "0.8.8",
+  "version": "0.9.0",
   "icon_path": "Balatromon_Icon.png"
 }

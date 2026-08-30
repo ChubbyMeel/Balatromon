@@ -91,7 +91,7 @@ H.garbagemon = function(card,context)
     local e=card.ability.extra; e.round_xmult=e.round_xmult or 1
     BM.ensure_target(card,'target_rank',BM.deck_ranks(),'garbage_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then e.round_xmult=1; BM.reroll_target(card,'target_rank',BM.deck_ranks(),'garbage_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
-    if context.discard and BM.get_rank(context.other_card)==e.target_rank and not context.blueprint then e.round_xmult=e.round_xmult+0.75; return {message='XMult Up!'} end
+    if context.discard and BM.card_has_rank(context.other_card,e.target_rank) and not context.blueprint then e.round_xmult=e.round_xmult+0.75; return {message='XMult Up!'} end
     if context.joker_main then return {xmult=e.round_xmult} end
 end
 H.wargreymon = function(card,context)
@@ -126,8 +126,11 @@ H.wargreymon = function(card,context)
 
     if context.individual
     and context.cardarea==G.play
-    and BM.get_rank(context.other_card)==e.target_rank
-    and context.other_card:is_suit(e.target_suit)
+    and BM.card_matches_target(
+        context.other_card,
+        e.target_rank,
+        e.target_suit
+    )
     and not context.blueprint then
         local id=tostring(
             context.other_card.playing_card
@@ -154,7 +157,7 @@ H.machinedramon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
     BM.ensure_card_target(card,'machine_card')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_card_target(card,'machine_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
-    if context.end_of_round and context.individual and context.cardarea==G.hand and BM.get_rank(context.other_card)==e.target_rank and context.other_card:is_suit(e.target_suit) and not context.blueprint then e.xmult=e.xmult+0.5; return {message='XMult Up!'} end
+    if context.end_of_round and context.individual and context.cardarea==G.hand and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) and not context.blueprint then e.xmult=e.xmult+0.5; return {message='XMult Up!'} end
     if context.joker_main then return {xmult=e.xmult} end
 end
 H.blackwargreymon = function(card,context)
@@ -182,7 +185,7 @@ H.megadramon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then
         local c,r=BM.highest_card(context.full_hand,true); if not c then return end
         BM.set_enhancement(c,'m_steel')
-        for _,h in ipairs(G.hand.cards or {}) do if BM.get_rank(h)==r then BM.set_enhancement(h,'m_steel') end end
+        for _,h in ipairs(G.hand.cards or {}) do if BM.card_has_rank(h,r) then BM.set_enhancement(h,'m_steel') end end
         return {message='Steel!'}
     end
 end
@@ -266,7 +269,7 @@ H.madleomon = function(card,context) if context.joker_main then return {chips=10
 H.weregarurumon = function(card,context)
     local e=card.ability.extra; e.chips=e.chips or 0; BM.ensure_target(card,'target_rank',BM.deck_ranks(),'weregaruru_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_rank',BM.deck_ranks(),'weregaruru_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
-    if context.discard and BM.get_rank(context.other_card)==e.target_rank and not context.blueprint then e.chips=e.chips+20; return {message='+20 Chips'} end
+    if context.discard and BM.card_has_rank(context.other_card,e.target_rank) and not context.blueprint then e.chips=e.chips+20; return {message='+20 Chips'} end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
 H.loaderleomon = function(card,context)
@@ -278,7 +281,7 @@ end
 H.metalgarurumon = function(card,context)
     local e=card.ability.extra; e.xchips=e.xchips or 1; e.seen=e.seen or {}; BM.ensure_card_target(card,'metalgaruru_card')
     if context.end_of_round and context.main_eval and not context.blueprint then e.seen={}; BM.reroll_card_target(card,'metalgaruru_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
-    if context.individual and context.cardarea==G.play and BM.get_rank(context.other_card)==e.target_rank and context.other_card:is_suit(e.target_suit) and not context.blueprint then local id=tostring(context.other_card.playing_card or context.other_card.sort_id); if not e.seen[id] then e.seen[id]=true; e.xchips=e.xchips+0.25; return {message='XChips Up!'} end end
+    if context.individual and context.cardarea==G.play and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) and not context.blueprint then local id=tostring(context.other_card.playing_card or context.other_card.sort_id); if not e.seen[id] then e.seen[id]=true; e.xchips=e.xchips+0.25; return {message='XChips Up!'} end end
     if context.joker_main then return {xchips=e.xchips} end
 end
 H.heavyleomon = function(card, context)
@@ -331,7 +334,7 @@ H.patamon = single_to('m_lucky')
 H.angemon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then
         if #context.full_hand==1 then BM.set_enhancement(context.full_hand[1],'m_lucky') end
-        for _,c in ipairs(context.full_hand or {}) do if BM.get_rank(c)==7 then BM.set_enhancement(c,'m_lucky') end end
+        for _,c in ipairs(context.full_hand or {}) do if BM.card_has_rank(c,7) then BM.set_enhancement(c,'m_lucky') end end
         return {message='Lucky!'}
     end
 end
@@ -385,7 +388,7 @@ H.pagumon = boss_negative_tarot('c_chariot',2)
 H.demidevimon = single_to('m_steel')
 H.devimon = function(card,context)
     if (context.hand_drawn or context.first_hand_drawn) and context.main_eval and not context.blueprint then
-        local changed=false; for _,c in ipairs(G.hand.cards or {}) do local r=BM.get_rank(c); if r==14 or r==2 then changed=BM.set_enhancement(c,'m_steel') or changed end end
+        local changed=false; for _,c in ipairs(G.hand.cards or {}) do if BM.card_has_rank(c,14) or BM.card_has_rank(c,2) then changed=BM.set_enhancement(c,'m_steel') or changed end end
         if changed then return {message='Steel!'} end
     end
 end
@@ -396,7 +399,7 @@ H.malomyotismon = function(card, context)
     and context.cardarea == G.hand
     and not context.end_of_round
     and not context.playing_card_end_of_round
-    and BM.get_rank(context.other_card) == 13 then
+    and BM.card_has_rank(context.other_card, 13) then
 
         return {
             xmult = 1.5
@@ -561,7 +564,7 @@ H.viximon = eor_dollars(5)
 H.renamon = function(card,context)
     local e=card.ability.extra; BM.ensure_target(card,'target_rank',BM.deck_ranks(),'renamon_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
-    if context.discard and BM.get_rank(context.other_card)==e.target_rank then return {dollars=5} end
+    if context.discard and BM.card_has_rank(context.other_card,e.target_rank) then return {dollars=5} end
 end
 H.kyubimon = function(card,context)
     local e=card.ability.extra; e.payout=e.payout or 10
@@ -572,7 +575,7 @@ H.taomon = function(card,context) if context.joker_main then return {xmult=math.
 H.sakuyamon = function(card,context)
     local e=card.ability.extra; BM.ensure_target(card,'target_rank',BM.deck_ranks(),'sakuyamon_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_rank',BM.deck_ranks(),'sakuyamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
-    if context.discard and BM.get_rank(context.other_card)==e.target_rank then return {dollars=5} end
+    if context.discard and BM.card_has_rank(context.other_card,e.target_rank) then return {dollars=5} end
     if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end
 end
 H.zerimon = function(card, context)
@@ -595,10 +598,10 @@ H.zerimon = function(card, context)
 end
 H.gummymon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then BM.add_sell_value_to_all(1); return {message='+$1 Sell Value'} end end
 H.terriermon = function(card,context)
-    local r=context.other_card and BM.get_rank(context.other_card)
-    if context.individual and context.cardarea==G.play and (r==8 or r==10 or r==11) and SMODS.pseudorandom_probability(card,'terriermon',1,4) and not context.blueprint then if BM.add_consumable('Tarot') then return {message='Tarot!'} end end
+    local played=context.other_card
+    if context.individual and context.cardarea==G.play and (BM.card_has_rank(played,8) or BM.card_has_rank(played,10) or BM.card_has_rank(played,11)) and SMODS.pseudorandom_probability(card,'terriermon',1,4) and not context.blueprint then if BM.add_consumable('Tarot') then return {message='Tarot!'} end end
 end
-H.gargomon = function(card,context) local r=context.other_card and BM.get_rank(context.other_card); if context.individual and context.cardarea==G.play and (BM.is_face(context.other_card) or r==14 or r==2) then return {mult=5} end end
+H.gargomon = function(card,context) local played=context.other_card; if context.individual and context.cardarea==G.play and (BM.is_face(played) or BM.card_has_rank(played,14) or BM.card_has_rank(played,2)) then return {mult=5} end end
 H.guardromon = function(card,context)
     if context.first_hand_drawn and context.main_eval and not context.blueprint then local seal=SMODS.poll_seal{key='guardromon_seal',guaranteed=true}; BM.add_playing_card{area=G.hand,seal=seal}; return {message='Card Added!'} end
 end
@@ -677,7 +680,7 @@ end
 H.hiandromon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1; e.suit_count=e.suit_count or 0; BM.ensure_target(card,'target_suit',BM.deck_suits(),'hiandro_suit')
     if context.end_of_round and context.main_eval and not context.blueprint then e.suit_count=0; BM.reroll_target(card,'target_suit',BM.deck_suits(),'hiandro_suit'); return BM.target_change_return(card,'Target: '..tostring(e.target_suit),(G.C.SUITS and G.C.SUITS[e.target_suit]) or G.C.FILTER) end
-    if context.discard and context.other_card:is_suit(e.target_suit) and not context.blueprint then e.suit_count=e.suit_count+1; if e.suit_count>=7 then local n=math.floor(e.suit_count/7); e.suit_count=e.suit_count%7; e.xmult=e.xmult+n; return {message='XMult Up!'} end end
+    if context.discard and BM.card_has_suit(context.other_card,e.target_suit) and not context.blueprint then e.suit_count=e.suit_count+1; if e.suit_count>=7 then local n=math.floor(e.suit_count/7); e.suit_count=e.suit_count%7; e.xmult=e.xmult+n; return {message='XMult Up!'} end end
     if context.joker_main then return {xmult=e.xmult} end
 end
 H.pururumon = function() end
@@ -711,7 +714,7 @@ H.biyomon = function(card,context)
 end
 H.birdramon = function(card,context)
     local e=card.ability.extra; BM.ensure_target(card,'target_suit',BM.SUITS,'birdramon_suit')
-    if context.individual and context.cardarea==G.play and context.other_card:is_suit(e.target_suit) then return {mult=4} end
+    if context.individual and context.cardarea==G.play and BM.card_has_suit(context.other_card,e.target_suit) then return {mult=4} end
     if context.after and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_suit',BM.SUITS,'birdramon_suit'); return BM.target_change_return(card,'Target: '..tostring(e.target_suit),(G.C.SUITS and G.C.SUITS[e.target_suit]) or G.C.FILTER) end
 end
 H.aquilamon = function() end
@@ -720,28 +723,28 @@ H.garudamon = function(card,context)
     local e=card.ability.extra; e.mode=e.mode or 1
     local c=context.other_card
     if context.individual and context.cardarea==G.play then
-        if e.mode==1 and c:is_suit('Hearts') and SMODS.pseudorandom_probability(card,'garudamon_bloodstone',1,2) then return {xmult=1.5}
-        elseif e.mode==2 and c:is_suit('Spades') then return {chips=50}
-        elseif e.mode==3 and c:is_suit('Clubs') then return {mult=7}
-        elseif e.mode==4 and c:is_suit('Diamonds') then return {dollars=1} end
+        if e.mode==1 and BM.card_has_suit(c,'Hearts') and SMODS.pseudorandom_probability(card,'garudamon_bloodstone',1,2) then return {xmult=1.5}
+        elseif e.mode==2 and BM.card_has_suit(c,'Spades') then return {chips=50}
+        elseif e.mode==3 and BM.card_has_suit(c,'Clubs') then return {mult=7}
+        elseif e.mode==4 and BM.card_has_suit(c,'Diamonds') then return {dollars=1} end
     end
     if context.after and context.main_eval and not context.blueprint then e.mode=e.mode%4+1; card:juice_up(0.8,0.5); return {message='Changed: '..({'Bloodstone','Arrowhead','Onyx Agate','Rough Gem'})[e.mode], colour=G.C.ATTENTION} end
 end
 H.parrotmon = function(card,context)
     local e=card.ability.extra; BM.ensure_target(card,'target_suit',BM.SUITS,'parrot_suit')
-    if context.individual and context.cardarea==G.play and context.other_card:is_suit(e.target_suit) then return {xmult=1.5} end
+    if context.individual and context.cardarea==G.play and BM.card_has_suit(context.other_card,e.target_suit) then return {xmult=1.5} end
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_suit',BM.SUITS,'parrot_suit'); return BM.target_change_return(card,'Target: '..tostring(e.target_suit),(G.C.SUITS and G.C.SUITS[e.target_suit]) or G.C.FILTER) end
 end
 H.hippogryphonmon = function(card,context)
     local e=card.ability.extra; BM.ensure_card_target(card,'hippo_card')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_card_target(card,'hippo_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
-    if context.individual and context.cardarea==G.play and BM.get_rank(context.other_card)==e.target_rank and context.other_card:is_suit(e.target_suit) then return {xmult=2} end
+    if context.individual and context.cardarea==G.play and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) then return {xmult=2} end
 end
 H.phoenixmon = function(card,context)
     if context.selling_card and context.card and context.card.config and context.card.config.center and context.card.config.center.set=='Joker' then BM.last_sold_joker_key=context.card.config.center.key end
     if context.blind_defeated and BM.is_boss() and BM.last_sold_joker_key and not context.blueprint and BM.has_room(G.jokers) then local c=SMODS.add_card{set='Joker',area=G.jokers,key=BM.last_sold_joker_key,no_edition=true}; if c then c:set_edition('e_negative',true) end; return {message='Returned!'} end
 end
-H.valkyrimon = function(card,context) local r=context.other_card and BM.get_rank(context.other_card); if context.individual and context.cardarea==G.play and (r==13 or r==12) then return {xmult=2} end end
+H.valkyrimon = function(card,context) local played=context.other_card; if context.individual and context.cardarea==G.play and (BM.card_has_rank(played,13) or BM.card_has_rank(played,12)) then return {xmult=2} end end
 H.akatorimon = function(card,context)
     if context.end_of_round and context.main_eval and not context.blueprint then local pool={}; for _,c in ipairs(G.jokers.cards or {}) do if c~=card and BM.is_digimon(c) then pool[#pool+1]=c end end; for i=1,math.min(3,#pool) do local pick=BM.random_element(pool,'akatorimon'..i); BM.feed(pick,1); for j=#pool,1,-1 do if pool[j]==pick then table.remove(pool,j) break end end end; return {message='Fed!'} end
 end
@@ -1560,13 +1563,11 @@ local function bm_rank_retrigger(
         return
     end
 
-    local rank =
-        BM.get_rank(
-            context.other_card
-        )
-
     for _, wanted in ipairs(ranks) do
-        if rank == wanted then
+        if BM.card_has_rank(
+            context.other_card,
+            wanted
+        ) then
             return {
                 repetitions =
                     repetitions
@@ -1795,9 +1796,10 @@ H.kabuterimon = function(card, context)
     ) == 0
     and context.full_hand
     and #context.full_hand == 1
-    and BM.get_rank(
-        context.full_hand[1]
-    ) == 8
+    and BM.card_has_rank(
+        context.full_hand[1],
+        8
+    )
     and BM.has_room(
         G.consumeables
     ) then
@@ -1887,9 +1889,10 @@ H.megakabuterimon = function(card, context)
     if context.destroying_card
     and context.cardarea == G.play
     and not context.blueprint
-    and BM.get_rank(
-        context.destroying_card
-    ) == e.target_rank then
+    and BM.card_has_rank(
+        context.destroying_card,
+        e.target_rank
+    ) then
 
         local made =
             bm_create_negative_spectral(
@@ -2024,8 +2027,8 @@ H.aoibotamamon = function(card, context)
     and context.other_card
     and not context.other_card.debuff
     and (
-        context.other_card:is_suit('Hearts')
-        or context.other_card:is_suit('Spades')
+        BM.card_has_suit(context.other_card,'Hearts')
+        or BM.card_has_suit(context.other_card,'Spades')
     ) then
         return {
             mult = 3
@@ -2039,8 +2042,8 @@ H.wanyamon = function(card, context)
     and context.other_card
     and not context.other_card.debuff
     and (
-        context.other_card:is_suit('Diamonds')
-        or context.other_card:is_suit('Clubs')
+        BM.card_has_suit(context.other_card,'Diamonds')
+        or BM.card_has_suit(context.other_card,'Clubs')
     ) then
         return {
             mult = 3

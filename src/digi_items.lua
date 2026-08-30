@@ -34,6 +34,38 @@ local function selected_digimon(max_count)
     return selected
 end
 
+local function selected_playing_cards(
+    max_count
+)
+    local selected = {}
+
+    for _, playing_card in ipairs(
+        G.hand
+        and G.hand.highlighted
+        or {}
+    ) do
+        selected[
+            #selected + 1
+        ] =
+            playing_card
+
+        if max_count
+        and #selected >= max_count then
+            break
+        end
+    end
+
+    return selected
+end
+
+local function can_jogress_source(card)
+    return card
+        and not BM.is_jogress_card(card)
+        and BM.native_card_identity(
+            card
+        ) ~= nil
+end
+
 
 local function card_is_highlighted(card)
     if not card then return false end
@@ -798,60 +830,31 @@ SMODS.Consumable {
         BM.remember_digi_item(card)
 
         local targets = {}
+        local changes = {}
 
         for _, playing_card in ipairs(G.hand.highlighted) do
             targets[#targets + 1] = playing_card
         end
 
-        for i, playing_card in ipairs(targets) do
-            G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.15 * (i - 1),
-
-                func = function()
-                    if playing_card and not playing_card.REMOVED then
-
-                        playing_card:juice_up(0.5, 0.5)
-                        play_sound('tarot1')
-
-                        playing_card:set_ability(
-                            G.P_CENTERS['m_DigiMeel_calumon'],
-                            nil,
-                            true
-                        )
-
-                        playing_card:juice_up(0.8, 0.6)
-
-                        card_eval_status_text(
-                            playing_card,
-                            'extra',
-                            nil,
-                            nil,
-                            nil,
-                            {
-                                message = 'Calumon!',
-                                colour = G.C.ATTENTION
-                            }
-                        )
-                    end
-
-                    return true
-                end
-            }))
+        for _, playing_card in ipairs(targets) do
+            changes[#changes + 1] = {
+                card = playing_card,
+                key = 'm_DigiMeel_calumon',
+                message = 'Calumon!',
+                colour = G.C.ATTENTION
+            }
         end
 
-        G.E_MANAGER:add_event(Event({
-            trigger = 'after',
-            delay = 0.4,
-
-            func = function()
-                if G.hand then
-                    G.hand:unhighlight_all()
+        BM.animate_enhancement_changes(
+            changes,
+            {
+                on_complete = function()
+                    if G.hand then
+                        G.hand:unhighlight_all()
+                    end
                 end
-
-                return true
-            end
-        }))
+            }
+        )
     end,
 }
 
@@ -1248,4 +1251,277 @@ SMODS.Consumable {
                 unhighlight_all()
         end
     end
+}
+
+SMODS.Consumable {
+    set = 'DigiItem',
+    key = 'dna_strand',
+    atlas = 'Consumable',
+    pos = {x = 3, y = 3},
+
+    discovered = false,
+    unlocked = true,
+    cost = 5,
+
+    loc_txt = {
+        name = 'DNA Strand',
+        text = {
+            'Combine exactly {C:attention}2{} selected cards',
+            'into a {C:attention}Jogress Card{}',
+            '{C:inactive}The leftmost selected card remains{}'
+        }
+    },
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        local center =
+            G.P_CENTERS[
+                'm_'
+                .. BM.PREFIX
+                .. '_jogress'
+            ]
+
+        if center then
+            info_queue[
+                #info_queue + 1
+            ] =
+                center
+        end
+
+        return {}
+    end,
+
+    config = {
+        max_highlighted = 2
+    },
+
+    can_use = function(
+        self,
+        card
+    )
+        if not G.hand
+        or #G.hand.highlighted ~= 2 then
+            return false
+        end
+
+        return can_jogress_source(
+            G.hand.highlighted[1]
+        )
+        and can_jogress_source(
+            G.hand.highlighted[2]
+        )
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        BM.remember_digi_item(
+            card
+        )
+
+        local targets =
+            selected_playing_cards(2)
+
+        if #targets ~= 2 then
+            return
+        end
+
+        table.sort(
+            targets,
+            function(a, b)
+                local ax =
+                    a.T
+                    and a.T.x
+                    or 0
+
+                local bx =
+                    b.T
+                    and b.T.x
+                    or 0
+
+                return ax < bx
+            end
+        )
+
+        local survivor =
+            targets[1]
+
+        local consumed =
+            targets[2]
+
+        local first =
+            BM.native_card_identity(
+                survivor
+            )
+
+        local second =
+            BM.native_card_identity(
+                consumed
+            )
+
+        if not first
+        or not second then
+            return
+        end
+
+        local jogress_key =
+            'm_'
+            .. BM.PREFIX
+            .. '_jogress'
+
+        BM.animate_enhancement_changes(
+            {
+                {
+                    card = survivor,
+                    key = jogress_key,
+                    message = 'Jogress!',
+                    colour = G.C.PURPLE,
+                    after_set = function(target)
+                        target.ability.extra =
+                            target.ability.extra
+                            or {}
+
+                        target.ability.extra
+                            .jogress_sources = {
+                                {
+                                    rank = first.rank,
+                                    suit = first.suit
+                                },
+
+                                {
+                                    rank = second.rank,
+                                    suit = second.suit
+                                }
+                            }
+                    end
+                },
+                {
+                    card = consumed
+                }
+            },
+            {
+                on_complete = function()
+                    if consumed
+                    and not consumed.REMOVED then
+                        SMODS.destroy_cards(
+                            consumed,
+                            {
+                                delay = 0.15
+                            }
+                        )
+                    end
+
+                    if G.hand then
+                        G.hand:unhighlight_all()
+                    end
+                end
+            }
+        )
+    end,
+}
+
+
+SMODS.Consumable {
+    set = 'DigiItem',
+    key = 'digimap',
+    atlas = 'Consumable',
+    pos = {x = 4, y = 3},
+
+    discovered = false,
+    unlocked = true,
+    cost = 4,
+
+    loc_txt = {
+        name = 'DigiMap',
+        text = {
+            'Enhance up to {C:attention}2{} selected cards',
+            'into {C:attention}Signal Cards{}'
+        }
+    },
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        local center =
+            G.P_CENTERS[
+                'm_'
+                .. BM.PREFIX
+                .. '_signal'
+            ]
+
+        if center then
+            info_queue[
+                #info_queue + 1
+            ] =
+                center
+        end
+
+        return {}
+    end,
+
+    config = {
+        max_highlighted = 2
+    },
+
+    can_use = function(
+        self,
+        card
+    )
+        if not G.hand then
+            return false
+        end
+
+        local selected =
+            #G.hand.highlighted
+
+        return selected >= 1
+            and selected <= 2
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        BM.remember_digi_item(
+            card
+        )
+
+        local targets =
+            selected_playing_cards(2)
+
+        local changes = {}
+
+        for _, playing_card in ipairs(targets) do
+            changes[#changes + 1] = {
+                card = playing_card,
+                key =
+                    'm_'
+                    .. BM.PREFIX
+                    .. '_signal',
+                message = 'Signal!',
+                colour = G.C.BLUE
+            }
+        end
+
+        BM.animate_enhancement_changes(
+            changes,
+            {
+                on_complete = function()
+                    if G.hand then
+                        G.hand:unhighlight_all()
+                    end
+                end
+            }
+        )
+    end,
 }

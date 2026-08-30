@@ -129,19 +129,12 @@ SMODS.Enhancement {
                     end
 
 
-                    -- Make sure it is still a Calumon Card.
                     if not SMODS.has_enhancement(
                         card,
                         'm_DigiMeel_calumon'
                     ) then
-
                         return true
                     end
-
-
-                    card:juice_up(0.8, 0.7)
-
-                    play_sound('generic1')
 
 
                     card_eval_status_text(
@@ -157,17 +150,10 @@ SMODS.Enhancement {
                     )
 
 
-
-                    card:set_ability(
-                        G.P_CENTERS[
-                            'm_DigiMeel_evolution'
-                        ],
-                        nil,
-                        false
+                    BM.animate_enhancement_change(
+                        card,
+                        'm_DigiMeel_evolution'
                     )
-
-
-                    card:juice_up(1.1, 0.8)
 
                     return true
                 end,
@@ -360,5 +346,258 @@ SMODS.Enhancement {
             end,
         }))
 
+    end,
+}
+
+SMODS.Enhancement {
+    key = 'jogress',
+    atlas = 'Enhancement',
+    pos = {x = 2, y = 0},
+
+    config = {
+        extra = {
+            jogress_sources = {}
+        }
+    },
+
+    loc_txt = {
+        name = 'Jogress Card',
+        text = {
+            'Counts as either of its {C:attention}2 source cards{}',
+            '{C:inactive}Jogress of {V:1}#1#{} {C:inactive}+ {V:2}#2#{}'
+        }
+    },
+
+    in_pool = function(self, args)
+        return false
+    end,
+
+    set_ability = function(
+        self,
+        card,
+        initial,
+        delay_sprites
+    )
+        card.ability.extra =
+            card.ability.extra or {}
+
+        card.ability.extra
+            .jogress_sources =
+            card.ability.extra
+                .jogress_sources
+            or {}
+    end,
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        local sources =
+            card
+            and card.ability
+            and card.ability.extra
+            and card.ability.extra
+                .jogress_sources
+            or {}
+
+        local first =
+            sources[1]
+
+        local second =
+            sources[2]
+
+        local first_name =
+            first
+            and BM.card_identity_name(
+                first
+            )
+            or 'First card'
+
+        local second_name =
+            second
+            and BM.card_identity_name(
+                second
+            )
+            or 'Second card'
+
+        local first_colour =
+            first
+            and G.C.SUITS
+            and G.C.SUITS[
+                first.suit
+            ]
+            or G.C.FILTER
+
+        local second_colour =
+            second
+            and G.C.SUITS
+            and G.C.SUITS[
+                second.suit
+            ]
+            or G.C.FILTER
+
+        return {
+            vars = {
+                first_name,
+                second_name,
+
+                colours = {
+                    first_colour,
+                    second_colour
+                }
+            }
+        }
+    end,
+}
+
+
+SMODS.Enhancement {
+    key = 'signal',
+    atlas = 'Enhancement',
+    pos = {x = 3, y = 0},
+
+    loc_txt = {
+        name = 'Signal Card',
+        text = {
+            'When scored, pull up to {C:attention}2{} cards',
+            'of the same {C:attention}rank{} from your deck',
+            'into your hand'
+        }
+    },
+
+    in_pool = function(self, args)
+        return false
+    end,
+
+    calculate = function(
+        self,
+        card,
+        context
+    )
+        if context.cardarea ~= G.play
+        or not context.main_scoring
+        or card.debuff then
+            return
+        end
+
+        if not G.deck
+        or not G.hand then
+            return
+        end
+
+        local rank =
+            BM.get_rank(card)
+
+        if not rank then
+            return
+        end
+
+        local pending =
+            BM._signal_pending_draws
+            or 0
+
+        local room =
+            math.max(
+                0,
+                (G.hand.config.card_limit or 0)
+                - #G.hand.cards
+                - pending
+            )
+
+        local wanted =
+            math.min(
+                2,
+                room
+            )
+
+        if wanted <= 0 then
+            return
+        end
+
+        local pulls = {}
+
+        for i = #G.deck.cards, 1, -1 do
+            local candidate =
+                G.deck.cards[i]
+
+            if candidate
+            and not candidate
+                ._bm_signal_reserved
+            and BM.card_has_rank(
+                candidate,
+                rank
+            ) then
+                candidate
+                    ._bm_signal_reserved =
+                    true
+
+                pulls[
+                    #pulls + 1
+                ] =
+                    candidate
+
+                if #pulls >= wanted then
+                    break
+                end
+            end
+        end
+
+        if #pulls == 0 then
+            return
+        end
+
+        BM._signal_pending_draws =
+            pending + #pulls
+
+        for i, target in ipairs(
+            pulls
+        ) do
+            draw_card(
+                G.deck,
+                G.hand,
+                i * 100 / #pulls,
+                'up',
+                true,
+                target,
+                0.08
+            )
+        end
+
+        G.E_MANAGER:add_event(
+            Event({
+                trigger = 'after',
+                delay = 0.25,
+
+                func = function()
+                    for _, target in ipairs(
+                        pulls
+                    ) do
+                        if target then
+                            target
+                                ._bm_signal_reserved =
+                                nil
+                        end
+                    end
+
+                    BM._signal_pending_draws =
+                        math.max(
+                            0,
+                            (
+                                BM._signal_pending_draws
+                                or 0
+                            )
+                            - #pulls
+                        )
+
+                    return true
+                end
+            })
+        )
+
+        return {
+            message = 'Signal!',
+            colour = G.C.BLUE
+        }
     end,
 }

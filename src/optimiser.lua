@@ -283,7 +283,7 @@ and not BM._optimiser_enhancement_wrapped then
         BM.set_enhancement
 
     BM.set_enhancement =
-    function(card, key)
+    function(card, key, skip_juice)
         local already =
             BM.has_enhancement
             and BM.has_enhancement(
@@ -294,7 +294,8 @@ and not BM._optimiser_enhancement_wrapped then
         local result =
             old_set_enhancement(
                 card,
-                key
+                key,
+                skip_juice
             )
 
         if result

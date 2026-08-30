@@ -160,9 +160,17 @@ BM.x_antibody_forms = BM.x_antibody_forms or {}
 
 BM.x_antibody_effects = BM.x_antibody_effects or {}
 
-local function x_contains_suit(cards, suit)
-    for _, played in ipairs(cards or {}) do
-        if played:is_suit(suit) then
+local function x_contains_suit(
+    cards,
+    suit
+)
+    for _, played in ipairs(
+        cards or {}
+    ) do
+        if BM.card_has_suit(
+            played,
+            suit
+        ) then
             return true
         end
     end
@@ -316,9 +324,9 @@ function(card, context, base)
         local played =
             context.other_card
 
-        if BM.get_rank(played)
-            == target_rank
-        and played:is_suit(
+        if BM.card_matches_target(
+            played,
+            target_rank,
             target_suit
         ) then
             e._x_wargrey_seen =
@@ -547,8 +555,21 @@ end
 
 local function x_has_scoring_face(cards)
     for _, played in ipairs(cards or {}) do
-        if played.is_face
-        and played:is_face() then
+        if BM.is_face(played) then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function x_card_has_number(played)
+    for _, identity in ipairs(
+        BM.card_identities(played)
+    ) do
+        if identity.rank
+        and identity.rank >= 2
+        and identity.rank <= 10 then
             return true
         end
     end
@@ -560,20 +581,13 @@ local function x_face_after_number(cards)
     local saw_number = false
 
     for _, played in ipairs(cards or {}) do
-        if played.is_face
-        and played:is_face() then
-            if saw_number then
-                return true
-            end
-        else
-            local rank =
-                BM.get_rank(played)
+        if BM.is_face(played)
+        and saw_number then
+            return true
+        end
 
-            if rank
-            and rank >= 2
-            and rank <= 10 then
-                saw_number = true
-            end
+        if x_card_has_number(played) then
+            saw_number = true
         end
     end
 
@@ -752,9 +766,10 @@ function(card, context, base)
     if context.discard
     and context.other_card
     and not e._x_weregarurumon_upgraded
-    and BM.get_rank(
-        context.other_card
-    ) == e.target_rank then
+    and BM.card_has_rank(
+        context.other_card,
+        e.target_rank
+    ) then
 
         e._x_weregarurumon_upgraded =
             true
@@ -820,9 +835,11 @@ function(card, context, base)
         local suit =
             e.target_suit
 
-        if BM.get_rank(played)
-            == rank
-        and played:is_suit(suit) then
+        if BM.card_matches_target(
+            played,
+            rank,
+            suit
+        ) then
             e._x_metalgarurumon_seen =
                 e._x_metalgarurumon_seen
                 or {}
@@ -1289,7 +1306,8 @@ function(card, context, base)
 
     if context.discard
     and context.other_card
-    and context.other_card:is_suit(
+    and BM.card_has_suit(
+        context.other_card,
         e.target_suit
     ) then
         return {
@@ -1338,7 +1356,8 @@ function(card, context, base)
 
     if context.discard
     and context.other_card
-    and context.other_card:is_suit(
+    and BM.card_has_suit(
+        context.other_card,
         e.target_suit
     ) then
         return {
@@ -1457,10 +1476,8 @@ function(card, context, base)
     and context.cardarea == G.play
     and played
     and not context.blueprint then
-        local rank = BM.get_rank(played)
-
-        if rank == 8
-        or rank == 10
+        if BM.card_has_rank(played, 8)
+        or BM.card_has_rank(played, 10)
         or BM.is_face(played) then
             if SMODS.pseudorandom_probability(
                 card,
@@ -1552,7 +1569,7 @@ function(card, context, base)
     local result = {}
     local triggered = false
 
-    if played:is_suit('Hearts')
+    if BM.card_has_suit(played, 'Hearts')
     and SMODS.pseudorandom_probability(
         card,
         'x_garudamon_bloodstone',
@@ -1563,17 +1580,17 @@ function(card, context, base)
         triggered = true
     end
 
-    if played:is_suit('Spades') then
+    if BM.card_has_suit(played, 'Spades') then
         result.chips = 50
         triggered = true
     end
 
-    if played:is_suit('Clubs') then
+    if BM.card_has_suit(played, 'Clubs') then
         result.mult = 7
         triggered = true
     end
 
-    if played:is_suit('Diamonds') then
+    if BM.card_has_suit(played, 'Diamonds') then
         result.dollars = 1
         triggered = true
     end

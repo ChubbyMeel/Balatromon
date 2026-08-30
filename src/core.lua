@@ -337,12 +337,21 @@ function BM.deck_ranks()
     local found = {}
     local ranks = {}
 
-    for _, card in ipairs(G.playing_cards or {}) do
-        local rank = BM.get_rank(card)
+    for _, card in ipairs(
+        G.playing_cards or {}
+    ) do
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            local rank =
+                identity.rank
 
-        if rank and not found[rank] then
-            found[rank] = true
-            ranks[#ranks + 1] = rank
+            if rank
+            and not found[rank] then
+                found[rank] = true
+                ranks[#ranks + 1] =
+                    rank
+            end
         end
     end
 
@@ -355,17 +364,25 @@ function BM.deck_suits()
     local found = {}
     local suits = {}
 
-    for _, card in ipairs(G.playing_cards or {}) do
-        local suit = card.base and card.base.suit
-
-        if suit then
-            found[suit] = true
+    for _, card in ipairs(
+        G.playing_cards or {}
+    ) do
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            if identity.suit then
+                found[identity.suit] =
+                    true
+            end
         end
     end
 
-    for _, suit in ipairs(BM.SUITS) do
+    for _, suit in ipairs(
+        BM.SUITS
+    ) do
         if found[suit] then
-            suits[#suits + 1] = suit
+            suits[#suits + 1] =
+                suit
         end
     end
 
@@ -376,20 +393,34 @@ function BM.deck_card_targets()
     local found = {}
     local targets = {}
 
-    for _, card in ipairs(G.playing_cards or {}) do
-        local rank = BM.get_rank(card)
-        local suit = card.base and card.base.suit
+    for _, card in ipairs(
+        G.playing_cards or {}
+    ) do
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            local rank =
+                identity.rank
 
-        if rank and suit then
-            local key = tostring(rank) .. ':' .. suit
+            local suit =
+                identity.suit
 
-            if not found[key] then
-                found[key] = true
+            if rank and suit then
+                local key =
+                    tostring(rank)
+                    .. ':'
+                    .. suit
 
-                targets[#targets + 1] = {
-                    rank = rank,
-                    suit = suit
-                }
+                if not found[key] then
+                    found[key] = true
+
+                    targets[
+                        #targets + 1
+                    ] = {
+                        rank = rank,
+                        suit = suit
+                    }
+                end
             end
         end
     end
@@ -398,14 +429,19 @@ function BM.deck_card_targets()
 end
 
 function BM.card_target_exists(rank, suit)
-    if not rank or not suit then
+    if not rank
+    or not suit then
         return false
     end
 
-    for _, card in ipairs(G.playing_cards or {}) do
-        if BM.get_rank(card) == rank
-        and card.base
-        and card.base.suit == suit then
+    for _, card in ipairs(
+        G.playing_cards or {}
+    ) do
+        if BM.card_matches_target(
+            card,
+            rank,
+            suit
+        ) then
             return true
         end
     end
@@ -835,6 +871,155 @@ function BM.get_rank(card)
     return nil
 end
 
+function BM.is_jogress_card(card)
+    return card
+        and card.config
+        and card.config.center
+        and card.config.center.key
+            == 'm_' .. BM.PREFIX .. '_jogress'
+end
+
+function BM.native_card_identity(card)
+    if not card then
+        return nil
+    end
+
+    if SMODS.has_no_rank
+    and SMODS.has_no_rank(card) then
+        return nil
+    end
+
+    if SMODS.has_no_suit
+    and SMODS.has_no_suit(card) then
+        return nil
+    end
+
+    local rank = BM.get_rank(card)
+    local suit = card.base and card.base.suit
+
+    if not rank or not suit then
+        return nil
+    end
+
+    return {
+        rank = rank,
+        suit = suit
+    }
+end
+
+function BM.card_identities(card)
+    local identities = {}
+
+    if BM.is_jogress_card(card) then
+        local extra =
+            card.ability
+            and card.ability.extra
+
+        local sources =
+            type(extra) == 'table'
+            and extra.jogress_sources
+
+        if type(sources) == 'table' then
+            for i = 1, math.min(2, #sources) do
+                local source = sources[i]
+
+                if source
+                and source.rank
+                and source.suit then
+                    identities[#identities + 1] = {
+                        rank = source.rank,
+                        suit = source.suit
+                    }
+                end
+            end
+        end
+    end
+
+    if #identities == 0 then
+        local identity =
+            BM.native_card_identity(card)
+
+        if identity then
+            identities[1] = identity
+        end
+    end
+
+    return identities
+end
+
+function BM.card_has_rank(card, rank)
+    if not card or not rank then
+        return false
+    end
+
+    for _, identity in ipairs(
+        BM.card_identities(card)
+    ) do
+        if identity.rank == rank then
+            return true
+        end
+    end
+
+    return false
+end
+
+function BM.card_has_suit(card, suit)
+    if not card or not suit then
+        return false
+    end
+
+    if card.is_suit
+    and card:is_suit(suit) then
+        return true
+    end
+
+    if BM.is_jogress_card(card) then
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            if identity.suit == suit then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+function BM.card_matches_target(card, rank, suit)
+    if not card
+    or not rank
+    or not suit then
+        return false
+    end
+
+    if BM.is_jogress_card(card) then
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            if identity.rank == rank
+            and identity.suit == suit then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    return BM.get_rank(card) == rank
+        and card.is_suit
+        and card:is_suit(suit)
+end
+
+function BM.card_identity_name(identity)
+    if not identity then
+        return 'Unknown card'
+    end
+
+    return BM.rank_name(identity.rank)
+        .. ' of '
+        .. tostring(identity.suit)
+end
 
 function BM.rank_name(rank)
     local names = {[11]='Jack', [12]='Queen', [13]='King', [14]='Ace'}
@@ -842,7 +1027,46 @@ function BM.rank_name(rank)
 end
 
 function BM.is_face(card)
-    return card and card.is_face and card:is_face()
+    if not card then
+        return false
+    end
+
+    if BM.is_jogress_card(card) then
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            local is_face = false
+
+            for _, rank_key in ipairs(
+                SMODS.Rank
+                and SMODS.Rank.obj_buffer
+                or {}
+            ) do
+                local rank_data =
+                    SMODS.Ranks
+                    and SMODS.Ranks[rank_key]
+
+                if rank_data
+                and rank_data.id == identity.rank then
+                    is_face = rank_data.face == true
+                    break
+                end
+            end
+
+            if is_face
+            or identity.rank == 11
+            or identity.rank == 12
+            or identity.rank == 13 then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    return card.is_face
+        and card:is_face()
+        or false
 end
 
 function BM.has_enhancement(card, key)
@@ -855,7 +1079,7 @@ function BM.is_unenhanced(card)
     return card.config.center == G.P_CENTERS.c_base or card.config.center.key == 'c_base'
 end
 
-function BM.set_enhancement(card, key)
+function BM.set_enhancement(card, key, skip_juice)
     if card and G.P_CENTERS[key] then
         local changed = not BM.has_enhancement(card, key)
         card:set_ability(G.P_CENTERS[key], nil, true)
@@ -864,13 +1088,180 @@ function BM.set_enhancement(card, key)
         -- not only change its center silently. Centralising the juice here means
         -- Patamon, Salamon, DemiDevimon, Sakumon, Zubamon, Megadramon, etc.
         -- all get the same feedback automatically.
-        if changed and card.juice_up then
+        if changed and card.juice_up and not skip_juice then
             card:juice_up(0.8, 0.5)
         end
 
         return true
     end
     return false
+end
+
+function BM.animate_enhancement_changes(changes, opts)
+    opts = opts or {}
+
+    local valid = {}
+
+    for _, change in ipairs(changes or {}) do
+        if change
+        and change.card
+        and not change.card.REMOVED then
+            valid[#valid + 1] = change
+        end
+    end
+
+    if #valid == 0 then
+        return false
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = opts.start_delay or 0.15,
+
+        func = function()
+            if opts.play_tarot1 ~= false then
+                play_sound('tarot1')
+            end
+
+            return true
+        end
+    }))
+
+    for i, change in ipairs(valid) do
+        local target = change.card
+        local percent =
+            1.15
+            - (i - 0.999)
+            / (#valid - 0.998)
+            * 0.3
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = opts.flip_delay or 0.12,
+
+            func = function()
+                if target
+                and not target.REMOVED then
+                    target:flip()
+                    play_sound('card1', percent)
+                    target:juice_up(0.3, 0.3)
+                end
+
+                return true
+            end
+        }))
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = opts.change_delay or 0.20,
+
+        func = function()
+            for _, change in ipairs(valid) do
+                local target = change.card
+
+                if target
+                and not target.REMOVED then
+                    if change.key then
+                        BM.set_enhancement(
+                            target,
+                            change.key,
+                            true
+                        )
+                    end
+
+                    if change.after_set then
+                        change.after_set(target)
+                    end
+                end
+            end
+
+            return true
+        end
+    }))
+
+    for i, change in ipairs(valid) do
+        local target = change.card
+        local message = change.message
+        local colour = change.colour
+        local after_flip = change.after_flip
+        local percent =
+            0.85
+            + (i - 0.999)
+            / (#valid - 0.998)
+            * 0.3
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = opts.flip_back_delay or 0.12,
+
+            func = function()
+                if target
+                and not target.REMOVED then
+                    target:flip()
+                    play_sound(
+                        'tarot2',
+                        percent,
+                        0.6
+                    )
+                    target:juice_up(0.3, 0.3)
+
+                    if message then
+                        card_eval_status_text(
+                            target,
+                            'extra',
+                            nil,
+                            nil,
+                            nil,
+                            {
+                                message = message,
+                                colour = colour
+                                    or G.C.ATTENTION
+                            }
+                        )
+                    end
+
+                    if after_flip then
+                        after_flip(target)
+                    end
+                end
+
+                return true
+            end
+        }))
+    end
+
+    if opts.on_complete then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = opts.complete_delay or 0.10,
+
+            func = function()
+                opts.on_complete()
+                return true
+            end
+        }))
+    end
+
+    return true
+end
+
+function BM.animate_enhancement_change(card, key, opts)
+    opts = opts or {}
+
+    return BM.animate_enhancement_changes(
+        {
+            {
+                card = card,
+                key = key,
+                message = opts.message,
+                colour = opts.colour,
+                after_set = opts.after_set,
+                after_flip = opts.after_flip
+            }
+        },
+        opts
+    )
 end
 
 function BM.remember_digi_item(card)
@@ -929,16 +1320,36 @@ function BM.contains_hand(context, hand)
 end
 
 function BM.contains_rank(cards, rank)
-    if not cards then return false end
-    for _, c in ipairs(cards) do if BM.get_rank(c) == rank then return true end end
+    if not cards then
+        return false
+    end
+
+    for _, card in ipairs(cards) do
+        if BM.card_has_rank(
+            card,
+            rank
+        ) then
+            return true
+        end
+    end
+
     return false
 end
 
 function BM.contains_suit(cards, suit)
-    if not cards then return false end
-    for _, c in ipairs(cards) do
-        if c.is_suit and c:is_suit(suit) then return true end
+    if not cards then
+        return false
     end
+
+    for _, card in ipairs(cards) do
+        if BM.card_has_suit(
+            card,
+            suit
+        ) then
+            return true
+        end
+    end
+
     return false
 end
 
@@ -1792,11 +2203,18 @@ local function getEnhancements()
         return (a.order or 0) < (b.order or 0)
     end)
 
+    local blocked = {
+        ['m_' .. BM.PREFIX .. '_jogress'] = true,
+        ['m_' .. BM.PREFIX .. '_signal'] = true,
+    }
+
     -- IMPORTANT:
     -- table.insert makes the array contiguous,
     -- so ipairs will not stop at an order gap.
     for _, v in ipairs(pool) do
-        table.insert(enhancements, v.key)
+        if not blocked[v.key] then
+            table.insert(enhancements, v.key)
+        end
     end
 
     return enhancements
