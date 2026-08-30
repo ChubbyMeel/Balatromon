@@ -1,26 +1,23 @@
 local BM = Balatromon
-local MOD = SMODS.current_mod
 
-MOD.config = MOD.config or {}
-MOD.config.x_antibody_discovered =
-    MOD.config.x_antibody_discovered or {}
-
-local function x_profile_key()
-    return tostring(
-        G.SETTINGS
-        and G.SETTINGS.profile
-        or 1
-    )
+local function x_profile()
+    return G.PROFILES
+        and G.SETTINGS
+        and G.PROFILES[G.SETTINGS.profile]
 end
 
 local function x_discovery_table()
-    local key = x_profile_key()
+    local profile = x_profile()
 
-    MOD.config.x_antibody_discovered[key] =
-        MOD.config.x_antibody_discovered[key]
+    if not profile then
+        return {}
+    end
+
+    profile.balatromon_x_antibody_discovered =
+        profile.balatromon_x_antibody_discovered
         or {}
 
-    return MOD.config.x_antibody_discovered[key]
+    return profile.balatromon_x_antibody_discovered
 end
 
 function BM.is_x_antibody_discovered(slug)
@@ -28,10 +25,7 @@ function BM.is_x_antibody_discovered(slug)
         return false
     end
 
-    local profile =
-        G.PROFILES
-        and G.SETTINGS
-        and G.PROFILES[G.SETTINGS.profile]
+    local profile = x_profile()
 
     if profile
     and profile.all_unlocked then
@@ -60,8 +54,8 @@ function BM.discover_x_antibody(slug)
 
     discovered[slug] = true
 
-    if SMODS.save_mod_config then
-        SMODS.save_mod_config(MOD)
+    if G.save_progress then
+        G:save_progress()
     end
 end
 

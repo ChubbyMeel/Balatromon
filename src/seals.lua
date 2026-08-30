@@ -390,18 +390,23 @@ SMODS.Seal {
     calculate = function(self, card, context)
 
         if context.main_scoring
-        and context.cardarea == G.play then
+        and context.cardarea == G.play
+        and G.hand
+        and G.hand.cards then
 
-            local matches = same_rank_in_hand(card)
+            local scoring_id = card:get_id()
 
-            if matches > 0 then
-                local amount = 13 * matches
+            for _, held_card in ipairs(G.hand.cards) do
+                if held_card:get_id() == scoring_id then
 
-                return {
-                    mult = amount,
-                    message = '+' .. tostring(amount) .. ' Mult',
-                    colour = G.C.MULT
-                }
+                    SMODS.calculate_effect(
+                        {
+                            mult = 13,
+                        },
+                        held_card
+                    )
+
+                end
             end
         end
     end
@@ -465,12 +470,6 @@ SMODS.Seal {
             return {
                 mult = mult,
                 chips = chips,
-                message =
-                    '+' .. tostring(mult)
-                    .. ' Mult, +'
-                    .. tostring(chips)
-                    .. ' Chips',
-                colour = G.C.PURPLE
             }
         end
 

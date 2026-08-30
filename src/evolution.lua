@@ -72,7 +72,7 @@ BM.evolution_rules = {
     },
     leomon = {
         grapleomon = {note = 'Standard route'},
-        loaderleomon = {note = 'Standard route'},
+        loaderleomon = {note = 'Alternate standard route'},
         knightmon = {min_care = 1, note = 'Rough-care route'},
     },
     madleomon = {
@@ -96,7 +96,7 @@ BM.evolution_rules = {
         mammothmon = {min_hunger = 3, note = 'High-Hunger route'},
     },
     marinebullmon = {
-        hydramon = {note = 'Stone route'},
+        hydramon = {note = 'Standard route'},
         vikemon = {min_hunger = 3, note = 'High-Hunger route'},
     },
     poyomon = {
@@ -194,8 +194,8 @@ BM.evolution_rules = {
         valkyrimon = {min_care = 1, note = 'Rough-care route'},
     },
     pinamon = {
-        akatorimon = {note = 'Wide-feeding route'},
-        kokatorimon = {note = 'Focused-feeding route'},
+        akatorimon = {note = 'Standard route'},
+        kokatorimon = {note = 'Alternate standard route'},
     },
     kuramon = {
         tsumemon = {
