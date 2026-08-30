@@ -10,16 +10,22 @@ function BM.emult(card, amount)
         and SMODS.Scoring_Parameters.mult
 
     if mult_param then
-        local current = mult_param.current or mult or 0
-        local target = current ^ amount
+        local current =
+            mult_param.current
+            or mult
+            or 0
+
+        local target =
+            current ^ amount
 
         mult_param:modify(
             target - current
         )
     else
-        mult = mod_mult(
-            mult ^ amount
-        )
+        mult =
+            mod_mult(
+                mult ^ amount
+            )
 
         update_hand_text(
             {delay = 0},
@@ -27,8 +33,12 @@ function BM.emult(card, amount)
         )
     end
 
-    if card and card.juice_up then
-        card:juice_up(0.8, 0.5)
+    if card
+    and card.juice_up then
+        card:juice_up(
+            0.8,
+            0.5
+        )
     end
 
     card_eval_status_text(
@@ -38,11 +48,23 @@ function BM.emult(card, amount)
         percent,
         nil,
         {
-            message = '^' .. tostring(amount) .. ' Mult',
-            colour = G.C.MULT
+            message =
+                '^'
+                .. tostring(amount)
+                .. ' Mult',
+
+            colour =
+                G.C.MULT,
+
+            sound =
+                'multhit2',
+
+            volume =
+                0.7
         }
     )
 end
+
 
 function BM.echips(card, amount)
     if not amount
@@ -95,7 +117,7 @@ function BM.echips(card, amount)
         card,
         'extra',
         nil,
-        nil,
+        percent,
         nil,
         {
             message =
@@ -104,7 +126,13 @@ function BM.echips(card, amount)
                 .. ' Chips',
 
             colour =
-                G.C.CHIPS
+                G.C.CHIPS,
+
+            sound =
+                'xchips',
+
+            volume =
+                0.7
         }
     )
 end
