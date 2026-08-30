@@ -7,6 +7,86 @@ local function simple_chips(n) return function(card, context) if context.joker_m
 local function hand_mult(hand,n) return function(card,context) if context.joker_main and BM.contains_hand(context,hand) then return {mult=n} end end end
 local function hand_chips(hand,n) return function(card,context) if context.joker_main and BM.contains_hand(context,hand) then return {chips=n} end end end
 local function eor_dollars(n) return function(card,context) if context.end_of_round and context.main_eval then return {dollars=n} end end end
+
+function BM.unique_planets_used()
+    local count = 0
+
+    for _, usage in pairs(
+        G
+        and G.GAME
+        and G.GAME.consumeable_usage
+        or {}
+    ) do
+        if usage.set == 'Planet' then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
+function BM.planet_key_for_hand(hand_name)
+    if not hand_name then
+        return nil
+    end
+
+    for key, center in pairs(G.P_CENTERS or {}) do
+        if center.set == 'Planet'
+        and center.config
+        and center.config.hand_type == hand_name then
+            return center.key or key
+        end
+    end
+
+    return nil
+end
+
+function BM.add_planet_for_hand(hand_name, key_append)
+    if not G.consumeables
+    or not BM.has_room(G.consumeables) then
+        return nil
+    end
+
+    local key = BM.planet_key_for_hand(hand_name)
+
+    if not key then
+        return nil
+    end
+
+    return SMODS.add_card {
+        set = 'Planet',
+        area = G.consumeables,
+        key = key,
+        key_append = key_append or 'balatromon_planet_hand'
+    }
+end
+
+local function is_planet_consumable(card)
+    local center =
+        card
+        and card.config
+        and card.config.center
+
+    return center
+        and center.set == 'Planet'
+end
+
+local function count_held_planets()
+    local count = 0
+
+    for _, held in ipairs(
+        G.consumeables
+        and G.consumeables.cards
+        or {}
+    ) do
+        if is_planet_consumable(held) then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
 local function single_to(enh)
     return function(card,context)
         if context.before and context.main_eval and #context.full_hand == 1 and not context.blueprint then
@@ -884,7 +964,7 @@ function BM.run_effect(slug,card,context)
     if fn then return fn(card,context) end
 end
 
-function BM.has_active_polarbearmon()
+local function has_active_digimon(slug)
     if not G.jokers then
         return false
     end
@@ -895,18 +975,27 @@ function BM.has_active_polarbearmon()
             and joker.config.center
 
         if center
-        and center.key == BM.center_key('polarbearmon')
+        and center.key == BM.center_key(slug)
         and not joker.debuff
         and not (
             joker.ability
+            and joker.ability.set == 'Joker'
             and joker.ability.extra
-            and joker.ability.extra.permanently_disabled
+            and joker.ability.extra.disabled
         ) then
             return true
         end
     end
 
     return false
+end
+
+function BM.has_active_polarbearmon()
+    return has_active_digimon('polarbearmon')
+end
+
+function BM.has_active_skadimon()
+    return has_active_digimon('skadimon')
 end
 
 function BM.is_polarbearmon_discount_target(card)
@@ -941,22 +1030,26 @@ function BM.is_polarbearmon_discount_target(card)
     return false
 end
 
-function BM.refresh_polarbearmon_shop_costs()
+function BM.refresh_planet_shop_costs()
     local function refresh(area)
         if not area then
             return
         end
 
-        for _, card in ipairs(area.cards or {}) do
-            if card.set_cost then
-                card:set_cost()
+        for _, shop_card in ipairs(area.cards or {}) do
+            if shop_card.set_cost then
+                shop_card:set_cost()
             end
         end
     end
 
     refresh(G.shop_jokers)
+    refresh(G.shop_vouchers)
     refresh(G.shop_booster)
 end
+
+BM.refresh_polarbearmon_shop_costs =
+    BM.refresh_planet_shop_costs
 
 if not BM._polarbearmon_cost_patched then
     BM._polarbearmon_cost_patched = true
@@ -966,28 +1059,39 @@ if not BM._polarbearmon_cost_patched then
     Card.set_cost = function(self, ...)
         local result = old_set_cost(self, ...)
 
-        if BM.has_active_polarbearmon()
-        and BM.is_polarbearmon_discount_target(self) then
-            self.cost = math.max(
-                0,
-                (self.cost or 0) - 2
-            )
+        if BM.is_polarbearmon_discount_target(self) then
+            local changed = false
 
-            self.sell_cost =
-                math.max(
-                    1,
-                    math.floor(self.cost / 2)
-                )
-                + (
-                    self.ability
-                    and self.ability.extra_value
-                    or 0
+            if BM.has_active_skadimon() then
+                self.cost = 0
+                changed = true
+
+            elseif BM.has_active_polarbearmon() then
+                self.cost = math.max(
+                    0,
+                    (self.cost or 0) - 2
                 )
 
-            self.sell_cost_label =
-                self.facing == 'back'
-                and '?'
-                or self.sell_cost
+                changed = true
+            end
+
+            if changed then
+                self.sell_cost =
+                    math.max(
+                        1,
+                        math.floor(self.cost / 2)
+                    )
+                    + (
+                        self.ability
+                        and self.ability.extra_value
+                        or 0
+                    )
+
+                self.sell_cost_label =
+                    self.facing == 'back'
+                    and '?'
+                    or self.sell_cost
+            end
         end
 
         return result
@@ -2477,5 +2581,183 @@ H.saberleomon = function(card, context)
     and not context.retrigger_joker then
         e._saberleomon_release =
             nil
+    end
+end
+
+H.skadimon = function(card, context)
+end
+
+H.choromon = function(card, context)
+    if context.before
+    and context.main_eval
+    and BM.is_boss()
+    and (G.GAME.current_round.hands_played or 0) == 0 then
+
+        local made = BM.add_planet_for_hand(
+            context.scoring_name,
+            'choromon_' .. tostring(card.sort_id or 0)
+        )
+
+        if made then
+            return {
+                message = 'Created!',
+                colour =
+                    (G.C.SECONDARY_SET
+                    and G.C.SECONDARY_SET.Planet)
+                    or G.C.ATTENTION
+            }
+        end
+    end
+end
+
+H.missimon = function(card, context)
+    if context.poker_hand_changed
+    and context.scoring_name
+    and type(context.old_level) == 'number'
+    and type(context.new_level) == 'number'
+    and context.new_level > context.old_level
+    and context.new_level % 2 == 0
+    and not BM._missimon_bonus_leveling then
+
+        local hand_name = context.scoring_name
+        local source_card =
+            context.blueprint_card or card
+
+        return {
+            message = 'Again!',
+            colour = G.C.ATTENTION,
+            func = function()
+                BM._missimon_bonus_leveling = true
+
+                SMODS.upgrade_poker_hands {
+                    hands = hand_name,
+                    level_up = 1,
+                    from = source_card
+                }
+
+                BM._missimon_bonus_leveling = nil
+            end
+        }
+    end
+end
+
+H.solarmon = function(card, context)
+    if context.joker_main then
+        local mult =
+            4 * BM.unique_planets_used()
+
+        if mult > 0 then
+            return {
+                mult = mult
+            }
+        end
+    end
+end
+
+H.hagurumon = function(card, context)
+    if context.end_of_round
+    and context.main_eval then
+
+        local dollars =
+            BM.unique_planets_used()
+
+        if dollars > 0 then
+            return {
+                dollars = dollars
+            }
+        end
+    end
+end
+
+H.meramon = function(card, context)
+    local e = card.ability.extra
+    e.xmult = e.xmult or 1
+
+    if context.using_consumeable
+    and is_planet_consumable(context.consumeable)
+    and not context.blueprint then
+
+        e.xmult = e.xmult + 0.1
+
+        return {
+            message = 'XMult Up!',
+            colour = G.C.MULT
+        }
+    end
+
+    if context.joker_main then
+        return {
+            xmult = e.xmult
+        }
+    end
+end
+
+H.flarerizamon = function(card, context)
+    if context.joker_main then
+        local mult =
+            4 * BM.unique_planets_used()
+
+        if mult > 0 then
+            return {
+                mult = mult
+            }
+        end
+    end
+
+    if context.end_of_round
+    and context.main_eval then
+
+        local dollars =
+            BM.unique_planets_used()
+
+        if dollars > 0 then
+            return {
+                dollars = dollars
+            }
+        end
+    end
+end
+
+H.bluemeramon = function(card, context)
+    local e = card.ability.extra
+    e.xmult = e.xmult or 1
+
+    if context.using_consumeable
+    and is_planet_consumable(context.consumeable)
+    and not context.blueprint then
+
+        e.xmult = e.xmult + 0.36
+
+        return {
+            message = 'XMult Up!',
+            colour = G.C.MULT
+        }
+    end
+
+    if context.joker_main then
+        return {
+            xmult = e.xmult
+        }
+    end
+end
+
+H.lavogaritamon = function(card, context)
+    if not context.joker_main then
+        return
+    end
+
+    for _, held in ipairs(
+        G.consumeables
+        and G.consumeables.cards
+        or {}
+    ) do
+        if is_planet_consumable(held) then
+            SMODS.calculate_effect(
+                {
+                    xmult = 1.2
+                },
+                held
+            )
+        end
     end
 end

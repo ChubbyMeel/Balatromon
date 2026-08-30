@@ -2113,14 +2113,14 @@ function BM.on_add(card, slug)
         card.ability.rental = true
     end
 
-    if slug == 'polarbearmon'
-    and BM.refresh_polarbearmon_shop_costs then
+    if (slug == 'polarbearmon' or slug == 'skadimon')
+    and BM.refresh_planet_shop_costs then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
 
             func = function()
-                BM.refresh_polarbearmon_shop_costs()
+                BM.refresh_planet_shop_costs()
                 return true
             end
         }))
@@ -2155,14 +2155,14 @@ function BM.on_remove(card, slug)
         BM.remove_passive_deck_effect(card, slug)
     end
 
-    if slug == 'polarbearmon'
-    and BM.refresh_polarbearmon_shop_costs then
+    if (slug == 'polarbearmon' or slug == 'skadimon')
+    and BM.refresh_planet_shop_costs then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
 
             func = function()
-                BM.refresh_polarbearmon_shop_costs()
+                BM.refresh_planet_shop_costs()
                 return true
             end
         }))

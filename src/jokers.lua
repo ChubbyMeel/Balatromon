@@ -2878,7 +2878,7 @@ do
         atlas = 'Joker', pos = {x=2,y=4},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = '-',
+        balatromon_stage = stage, balatromon_evolves_to = 'Skadimon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
@@ -2896,13 +2896,26 @@ elements={BM.care_bars(e,stage)}}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='PolarBearmon', stage=stage, evolves_to='-', effect='All planet cards and celestial booster packs cost $2 less'}
+    BM.joker_defs[slug] = {name='PolarBearmon', stage=stage, evolves_to='Skadimon', effect='All planet cards and celestial booster packs cost $2 less'}
     local weight = 4
         BM.shop_joker_keys[#BM.shop_joker_keys+1] = {
         key = BM.center_key(slug),
         weight = weight,
         stage = stage}
 end
+
+bm_register_new_digimon({
+    slug = 'skadimon',
+    name = 'Skadimon',
+    stage = 'Mega',
+    evolves_to = '-',
+    pos = {x=1,y=18},
+    text = {
+        'All {C:planet}Planet{} cards and',
+        '{C:attention}Celestial Packs{} cost {C:money}$0{}',
+    },
+    effect = 'All Planet cards and Celestial booster packs cost $0'
+})
 
 do
     local slug = 'pichimon'
@@ -5059,7 +5072,7 @@ do
 
         balatromon = true,
         balatromon_stage = stage,
-        balatromon_evolves_to = 'Wingdramon',
+        balatromon_evolves_to = 'Wingdramon, BlueMeramon',
 
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
@@ -5122,7 +5135,7 @@ elements={BM.care_bars(e,stage)},
     BM.joker_defs[slug] = {
         name='Flamedramon',
         stage=stage,
-        evolves_to='Wingdramon',
+        evolves_to='Wingdramon, BlueMeramon',
         effect='1 in 5 chance to upgrade played poker hand'
     }
 
@@ -10266,4 +10279,144 @@ bm_register_new_digimon({
         'Also applies {C:attention}GreatGrizzlymon{} effect',
     },
     effect = 'After the scoring hand finishes, repeatedly rescore it while omitting the last card until one remains; also applies GreatGrizzlymon'
+})
+
+bm_register_new_digimon({
+    slug = 'choromon',
+    name = 'Choromon',
+    stage = 'Fresh',
+    evolves_to = 'Missimon',
+    pos = {x=2,y=18},
+    text = {
+        'On a {C:attention}Boss Blind{}, create the {C:planet}Planet{} card',
+        'of the first played poker hand',
+        '{C:inactive}(Must have room){}',
+    },
+    effect = 'Create the Planet card of the first played poker hand on a Boss Blind'
+})
+
+bm_register_new_digimon({
+    slug = 'missimon',
+    name = 'Missimon',
+    stage = 'In-Training',
+    evolves_to = 'Solarmon, Hagurumon',
+    pos = {x=3,y=18},
+    text = {
+        'When a poker hand is upgraded to an',
+        '{C:attention}even-numbered level{}, upgrade it again',
+    },
+    effect = 'When a poker hand is upgraded to an even-numbered level, upgrade it again'
+})
+
+bm_register_new_digimon({
+    slug = 'solarmon',
+    name = 'Solarmon',
+    stage = 'Rookie',
+    evolves_to = 'Meramon, Flarerizamon',
+    pos = {x=4,y=18},
+    text = {
+        '{C:mult}+4{} Mult for each unique {C:planet}Planet{} card',
+        'used this run',
+        '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
+    },
+    dynamic_vars = function()
+        return {
+            4 * BM.unique_planets_used()
+        }
+    end,
+    effect = '+4 Mult for each unique Planet card used this run'
+})
+
+bm_register_new_digimon({
+    slug = 'hagurumon',
+    name = 'Hagurumon',
+    stage = 'Rookie',
+    evolves_to = 'Meramon',
+    pos = {x=5,y=18},
+    text = {
+        'Earn {C:money}$1{} at end of round for each unique',
+        '{C:planet}Planet{} card used this run',
+        '{C:inactive}(Currently {C:money}$#4#{C:inactive}){}',
+    },
+    dynamic_vars = function()
+        return {
+            BM.unique_planets_used()
+        }
+    end,
+    effect = '$1 at end of round for each unique Planet card used this run'
+})
+
+bm_register_new_digimon({
+    slug = 'meramon',
+    name = 'Meramon',
+    stage = 'Champion',
+    evolves_to = 'BlueMeramon',
+    pos = {x=6,y=18},
+    extra = {
+        xmult = 1
+    },
+    text = {
+        'Gains {X:mult,C:white}X0.1{} Mult whenever a',
+        '{C:planet}Planet{} card is used',
+        '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+    },
+    dynamic_vars = function(card, e)
+        return {
+            e.xmult or 1
+        }
+    end,
+    effect = 'Gains X0.1 Mult whenever a Planet card is used'
+})
+
+bm_register_new_digimon({
+    slug = 'flarerizamon',
+    name = 'Flarerizamon',
+    stage = 'Champion',
+    evolves_to = 'Lavogaritamon',
+    pos = {x=7,y=18},
+    digimon_tooltips = {
+        'solarmon',
+        'hagurumon'
+    },
+    text = {
+        'Also applies {C:attention}Solarmon{} and',
+        '{C:attention}Hagurumon{} effects',
+    },
+    effect = 'Applies Solarmon and Hagurumon effects'
+})
+
+bm_register_new_digimon({
+    slug = 'bluemeramon',
+    name = 'BlueMeramon',
+    stage = 'Ultimate',
+    evolves_to = '-',
+    pos = {x=8,y=18},
+    extra = {
+        xmult = 1
+    },
+    text = {
+        'Gains {X:mult,C:white}X0.36{} Mult whenever a',
+        '{C:planet}Planet{} card is used',
+        '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+        '{C:inactive}(Carries Meramon\'s Mult when Digivolving){}',
+    },
+    dynamic_vars = function(card, e)
+        return {
+            e.xmult or 1
+        }
+    end,
+    effect = 'Gains X0.36 Mult whenever a Planet card is used and inherits Meramon current XMult'
+})
+
+bm_register_new_digimon({
+    slug = 'lavogaritamon',
+    name = 'Lavogaritamon',
+    stage = 'Ultimate',
+    evolves_to = 'HippoGryphonmon',
+    pos = {x=9,y=18},
+    text = {
+        'Each {C:planet}Planet{} card held in your',
+        'consumable slots gives {X:mult,C:white}X1.2{} Mult',
+    },
+    effect = 'Each Planet card held in consumable slots gives X1.2 Mult'
 })

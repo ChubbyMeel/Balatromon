@@ -135,6 +135,10 @@ BM.evolution_rules = {
         exveemon = {note = 'Standard route'},
         flamedramon = {device = 'd3', note = 'D-3 Armor route'},
     },
+    flamedramon = {
+        wingdramon = {note = 'Standard route'},
+        bluemeramon = {min_hunger = 3, note = 'High-Hunger route'},
+    },
     paildramon = {
         imperialdramon_fighter_mode = {note = 'Mode choice'},
         imperialdramon_dragon_mode = {note = 'Mode choice'},
@@ -533,6 +537,62 @@ BM.evolution_rules = {
         },
     },
 
+    polarbearmon = {
+        skadimon = {
+            note = 'Standard route'
+        },
+    },
+
+    choromon = {
+        missimon = {
+            note = 'Standard route'
+        },
+    },
+
+    missimon = {
+        solarmon = {
+            note = 'Standard route'
+        },
+
+        hagurumon = {
+            note = 'Alternate standard route'
+        },
+    },
+
+    solarmon = {
+        meramon = {
+            note = 'Standard route'
+        },
+
+        flarerizamon = {
+            note = 'Alternate standard route'
+        },
+    },
+
+    hagurumon = {
+        meramon = {
+            note = 'Standard route'
+        },
+    },
+
+    meramon = {
+        bluemeramon = {
+            note = 'Standard route'
+        },
+    },
+
+    flarerizamon = {
+        lavogaritamon = {
+            note = 'Standard route'
+        },
+    },
+
+    lavogaritamon = {
+        hippogryphonmon = {
+            note = 'Standard route'
+        },
+
+    },
 }
 
 BM.evolution_queue = BM.evolution_queue or {}
@@ -1087,6 +1147,12 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     card.ability.extra =
         card.ability.extra or {}
+
+    if old_slug == 'meramon'
+    and option.slug == 'bluemeramon' then
+        card.ability.extra.xmult =
+            carry.xmult or 1
+    end
 
     card.ability.extra.hunger =
         carry.hunger
