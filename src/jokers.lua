@@ -1,5 +1,359 @@
 local BM = Balatromon
 
+local function bm_register_new_digimon(def)
+    local slug = def.slug
+    local stage = def.stage
+
+    local extra = {
+        hunger = 1,
+        bond = 0,
+        care_mistakes = 0,
+        care_rounds = 0
+    }
+
+    for k, v in pairs(
+        def.extra or {}
+    ) do
+        extra[k] = v
+    end
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = def.name,
+            text = {
+                def.text,
+                {
+                    BM.care_status_text(
+                        stage
+                    ),
+                }
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity =
+            BM.stage_rarity(stage),
+
+        cost = 5,
+
+        atlas = 'Joker',
+        pos = def.pos,
+
+        blueprint_compat =
+            def.blueprint_compat
+                ~= false,
+
+        eternal_compat = true,
+        perishable_compat = true,
+
+        balatromon = true,
+
+        balatromon_stage =
+            stage,
+
+        balatromon_evolves_to =
+            def.evolves_to,
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            for _, seal in ipairs(
+                def.seal_tooltips
+                or {}
+            ) do
+                BM.add_seal_tooltip(
+                    info_queue,
+                    seal
+                )
+            end
+
+            for _, digimon in ipairs(
+                def.digimon_tooltips
+                or {}
+            ) do
+                BM.add_digimon_tooltip(
+                    info_queue,
+                    digimon
+                )
+            end
+
+            for _, center_key in ipairs(
+                def.joker_tooltips
+                or {}
+            ) do
+                if G.P_CENTERS
+                and G.P_CENTERS[center_key] then
+                    info_queue[#info_queue + 1] =
+                    G.P_CENTERS[center_key]
+                end
+            end
+
+            if def.negative_tooltip
+            and G.P_CENTERS
+            and G.P_CENTERS.e_negative then
+                info_queue[
+                    #info_queue + 1
+                ] =
+                    G.P_CENTERS.e_negative
+            end
+
+            local vars = {
+                e.hunger or 1,
+                e.bond or 0,
+                e.care_mistakes or 0
+            }
+
+            vars.elements = {
+                BM.care_bars(
+                    e,
+                    stage
+                )
+            }
+
+            if def.dynamic_vars then
+                local dynamic =
+                    def.dynamic_vars(
+                        card,
+                        e
+                    )
+                    or {}
+
+                for _, value in ipairs(
+                    dynamic
+                ) do
+                    vars[#vars + 1] =
+                        value
+                end
+            end
+
+            return {
+                vars = vars
+            }
+        end,
+
+        in_pool = function(self, args)
+            return stage == 'Fresh'
+                or stage == 'In-Training'
+                or stage == 'Rookie'
+                or stage == 'Champion'
+                or stage == 'Rare'
+        end,
+
+        add_to_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_add(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        remove_from_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_remove(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        can_sell = function(
+            self,
+            card,
+            context
+        )
+            return BM.can_sell(
+                card,
+                slug
+            )
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            BM.care_tick(
+                card,
+                context
+            )
+
+            if card.ability.extra
+                .permanently_disabled then
+                return
+            end
+
+            return BM.run_effect(
+                slug,
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = def.name,
+        stage = stage,
+        evolves_to =
+            def.evolves_to,
+        effect =
+            def.effect
+    }
+
+    local weight =
+        BM.stage_shop_weight(
+            stage
+        )
+
+    if weight > 0 then
+        BM.shop_joker_keys[
+            #BM.shop_joker_keys + 1
+        ] = {
+            key =
+                BM.center_key(
+                    slug
+                ),
+            weight = weight,
+            stage = stage
+        }
+    end
+end
+
+do
+    local slug = 'recovery_digitama'
+    local stage = 'Digitama'
+
+    local extra = {
+        recovery_rounds = 2,
+        recover_slug = nil,
+        recover_extra = nil
+    }
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = 'Digitama',
+            text = {
+                'Does nothing while recovering',
+                'Returns to {C:attention}#2#{}',
+                'after {C:attention}#1#{} #3#'
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity =
+            BM.stage_rarity(stage),
+
+        cost = 0,
+
+        atlas = 'Joker',
+        pos = {x=3,y=15},
+
+        blueprint_compat = false,
+        eternal_compat = true,
+        perishable_compat = false,
+
+        balatromon = true,
+        balatromon_stage = stage,
+        balatromon_evolves_to = '-',
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            local rounds =
+                e.recovery_rounds or 2
+
+            local recover_slug =
+                e.recover_slug
+
+            local recover_name =
+                'Digimon'
+
+            if recover_slug
+            and BM.joker_defs
+            and BM.joker_defs[
+                recover_slug
+            ] then
+                recover_name =
+                    BM.joker_defs[
+                        recover_slug
+                    ].name
+
+                BM.add_digimon_tooltip(
+                    info_queue,
+                    recover_slug
+                )
+            end
+
+            return {
+                vars = {
+                    rounds,
+                    recover_name,
+                    rounds == 1
+                        and 'round'
+                        or 'rounds'
+                }
+            }
+        end,
+
+        in_pool = function()
+            return false
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            return BM.tick_recovery_digitama(
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = 'Digitama',
+        stage = stage,
+        evolves_to = '-',
+        effect =
+            'Does nothing while recovering. Returns to its previous Digimon after 2 rounds'
+    }
+end
+
 do
     local slug = 'botamon'
     local stage = 'Fresh'
@@ -1482,7 +1836,7 @@ do
         atlas = 'Joker', pos = {x=1,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Gabumon',
+        balatromon_stage = stage, balatromon_evolves_to = 'Gabumon, Elecmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local current = 90 - 5 * (e.discards or 0)
@@ -1501,7 +1855,7 @@ elements={BM.care_bars(e,stage)},current}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Tsunomon', stage=stage, evolves_to='Gabumon', effect='+90 Chips (-5 Chips per discard used)'}
+    BM.joker_defs[slug] = {name='Tsunomon', stage=stage, evolves_to='Gabumon, Elecmon', effect='+90 Chips (-5 Chips per discard used)'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -1552,6 +1906,171 @@ elements={BM.care_bars(e,stage)},e.chips or 0}}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
+
+do
+    local slug = 'elecmon'
+    local stage = 'Rookie'
+
+    local extra = {
+        hunger = 1,
+        bond = 0,
+        care_mistakes = 0,
+        care_rounds = 0,
+        stored_chips = 0
+    }
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = 'Elecmon',
+            text = {
+                'Stores {C:chips}+10{} Chips for every hand played',
+                'Stored Chips are released during a {C:attention}Boss Blind{}',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+                '{C:inactive}(Resets when released){}',
+                BM.care_status_text(stage),
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity = BM.stage_rarity(stage),
+        cost = 5,
+
+        atlas = 'Joker',
+        pos = {x = 8, y = 17},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
+        balatromon = true,
+        balatromon_stage = stage,
+        balatromon_evolves_to = 'Leomon',
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+
+                    elements = {
+                        BM.care_bars(
+                            e,
+                            stage
+                        )
+                    },
+
+                    e.stored_chips or 0
+                }
+            }
+        end,
+
+        in_pool = function(self, args)
+            return
+                stage == 'Fresh'
+                or stage == 'In-Training'
+                or stage == 'Rookie'
+                or stage == 'Champion'
+                or stage == 'Rare'
+        end,
+
+        add_to_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_add(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        remove_from_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_remove(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        can_sell = function(
+            self,
+            card,
+            context
+        )
+            return BM.can_sell(
+                card,
+                slug
+            )
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            BM.care_tick(
+                card,
+                context
+            )
+
+            if card.ability.extra
+                .permanently_disabled then
+                return
+            end
+
+            return BM.run_effect(
+                slug,
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = 'Elecmon',
+        stage = stage,
+        evolves_to = 'Leomon',
+        effect = 'Stores +10 Chips for every hand played; releases stored Chips during a Boss Blind'
+    }
+
+    local weight =
+        BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[
+            #BM.shop_joker_keys + 1
+        ] = {
+            key = BM.center_key(slug),
+            weight = weight,
+            stage = stage
+        }
+    end
+end
+
+
 
 do
     local slug = 'garurumon'
@@ -1624,7 +2143,7 @@ do
         atlas = 'Joker', pos = {x=4,y=3},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'LoaderLeomon, Knightmon',
+        balatromon_stage = stage, balatromon_evolves_to = 'LoaderLeomon, Knightmon, GrapLeomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'leomon_hand') or e.target_hand or 'High Card'
@@ -1643,7 +2162,7 @@ elements={BM.care_bars(e,stage)},target_hand,e.chips or 0}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Leomon', stage=stage, evolves_to='LoaderLeomon, Knightmon', effect='Gain +15 Chips if played hand contains [poker hand] (carried over Chips from Gabumon) (poker hand changes at end of round)'}
+    BM.joker_defs[slug] = {name='Leomon', stage=stage, evolves_to='LoaderLeomon, Knightmon, GrapLeomon', effect='Gain +15 Chips if played hand contains [poker hand] (carried over Chips from Gabumon) (poker hand changes at end of round)'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
@@ -1742,6 +2261,171 @@ elements={BM.care_bars(e,stage)},BM.rank_name(target_rank),e.chips or 0}}
     BM.joker_defs[slug] = {name='WereGarurumon', stage=stage, evolves_to='MetalGarurumon', effect='Gain +20 Chips if [Rank] is discarded. (can upgrade once per discard) (carried over Chips from Garurumon) (rank changes at end of round)'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'grapleomon'
+    local stage = 'Ultimate'
+
+    local extra = {
+        hunger = 1,
+        bond = 0,
+        care_mistakes = 0,
+        care_rounds = 0,
+        stored_chips = 0
+    }
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = 'GrapLeomon',
+            text = {
+                'Stores {C:chips}+60{} Chips when the',
+                '{C:attention}most played poker hand{} is played',
+                'Releases stored Chips while this',
+                'Joker is {C:attention}leftmost{}',
+                '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
+                '{C:inactive}(Resets when released){}',
+                BM.care_status_text(stage),
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity = BM.stage_rarity(stage),
+        cost = 5,
+
+        atlas = 'Joker',
+        pos = {x = 9, y = 17},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
+        balatromon = true,
+        balatromon_stage = stage,
+        balatromon_evolves_to = 'SaberLeomon',
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+
+                    elements = {
+                        BM.care_bars(
+                            e,
+                            stage
+                        )
+                    },
+
+                    e.stored_chips or 0
+                }
+            }
+        end,
+
+        in_pool = function(self, args)
+            return
+                stage == 'Fresh'
+                or stage == 'In-Training'
+                or stage == 'Rookie'
+                or stage == 'Champion'
+                or stage == 'Rare'
+        end,
+
+        add_to_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_add(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        remove_from_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_remove(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        can_sell = function(
+            self,
+            card,
+            context
+        )
+            return BM.can_sell(
+                card,
+                slug
+            )
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            BM.care_tick(
+                card,
+                context
+            )
+
+            if card.ability.extra
+                .permanently_disabled then
+                return
+            end
+
+            return BM.run_effect(
+                slug,
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = 'GrapLeomon',
+        stage = stage,
+        evolves_to = 'SaberLeomon',
+        effect = 'Stores +60 Chips when the most played poker hand is played; releases while leftmost'
+    }
+
+    local weight =
+        BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[
+            #BM.shop_joker_keys + 1
+        ] = {
+            key = BM.center_key(slug),
+            weight = weight,
+            stage = stage
+        }
+    end
 end
 
 do
@@ -1909,6 +2593,171 @@ elements={BM.care_bars(e,stage)},e.xchips or 1}}
     BM.joker_defs[slug] = {name='HeavyLeomon', stage=stage, evolves_to='-', effect='Gain X0.25 Chips every time the least played poker hand is upgraded'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'saberleomon'
+    local stage = 'Mega'
+
+    local extra = {
+        hunger = 1,
+        bond = 0,
+        care_mistakes = 0,
+        care_rounds = 0,
+        stored_xchips = 1
+    }
+
+    SMODS.Joker {
+        key = slug,
+
+        loc_txt = {
+            name = 'SaberLeomon',
+            text = {
+                'Doubles stored {C:chips}Chips{} when the',
+                '{C:attention}least played poker hand{} is played',
+                'Releases stored Chips while this',
+                'Joker is {C:attention}leftmost{}',
+                '{C:inactive}(Currently {X:chips,C:white}X#4#{C:inactive} Chips){}',
+                '{C:inactive}(Resets to {X:chips,C:white}X1{C:inactive} when released){}',
+                BM.care_status_text(stage),
+            }
+        },
+
+        config = {
+            extra = extra
+        },
+
+        rarity = BM.stage_rarity(stage),
+        cost = 5,
+
+        atlas = 'Joker',
+        pos = {x = 0, y = 18},
+
+        blueprint_compat = true,
+        eternal_compat = true,
+        perishable_compat = true,
+
+        balatromon = true,
+        balatromon_stage = stage,
+        balatromon_evolves_to = '-',
+
+        loc_vars = function(
+            self,
+            info_queue,
+            card
+        )
+            local e =
+                card
+                and card.ability
+                and card.ability.extra
+                or extra
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+
+                    elements = {
+                        BM.care_bars(
+                            e,
+                            stage
+                        )
+                    },
+
+                    e.stored_xchips or 1
+                }
+            }
+        end,
+
+        in_pool = function(self, args)
+            return
+                stage == 'Fresh'
+                or stage == 'In-Training'
+                or stage == 'Rookie'
+                or stage == 'Champion'
+                or stage == 'Rare'
+        end,
+
+        add_to_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_add(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        remove_from_deck = function(
+            self,
+            card,
+            from_debuff
+        )
+            if not from_debuff then
+                BM.on_remove(
+                    card,
+                    slug
+                )
+            end
+        end,
+
+        can_sell = function(
+            self,
+            card,
+            context
+        )
+            return BM.can_sell(
+                card,
+                slug
+            )
+        end,
+
+        calculate = function(
+            self,
+            card,
+            context
+        )
+            BM.care_tick(
+                card,
+                context
+            )
+
+            if card.ability.extra
+                .permanently_disabled then
+                return
+            end
+
+            return BM.run_effect(
+                slug,
+                card,
+                context
+            )
+        end,
+    }
+
+    BM.joker_defs[slug] = {
+        name = 'SaberLeomon',
+        stage = stage,
+        evolves_to = '-',
+        effect = 'Doubles stored Chips when the least played poker hand is played; releases while leftmost'
+    }
+
+    local weight =
+        BM.stage_shop_weight(stage)
+
+    if weight > 0 then
+        BM.shop_joker_keys[
+            #BM.shop_joker_keys + 1
+        ] = {
+            key = BM.center_key(slug),
+            weight = weight,
+            stage = stage
+        }
+    end
 end
 
 do
@@ -4377,6 +5226,72 @@ elements={BM.care_bars(e,stage)}}}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
+
+bm_register_new_digimon({
+    slug = 'leafmon',
+    name = 'Leafmon',
+    stage = 'Fresh',
+    evolves_to = 'Minomon',
+    pos = {x=7,y=16},
+    text = {
+        'Retrigger each played {C:attention}9{}',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger each played 9 one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'minomon',
+    name = 'Minomon',
+    stage = 'In-Training',
+    evolves_to = 'Wormmon',
+    pos = {x=8,y=16},
+    text = {
+        'Retrigger each played {C:attention}7{} and {C:attention}4{}',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger each played 7 and 4 one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'wormmon',
+    name = 'Wormmon',
+    stage = 'Rookie',
+    evolves_to = 'Stingmon',
+    pos = {x=9,y=16},
+    text = {
+        'Retrigger each played {C:attention}3{}, {C:attention}4{}, or {C:attention}5{}',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger each played 3, 4, or 5 one additional time'
+})
+
+bm_register_new_digimon({
+    slug = 'stingmon',
+    name = 'Stingmon',
+    stage = 'Champion',
+    evolves_to = 'Dinobeemon',
+    pos = {x=0,y=17},
+    text = {
+        'Retrigger each played {C:attention}2{}, {C:attention}3{}, {C:attention}4{},',
+        '{C:attention}5{}, or {C:attention}10{} {C:attention}2 additional times{}',
+    },
+    effect = 'Retrigger each played 2, 3, 4, 5, or 10 two additional times'
+})
+
+bm_register_new_digimon({
+    slug = 'dinobeemon',
+    name = 'Dinobeemon',
+    stage = 'Ultimate',
+    evolves_to = 'Imperialdramon Fighter Mode, Imperialdramon Dragon Mode',
+    pos = {x=1,y=17},
+    text = {
+        'Retrigger all played cards in the',
+        'first hand of each round',
+        '{C:attention}1 additional time{}',
+    },
+    effect = 'Retrigger all played cards in the first hand of each round one additional time'
+})
 
 do
     local slug = 'imperialdramon_dragon_mode'
@@ -8955,360 +9870,6 @@ do
     end
 end
 
-do
-    local slug = 'recovery_digitama'
-    local stage = 'Digitama'
-
-    local extra = {
-        recovery_rounds = 2,
-        recover_slug = nil,
-        recover_extra = nil
-    }
-
-    SMODS.Joker {
-        key = slug,
-
-        loc_txt = {
-            name = 'Digitama',
-            text = {
-                'Does nothing while recovering',
-                'Returns to {C:attention}#2#{}',
-                'after {C:attention}#1#{} #3#'
-            }
-        },
-
-        config = {
-            extra = extra
-        },
-
-        rarity =
-            BM.stage_rarity(stage),
-
-        cost = 0,
-
-        atlas = 'Joker',
-        pos = {x=3,y=15},
-
-        blueprint_compat = false,
-        eternal_compat = true,
-        perishable_compat = false,
-
-        balatromon = true,
-        balatromon_stage = stage,
-        balatromon_evolves_to = '-',
-
-        loc_vars = function(
-            self,
-            info_queue,
-            card
-        )
-            local e =
-                card
-                and card.ability
-                and card.ability.extra
-                or extra
-
-            local rounds =
-                e.recovery_rounds or 2
-
-            local recover_slug =
-                e.recover_slug
-
-            local recover_name =
-                'Digimon'
-
-            if recover_slug
-            and BM.joker_defs
-            and BM.joker_defs[
-                recover_slug
-            ] then
-                recover_name =
-                    BM.joker_defs[
-                        recover_slug
-                    ].name
-
-                BM.add_digimon_tooltip(
-                    info_queue,
-                    recover_slug
-                )
-            end
-
-            return {
-                vars = {
-                    rounds,
-                    recover_name,
-                    rounds == 1
-                        and 'round'
-                        or 'rounds'
-                }
-            }
-        end,
-
-        in_pool = function()
-            return false
-        end,
-
-        calculate = function(
-            self,
-            card,
-            context
-        )
-            return BM.tick_recovery_digitama(
-                card,
-                context
-            )
-        end,
-    }
-
-    BM.joker_defs[slug] = {
-        name = 'Digitama',
-        stage = stage,
-        evolves_to = '-',
-        effect =
-            'Does nothing while recovering. Returns to its previous Digimon after 2 rounds'
-    }
-end
-
-local function bm_register_new_digimon(def)
-    local slug = def.slug
-    local stage = def.stage
-
-    local extra = {
-        hunger = 1,
-        bond = 0,
-        care_mistakes = 0,
-        care_rounds = 0
-    }
-
-    for k, v in pairs(
-        def.extra or {}
-    ) do
-        extra[k] = v
-    end
-
-    SMODS.Joker {
-        key = slug,
-
-        loc_txt = {
-            name = def.name,
-            text = {
-                def.text,
-                {
-                    BM.care_status_text(
-                        stage
-                    ),
-                }
-            }
-        },
-
-        config = {
-            extra = extra
-        },
-
-        rarity =
-            BM.stage_rarity(stage),
-
-        cost = 5,
-
-        atlas = 'Joker',
-        pos = def.pos,
-
-        blueprint_compat =
-            def.blueprint_compat
-                ~= false,
-
-        eternal_compat = true,
-        perishable_compat = true,
-
-        balatromon = true,
-
-        balatromon_stage =
-            stage,
-
-        balatromon_evolves_to =
-            def.evolves_to,
-
-        loc_vars = function(
-            self,
-            info_queue,
-            card
-        )
-            local e =
-                card
-                and card.ability
-                and card.ability.extra
-                or extra
-
-            for _, seal in ipairs(
-                def.seal_tooltips
-                or {}
-            ) do
-                BM.add_seal_tooltip(
-                    info_queue,
-                    seal
-                )
-            end
-
-            for _, digimon in ipairs(
-                def.digimon_tooltips
-                or {}
-            ) do
-                BM.add_digimon_tooltip(
-                    info_queue,
-                    digimon
-                )
-            end
-
-            for _, center_key in ipairs(
-                def.joker_tooltips
-                or {}
-            ) do
-                if G.P_CENTERS
-                and G.P_CENTERS[center_key] then
-                    info_queue[#info_queue + 1] =
-                    G.P_CENTERS[center_key]
-                end
-            end
-
-            if def.negative_tooltip
-            and G.P_CENTERS
-            and G.P_CENTERS.e_negative then
-                info_queue[
-                    #info_queue + 1
-                ] =
-                    G.P_CENTERS.e_negative
-            end
-
-            local vars = {
-                e.hunger or 1,
-                e.bond or 0,
-                e.care_mistakes or 0
-            }
-
-            vars.elements = {
-                BM.care_bars(
-                    e,
-                    stage
-                )
-            }
-
-            if def.dynamic_vars then
-                local dynamic =
-                    def.dynamic_vars(
-                        card,
-                        e
-                    )
-                    or {}
-
-                for _, value in ipairs(
-                    dynamic
-                ) do
-                    vars[#vars + 1] =
-                        value
-                end
-            end
-
-            return {
-                vars = vars
-            }
-        end,
-
-        in_pool = function(self, args)
-            return stage == 'Fresh'
-                or stage == 'In-Training'
-                or stage == 'Rookie'
-                or stage == 'Champion'
-                or stage == 'Rare'
-        end,
-
-        add_to_deck = function(
-            self,
-            card,
-            from_debuff
-        )
-            if not from_debuff then
-                BM.on_add(
-                    card,
-                    slug
-                )
-            end
-        end,
-
-        remove_from_deck = function(
-            self,
-            card,
-            from_debuff
-        )
-            if not from_debuff then
-                BM.on_remove(
-                    card,
-                    slug
-                )
-            end
-        end,
-
-        can_sell = function(
-            self,
-            card,
-            context
-        )
-            return BM.can_sell(
-                card,
-                slug
-            )
-        end,
-
-        calculate = function(
-            self,
-            card,
-            context
-        )
-            BM.care_tick(
-                card,
-                context
-            )
-
-            if card.ability.extra
-                .permanently_disabled then
-                return
-            end
-
-            return BM.run_effect(
-                slug,
-                card,
-                context
-            )
-        end,
-    }
-
-    BM.joker_defs[slug] = {
-        name = def.name,
-        stage = stage,
-        evolves_to =
-            def.evolves_to,
-        effect =
-            def.effect
-    }
-
-    local weight =
-        BM.stage_shop_weight(
-            stage
-        )
-
-    if weight > 0 then
-        BM.shop_joker_keys[
-            #BM.shop_joker_keys + 1
-        ] = {
-            key =
-                BM.center_key(
-                    slug
-                ),
-            weight = weight,
-            stage = stage
-        }
-    end
-end
-
 bm_register_new_digimon({
     slug = 'twins',
     name = 'Tsubumon & Pabumon',
@@ -9598,71 +10159,6 @@ bm_register_new_digimon({
     effect = 'Spectral cards appear frequently in the shop and applies MegaKabuterimon and Okuwamon effects'
 })
 
-bm_register_new_digimon({
-    slug = 'leafmon',
-    name = 'Leafmon',
-    stage = 'Fresh',
-    evolves_to = 'Minomon',
-    pos = {x=7,y=16},
-    text = {
-        'Retrigger each played {C:attention}9{}',
-        '{C:attention}1 additional time{}',
-    },
-    effect = 'Retrigger each played 9 one additional time'
-})
-
-bm_register_new_digimon({
-    slug = 'minomon',
-    name = 'Minomon',
-    stage = 'In-Training',
-    evolves_to = 'Wormmon',
-    pos = {x=8,y=16},
-    text = {
-        'Retrigger each played {C:attention}7{} and {C:attention}4{}',
-        '{C:attention}1 additional time{}',
-    },
-    effect = 'Retrigger each played 7 and 4 one additional time'
-})
-
-bm_register_new_digimon({
-    slug = 'wormmon',
-    name = 'Wormmon',
-    stage = 'Rookie',
-    evolves_to = 'Stingmon',
-    pos = {x=9,y=16},
-    text = {
-        'Retrigger each played {C:attention}3{}, {C:attention}4{}, or {C:attention}5{}',
-        '{C:attention}1 additional time{}',
-    },
-    effect = 'Retrigger each played 3, 4, or 5 one additional time'
-})
-
-bm_register_new_digimon({
-    slug = 'stingmon',
-    name = 'Stingmon',
-    stage = 'Champion',
-    evolves_to = 'Dinobeemon',
-    pos = {x=0,y=17},
-    text = {
-        'Retrigger each played {C:attention}2{}, {C:attention}3{}, {C:attention}4{},',
-        '{C:attention}5{}, or {C:attention}10{} {C:attention}2 additional times{}',
-    },
-    effect = 'Retrigger each played 2, 3, 4, 5, or 10 two additional times'
-})
-
-bm_register_new_digimon({
-    slug = 'dinobeemon',
-    name = 'Dinobeemon',
-    stage = 'Ultimate',
-    evolves_to = 'Imperialdramon Fighter Mode, Imperialdramon Dragon Mode',
-    pos = {x=1,y=17},
-    text = {
-        'Retrigger all played cards in the',
-        'first hand of each round',
-        '{C:attention}1 additional time{}',
-    },
-    effect = 'Retrigger all played cards in the first hand of each round one additional time'
-})
 
 bm_register_new_digimon({
     slug = 'aoibotamamon',

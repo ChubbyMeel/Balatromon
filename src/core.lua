@@ -1508,6 +1508,142 @@ function BM.is_least_played_hand(hand)
     return (hand_data.played or 0) == least
 end
 
+function BM.is_most_played_hand(hand)
+    if not hand
+    or not G.GAME
+    or not G.GAME.hands
+    or not G.GAME.hands[hand] then
+        return false
+    end
+
+    local hand_data =
+        G.GAME.hands[hand]
+
+    if hand_data.visible == false then
+        return false
+    end
+
+    local most =
+        -math.huge
+
+    for _, data in pairs(
+        G.GAME.hands
+    ) do
+        if data.visible ~= false then
+            most =
+                math.max(
+                    most,
+                    data.played or 0
+                )
+        end
+    end
+
+    return
+        (hand_data.played or 0)
+        == most
+end
+
+function BM.is_most_played_hand_before_play(hand)
+    if not hand
+    or not G.GAME
+    or not G.GAME.hands
+    or not G.GAME.hands[hand] then
+        return false
+    end
+
+    local hand_data =
+        G.GAME.hands[hand]
+
+    if hand_data.visible == false then
+        return false
+    end
+
+    local current =
+        math.max(
+            0,
+            (hand_data.played or 0) - 1
+        )
+
+    local most =
+        -math.huge
+
+    for hand_name, data in pairs(
+        G.GAME.hands
+    ) do
+        if data.visible ~= false then
+            local played =
+                data.played or 0
+
+            if hand_name == hand then
+                played =
+                    math.max(
+                        0,
+                        played - 1
+                    )
+            end
+
+            most =
+                math.max(
+                    most,
+                    played
+                )
+        end
+    end
+
+    return current == most
+end
+
+
+function BM.is_least_played_hand_before_play(hand)
+    if not hand
+    or not G.GAME
+    or not G.GAME.hands
+    or not G.GAME.hands[hand] then
+        return false
+    end
+
+    local hand_data =
+        G.GAME.hands[hand]
+
+    if hand_data.visible == false then
+        return false
+    end
+
+    local current =
+        math.max(
+            0,
+            (hand_data.played or 0) - 1
+        )
+
+    local least =
+        math.huge
+
+    for hand_name, data in pairs(
+        G.GAME.hands
+    ) do
+        if data.visible ~= false then
+            local played =
+                data.played or 0
+
+            if hand_name == hand then
+                played =
+                    math.max(
+                        0,
+                        played - 1
+                    )
+            end
+
+            least =
+                math.min(
+                    least,
+                    played
+                )
+        end
+    end
+
+    return current == least
+end
+
 function BM.stage_shop_weight(stage)
     if stage == 'Fresh' then return 12 end
     if stage == 'In-Training' then return 12 end

@@ -54,6 +54,11 @@ BM.evolution_rules = {
         raijiludomon = {note = 'Standard route'},
         knightmon = {min_care = 1, note = 'Rough-care route'},
     },
+    tsunomon = {
+        gabumon = {note = 'Standard route'},
+        elecmon = {min_hunger = 2, note = 'Hungry route'},
+        
+    },
     gabumon = {
         garurumon = {note = 'Standard route'},
         leomon = {min_hunger = 2, note = 'Hungry route'},
@@ -66,6 +71,7 @@ BM.evolution_rules = {
         mammothmon = {min_hunger = 3, note = 'High-Hunger route'},
     },
     leomon = {
+        grapleomon = {note = 'Standard route'},
         loaderleomon = {note = 'Standard route'},
         knightmon = {min_care = 1, note = 'Rough-care route'},
     },

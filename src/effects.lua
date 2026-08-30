@@ -2257,3 +2257,222 @@ H.callismon = function(card, context)
         context
     )
 end
+
+H.elecmon = function(card, context)
+    local e =
+        card.ability.extra
+
+    e.stored_chips =
+        e.stored_chips or 0
+
+    if context.setting_blind
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        local blind =
+            context.blind
+            or (
+                G.GAME
+                and G.GAME.blind
+            )
+
+        e.elecmon_release_pending =
+            blind
+            and blind.boss
+            and true
+            or false
+
+        e._elecmon_release =
+            nil
+    end
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        e._elecmon_release =
+            nil
+
+        e.stored_chips =
+            e.stored_chips + 10
+
+        if e.elecmon_release_pending then
+            e._elecmon_release =
+                e.stored_chips
+
+            e.stored_chips =
+                0
+
+            e.elecmon_release_pending =
+                false
+
+            return {
+                message = 'Released!',
+                colour = G.C.CHIPS
+            }
+        end
+
+        return {
+            message = '+10 Stored',
+            colour = G.C.CHIPS
+        }
+    end
+
+    if context.joker_main
+    and e._elecmon_release
+    and e._elecmon_release > 0 then
+        return {
+            chips =
+                e._elecmon_release
+        }
+    end
+
+    if context.after
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        e._elecmon_release =
+            nil
+    end
+end
+
+
+H.grapleomon = function(card, context)
+    local e =
+        card.ability.extra
+
+    e.stored_chips =
+        e.stored_chips or 0
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        e._grapleomon_release =
+            nil
+
+        local stored =
+            false
+
+        if BM.is_most_played_hand_before_play(
+            context.scoring_name
+        ) then
+            e.stored_chips =
+                e.stored_chips + 60
+
+            stored = true
+        end
+
+        if BM.joker_index(card) == 1
+        and e.stored_chips > 0 then
+            e._grapleomon_release =
+                e.stored_chips
+
+            e.stored_chips =
+                0
+
+            return {
+                message = 'Released!',
+                colour = G.C.CHIPS
+            }
+        end
+
+        if stored then
+            return {
+                message = '+60 Stored',
+                colour = G.C.CHIPS
+            }
+        end
+    end
+
+    if context.joker_main
+    and e._grapleomon_release
+    and e._grapleomon_release > 0 then
+        return {
+            chips =
+                e._grapleomon_release
+        }
+    end
+
+    if context.after
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        e._grapleomon_release =
+            nil
+    end
+end
+
+
+H.saberleomon = function(card, context)
+    local e =
+        card.ability.extra
+
+    e.stored_xchips =
+        e.stored_xchips or 1
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        e._saberleomon_release =
+            nil
+
+        local stored =
+            false
+
+        if BM.is_least_played_hand_before_play(
+            context.scoring_name
+        ) then
+            e.stored_xchips =
+                e.stored_xchips * 2
+
+            stored = true
+        end
+
+        if BM.joker_index(card) == 1
+        and e.stored_xchips > 1 then
+            e._saberleomon_release =
+                e.stored_xchips
+
+            e.stored_xchips =
+                1
+
+            return {
+                message = 'Released!',
+                colour = G.C.CHIPS
+            }
+        end
+
+        if stored then
+            return {
+                message =
+                    'X'
+                    .. tostring(
+                        e.stored_xchips
+                    )
+                    .. ' Stored',
+
+                colour =
+                    G.C.CHIPS
+            }
+        end
+    end
+
+    if context.joker_main
+    and e._saberleomon_release
+    and e._saberleomon_release > 1 then
+        return {
+            xchips =
+                e._saberleomon_release
+        }
+    end
+
+    if context.after
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+        e._saberleomon_release =
+            nil
+    end
+end
