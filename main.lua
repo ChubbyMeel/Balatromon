@@ -294,3 +294,5 @@ SMODS.current_mod.process_loc_text = function(self)
     end
 end
 
+
+assert(SMODS.load_file('src/pokermon_compat.lua'))()
