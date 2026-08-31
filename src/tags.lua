@@ -317,47 +317,86 @@ SMODS.Tag {
     end,
 }
 
-local function get_stage_digimon_pool(stage)
+local function get_stage_digimon_keys(stage)
     local pool = {}
 
-    for _, center in ipairs(
-        G.P_CENTER_POOLS
-        and G.P_CENTER_POOLS.Joker
-        or {}
-    ) do
-        if center.balatromon == true
-        and center.balatromon_stage == stage then
-            pool[#pool + 1] = center
+    for slug, def in pairs(BM.joker_defs or {}) do
+        if def.stage == stage then
+            local key = BM.center_key(slug)
+
+            if G.P_CENTERS
+            and G.P_CENTERS[key]
+            and not (
+                G.GAME
+                and G.GAME.banned_keys
+                and G.GAME.banned_keys[key]
+            ) then
+                pool[#pool + 1] = key
+            end
         end
     end
+
+    table.sort(pool)
 
     return pool
 end
 
 local function apply_stage_shop_tag(tag, context, stage, seed, colour)
-    if context.type ~= 'store_joker_create'
+    if not context
+    or context.type ~= 'store_joker_create'
     or tag.triggered then
         return
     end
 
-    local pool = get_stage_digimon_pool(stage)
+    local pool = get_stage_digimon_keys(stage)
 
     if #pool == 0 then
+        print(
+            '[Balatromon] '
+            .. stage
+            .. ' Tag: BM.joker_defs produced 0 valid centers'
+        )
+
         tag:nope()
         tag.triggered = true
         return
     end
 
-    local center = BM.random_element(
+    local center_key = BM.random_element(
         pool,
-        seed .. '_' .. tostring(G.GAME.round_resets.ante or 0)
+        seed
+            .. '_'
+            .. tostring(
+                G.GAME
+                and G.GAME.round_resets
+                and G.GAME.round_resets.ante
+                or 0
+            )
     )
 
-    if not center then
+    if not center_key
+    or not G.P_CENTERS
+    or not G.P_CENTERS[center_key] then
+        print(
+            '[Balatromon] '
+            .. stage
+            .. ' Tag: selected center is missing: '
+            .. tostring(center_key)
+        )
+
         tag:nope()
         tag.triggered = true
         return
     end
+
+    print(
+        '[Balatromon] '
+        .. stage
+        .. ' Tag: '
+        .. tostring(#pool)
+        .. ' candidates, selected '
+        .. tostring(center_key)
+    )
 
     local card = create_card(
         'Joker',
@@ -366,9 +405,38 @@ local function apply_stage_shop_tag(tag, context, stage, seed, colour)
         nil,
         nil,
         nil,
-        center.key,
+        center_key,
         seed
     )
+
+    if not card
+    or not card.config
+    or not card.config.center
+    or card.config.center.key ~= center_key then
+        print(
+            '[Balatromon] '
+            .. stage
+            .. ' Tag: create_card did not preserve forced key; '
+            .. 'constructing the selected center directly'
+        )
+
+        local center = G.P_CENTERS[center_key]
+
+        card = Card(
+            context.area.T.x
+                + context.area.T.w / 2
+                - G.CARD_W / 2,
+            context.area.T.y,
+            G.CARD_W,
+            G.CARD_H,
+            G.P_CARDS.empty,
+            center,
+            {
+                bypass_discovery_center = true,
+                bypass_discovery_ui = true
+            }
+        )
+    end
 
     create_shop_card_ui(
         card,
@@ -392,6 +460,10 @@ end
 
 
 SMODS.Tag:take_ownership('uncommon', {
+    config = {
+        type = 'store_joker_create'
+    },
+
     loc_txt = {
         name = 'Champion Tag',
         text = {
@@ -412,7 +484,11 @@ SMODS.Tag:take_ownership('uncommon', {
 }, true)
 
 
-SMODS.Tag:take_ownership('rare', {
+local ultimate_tag = SMODS.Tag:take_ownership('rare', {
+    config = {
+        type = 'store_joker_create'
+    },
+
     loc_txt = {
         name = 'Ultimate Tag',
         text = {
@@ -431,6 +507,10 @@ SMODS.Tag:take_ownership('rare', {
         )
     end,
 }, true)
+
+if ultimate_tag then
+    ultimate_tag.requires = nil
+end
 
 
 SMODS.Tag:take_ownership('top_up', {
