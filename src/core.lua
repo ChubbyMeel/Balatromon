@@ -624,6 +624,10 @@ function BM.get_stage(card)
 end
 
 function BM.bond_max_for_stage(stage)
+    if BM.get_mode_bond_max then
+        return BM.get_mode_bond_max(stage)
+    end
+
     if stage == 'Fresh'
     or stage == 'In-Training' then
         return 1
@@ -667,6 +671,25 @@ function BM.care_bar_row(label, value, max_value, bar_type)
         HEX('E99038'),
         HEX('D94A42')
     }
+
+    if max_value > 5 then
+        hunger_colours = {
+            HEX('67C95B'),
+            HEX('92CE50'),
+            HEX('BFD047'),
+            HEX('E4C83E'),
+            HEX('E9A43A'),
+            HEX('E97A38'),
+            HEX('D94A42')
+        }
+    end
+
+    local bar_width = math.max(
+        1.55,
+        (max_value * 0.26)
+            + (math.max(0, max_value - 1) * 0.015)
+            + 0.12
+    )
 
     local care_colours = {
         HEX('E4C83E'),
@@ -734,8 +757,8 @@ function BM.care_bar_row(label, value, max_value, bar_type)
                 n = G.UIT.C,
                 config = {
                     align = 'cm',
-                    minw = 1.55,
-                    maxw = 1.55,
+                    minw = bar_width,
+                    maxw = bar_width,
                     padding = 0.015
                 },
                 nodes = {
@@ -777,9 +800,13 @@ end
 function BM.care_bars(e, stage)
     e = e or {}
 
+    local hunger_max = BM.get_hunger_max
+        and BM.get_hunger_max()
+        or 5
+
     local hunger = math.max(
         1,
-        math.min(5, e.hunger or 1)
+        math.min(hunger_max, e.hunger or 1)
     )
 
     local bond_max =
@@ -801,6 +828,24 @@ function BM.care_bars(e, stage)
         )
     )
 
+    local widest_bar = math.max(
+        hunger_max,
+        bond_max,
+        3
+    )
+
+    local panel_width = 3.45
+
+    if widest_bar > 5 then
+        panel_width = math.max(
+            panel_width,
+            2.05
+                + (widest_bar * 0.26)
+                + (math.max(0, widest_bar - 1) * 0.015)
+                + 0.22
+        )
+    end
+
     return {
         n = G.UIT.C,
         config = {
@@ -819,14 +864,14 @@ function BM.care_bars(e, stage)
                     align = 'cm',
                     padding = 0.06,
                     r = 0.10,
-                    minw = 3.45,
+                    minw = panel_width,
                     colour = lighten(G.C.BLACK, 0.15)
                 },
                 nodes = {
                     BM.care_bar_row(
                         'HUNGER',
                         hunger,
-                        5,
+                        hunger_max,
                         'hunger'
                     ),
                     BM.care_bar_row(
@@ -1722,13 +1767,54 @@ function BM.feed(card, amount)
     if not BM.is_digimon(card) then return end
 
     local e = card.ability.extra
+    local was_starved = e.permanently_disabled == true
 
-    if e.permanently_disabled then return end
+    if was_starved
+    and not (
+        BM.can_revive_starved
+        and BM.can_revive_starved()
+    ) then
+        return
+    end
 
     e.hunger = math.max(
         1,
         (e.hunger or 1) - (amount or 1)
     )
+
+    local hunger_max = BM.get_hunger_max
+        and BM.get_hunger_max()
+        or 5
+
+    if was_starved
+    and e.hunger < hunger_max then
+        e.permanently_disabled = nil
+
+        SMODS.debuff_card(
+            card,
+            false,
+            'balatromon_hunger'
+        )
+
+        if SMODS.recalc_debuff then
+            SMODS.recalc_debuff(card)
+        end
+
+        local slug = BM.get_card_slug(card)
+        if slug
+        and BM.has_passive_deck_effect(slug)
+        and BM.on_add then
+            BM.on_add(card, slug)
+        end
+
+        BM.care_animation(
+            card,
+            'Revived!',
+            G.C.GREEN
+        )
+
+        return
+    end
 
     BM.care_animation(
         card,
@@ -1889,13 +1975,22 @@ function BM.care_tick(card, context)
     end}))
 
     if e.permanently_disabled then return end
+
+    local hunger_max = BM.get_hunger_max
+        and BM.get_hunger_max()
+        or 5
+
+    local bond_hunger_limit = BM.get_bond_gain_max_hunger
+        and BM.get_bond_gain_max_hunger()
+        or 3
+
     e.care_rounds = (e.care_rounds or 0) + 1
 
     if e.care_rounds % BM.get_hunger_rounds(card) == 0 then
         local old_hunger = e.hunger or 1
 
         e.hunger = math.min(
-            5,
+            hunger_max,
             old_hunger + 1
         )
 
@@ -1908,7 +2003,7 @@ function BM.care_tick(card, context)
         end
     end
 
-    if (e.hunger or 1) > 3 then
+    if (e.hunger or 1) > bond_hunger_limit then
         local old_mistakes = e.care_mistakes or 0
 
         e.care_mistakes = math.min(
@@ -1954,7 +2049,7 @@ function BM.care_tick(card, context)
         BM.start_bond_shake(card)
     end
 
-    if (e.hunger or 1) >= 5 then
+    if (e.hunger or 1) >= hunger_max then
         local slug = BM.get_card_slug(card)
 
         e.permanently_disabled = true
@@ -2026,7 +2121,7 @@ function BM.start_bond_shake(card)
     juice_card_until(card, eval, true)
 end
 
-function BM.card_ready_for_digivolution(card)
+function BM.card_ready_for_digivolution(card, device_key)
     if not BM.is_digimon(card) then
         return false
     end
@@ -2035,9 +2130,11 @@ function BM.card_ready_for_digivolution(card)
         return false
     end
 
-    local max_bond = BM.get_bond_max(card)
+    local required_bond = BM.get_digivolution_bond_requirement
+        and BM.get_digivolution_bond_requirement(card, device_key)
+        or BM.get_bond_max(card)
 
-    return (card.ability.extra.bond or 0) >= max_bond
+    return (card.ability.extra.bond or 0) >= required_bond
 end
 
 function BM.joker_index(card)

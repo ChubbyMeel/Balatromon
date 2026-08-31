@@ -730,20 +730,69 @@ local function can_reach_slug(start_slug, target_slug, seen)
     return false
 end
 
-local function baby_option_from_slug(slug)
+local CARE_STAGE_RANK = {
+    Fresh = 1,
+    Digitama = 1,
+    ['In-Training'] = 2,
+    Rookie = 3,
+    Champion = 4,
+    Rare = 4,
+    Ultimate = 5,
+    Mega = 6,
+}
+
+local function care_reversion_note()
+    if BM.is_casual_mode
+    and BM.is_casual_mode() then
+        return 'Care Crisis: revert 2 stages'
+    end
+
+    return 'Care Crisis: revert to In-Training'
+end
+
+local function history_before_index(history, index)
+    local out = {}
+    for i = 1, math.max(0, (index or 1) - 1) do
+        out[#out + 1] = history[i]
+    end
+    return out
+end
+
+local function care_reversion_option(slug, history_after, same_form)
     local def = BM.joker_defs and BM.joker_defs[slug]
     local center = G.P_CENTERS[BM.center_key(slug)]
     if not (def and center) then return nil end
 
     return {
         name = def.name or slug,
-        stage = def.stage or center.balatromon_stage or 'Fresh',
+        stage = def.stage or center.balatromon_stage or '',
         slug = slug,
         key = BM.center_key(slug),
         center = center,
-        route_note = 'Care Crisis: return to baby form',
+        route_note = care_reversion_note(),
         is_dedigivolution = true,
+        history_after = history_after or {},
+        same_form = same_form == true,
     }
+end
+
+local function care_reversion_target_rank(card)
+    local stage = BM.get_stage(card)
+    local current_rank = CARE_STAGE_RANK[stage] or 2
+
+    if current_rank <= 2 then
+        return current_rank
+    end
+
+    local revert_stages = BM.get_care_crisis_revert_stages
+        and BM.get_care_crisis_revert_stages()
+        or nil
+
+    if revert_stages then
+        return math.max(2, current_rank - revert_stages)
+    end
+
+    return 2
 end
 
 function BM.get_care_crisis_baby_options(card)
@@ -751,60 +800,72 @@ function BM.get_care_crisis_baby_options(card)
     if not source_slug then return {} end
 
     local e = card.ability and card.ability.extra or {}
+    local history = e.evolution_history or {}
+    local target_rank = care_reversion_target_rank(card)
+    local source_def = BM.joker_defs and BM.joker_defs[source_slug]
+    local source_rank = source_def and CARE_STAGE_RANK[source_def.stage] or 2
 
-    -- Prefer the actual Fresh form this individual Digimon came from.
-    for _, slug in ipairs(e.evolution_history or {}) do
+    if source_rank <= target_rank then
+        local option = care_reversion_option(
+            source_slug,
+            history_before_index(history, #history + 1),
+            true
+        )
+        return option and {option} or {}
+    end
+
+    for i = #history, 1, -1 do
+        local slug = history[i]
         local def = BM.joker_defs and BM.joker_defs[slug]
-        if def and def.stage == 'Fresh' then
-            local option = baby_option_from_slug(slug)
+        if def and CARE_STAGE_RANK[def.stage] == target_rank then
+            local option = care_reversion_option(
+                slug,
+                history_before_index(history, i),
+                false
+            )
             return option and {option} or {}
         end
     end
 
-
     local candidates = {}
+
     for slug, def in pairs(BM.joker_defs or {}) do
-        if def.stage == 'Fresh' and slug ~= source_slug
+        if slug ~= source_slug
+        and CARE_STAGE_RANK[def.stage] == target_rank
         and can_reach_slug(slug, source_slug, {}) then
-            local option = baby_option_from_slug(slug)
-            if option then candidates[#candidates + 1] = option end
+            candidates[#candidates + 1] = slug
         end
     end
 
-    table.sort(candidates, function(a, b)
-        return tostring(a.name) < tostring(b.name)
-    end)
+    table.sort(candidates)
 
     if #candidates > 0 then
-        return candidates
-    end
-
-
-    local source_def = BM.joker_defs and BM.joker_defs[source_slug]
-    if source_def and source_def.stage ~= 'Fresh' then
-        local fresh = {}
-        for slug, def in pairs(BM.joker_defs or {}) do
-            if def.stage == 'Fresh' and slug ~= source_slug then
-                fresh[#fresh + 1] = slug
-            end
-        end
-        table.sort(fresh)
-
         local picked = BM.random_element(
-            fresh,
-            'balatromon_crisis_baby_' .. tostring(source_slug)
-                .. '_' .. tostring(card.sort_id or 0)
+            candidates,
+            'balatromon_crisis_revert_'
+                .. tostring(source_slug)
+                .. '_'
+                .. tostring(target_rank)
+                .. '_'
+                .. tostring(card.sort_id or 0)
         )
 
-        local option = picked and baby_option_from_slug(picked) or nil
-        if option then
-            option.route_note = 'Care Crisis: emergency baby reset'
-            return {option}
-        end
+        local option = picked and care_reversion_option(
+            picked,
+            {},
+            false
+        ) or nil
+
+        return option and {option} or {}
     end
 
+    local same = care_reversion_option(
+        source_slug,
+        history,
+        true
+    )
 
-    return {}
+    return same and {same} or {}
 end
 
 function BM.get_valid_evolutions(card, device_key, opts)
@@ -824,16 +885,17 @@ function BM.get_valid_evolutions(card, device_key, opts)
         and card.ability.extra
         or {}
 
-    if e.permanently_disabled then
-        return {}
-    end
-
     local crisis =
         BM.is_care_crisis(card)
 
+    if e.permanently_disabled
+    and not crisis then
+        return {}
+    end
+
     if not crisis
     and not opts.ignore_bond
-    and not BM.card_ready_for_digivolution(card) then
+    and not BM.card_ready_for_digivolution(card, device_key) then
         return {}
     end
 
@@ -965,6 +1027,29 @@ function BM.can_digivolve_with(card, device_key)
     return #BM.get_valid_evolutions(card, device_key) > 0
 end
 
+function BM.can_manual_digivolve(card)
+    if not (
+        BM.manual_evolution_enabled
+        and BM.manual_evolution_enabled()
+    ) then
+        return false
+    end
+
+    if not card
+    or card.REMOVED
+    or not BM.is_digimon(card)
+    or card.area ~= G.jokers
+    or BM.is_care_crisis(card)
+    or not BM.is_bond_full(card) then
+        return false
+    end
+
+    return #BM.get_valid_evolutions(
+        card,
+        'manual'
+    ) > 0
+end
+
 
 function BM.get_evolution_card_candidates()
     local candidates = {}
@@ -1052,11 +1137,16 @@ function BM.perform_digivolution(card, option, device_key, opts)
     if not (card and option and option.center) then return false end
 
     local crisis = BM.is_care_crisis(card)
-    if not crisis and not opts.ignore_bond and not BM.card_ready_for_digivolution(card) then return false end
+    device_key = device_key or (BM.pending_evolution and BM.pending_evolution.device_key)
+
+    if not crisis
+    and not opts.ignore_bond
+    and not BM.card_ready_for_digivolution(card, device_key) then
+        return false
+    end
 
     -- Make sure the selected branch is still valid when the player clicks it.
     local still_valid = false
-    device_key = device_key or (BM.pending_evolution and BM.pending_evolution.device_key)
     for _, candidate in ipairs(BM.get_valid_evolutions(card, device_key, opts)) do
         if candidate.key == option.key then
             still_valid = true
@@ -1068,6 +1158,21 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     local old_slug = BM.get_card_slug(card)
     local e = card.ability.extra or {}
+
+    if option.same_form then
+        e.bond = 0
+        e.care_mistakes = 0
+        e.care_crisis = nil
+        e._bond_shaking = nil
+
+        BM.care_animation(
+            card,
+            'Care Reset!',
+            G.C.ATTENTION
+        )
+
+        return true
+    end
 
     local had_x_antibody =
         BM.has_x_antibody
@@ -1081,7 +1186,9 @@ function BM.perform_digivolution(card, option, device_key, opts)
     local history = copy_evolution_history(e.evolution_history)
 
     if option.is_dedigivolution then
-        history = {}
+        history = copy_evolution_history(
+            option.history_after or {}
+        )
     elseif old_slug then
         history[#history + 1] = old_slug
     end
@@ -1110,6 +1217,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         xmult = e.xmult,
         xchips = e.xchips,
         x_garurumon_chips = e.x_garurumon_chips,
+        permanently_disabled = e.permanently_disabled,
     }
 
     -- Give every form change a visible two-beat Digivolution animation, even
@@ -1156,6 +1264,21 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     card.ability.extra.hunger =
         carry.hunger
+
+    card.ability.extra.permanently_disabled =
+        carry.permanently_disabled
+
+    if carry.permanently_disabled then
+        SMODS.debuff_card(
+            card,
+            true,
+            'balatromon_hunger'
+        )
+
+        if SMODS.recalc_debuff then
+            SMODS.recalc_debuff(card)
+        end
+    end
 
     card.ability.extra.care_rounds =
         carry.care_rounds
@@ -1207,7 +1330,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         card.ability.extra.care_crisis = nil
     end
 
-    if option.slug and BM.on_add then BM.on_add(card, option.slug) end
+    if option.slug and BM.on_add and not card.ability.extra.permanently_disabled then BM.on_add(card, option.slug) end
     if card.set_cost then card:set_cost() end
 
     if had_x_antibody
@@ -1935,8 +2058,7 @@ function BM.queue_care_crisis(card)
 
     local e = card.ability and card.ability.extra or {}
 
-    if e.permanently_disabled
-    or not BM.is_care_crisis(card) then
+    if not BM.is_care_crisis(card) then
         return false
     end
 
@@ -2468,34 +2590,40 @@ function BM.create_evolution_display_ui()
 
 
 
+    local action_buttons = {}
+
+    if not display.from_collection
+    and BM.can_manual_digivolve(source) then
+        action_buttons[#action_buttons + 1] =
+            UIBox_button {
+                button = 'balatromon_manual_digivolve',
+                label = {'DIGIVOLVE'},
+                minw = 2.3,
+                minh = 0.55,
+                colour = G.C.GREEN,
+                scale = 0.35,
+                shadow = true,
+            }
+    end
+
+    action_buttons[#action_buttons + 1] =
+        UIBox_button {
+            button = 'balatromon_close_evolution_display',
+            label = {'CLOSE'},
+            minw = 2.3,
+            minh = 0.55,
+            colour = G.C.UI.BACKGROUND_INACTIVE,
+            scale = 0.35,
+            shadow = true,
+        }
+
     content[#content + 1] = {
-
         n = G.UIT.R,
-
         config = {
             align = 'cm',
             padding = 0.12
         },
-
-        nodes = {
-
-            UIBox_button {
-                button =
-                    'balatromon_close_evolution_display',
-
-                label = {'CLOSE'},
-
-                minw = 2.3,
-                minh = 0.55,
-
-                colour =
-                    G.C.UI.BACKGROUND_INACTIVE,
-
-                scale = 0.35,
-
-                shadow = true,
-            }
-        }
+        nodes = action_buttons
     }
 
 
@@ -2573,6 +2701,39 @@ function BM.open_evolution_display(card)
     G.FUNCS.overlay_menu({
         definition = BM.create_evolution_display_ui()
     })
+end
+
+
+G.FUNCS.balatromon_manual_digivolve = function(e)
+    local display = BM.evolution_display
+    local card = display and display.card
+
+    if not BM.can_manual_digivolve(card) then
+        return
+    end
+
+    BM.evolution_display = nil
+
+    if G.FUNCS and G.FUNCS.exit_overlay_menu then
+        G.FUNCS.exit_overlay_menu(e)
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.05,
+        func = function()
+            if card
+            and not card.REMOVED
+            and BM.can_manual_digivolve(card) then
+                BM.begin_evolution_sequence(
+                    {card},
+                    'manual'
+                )
+            end
+
+            return true
+        end
+    }))
 end
 
 

@@ -5,6 +5,7 @@ Balatromon = Balatromon or {}
 local BM = Balatromon
 BM.MOD_ID = 'Balatromon'
 BM.PREFIX = 'DigiMeel'
+BM.MOD = BM.MOD or SMODS.current_mod
 
 -- Some Balatromon effects need these modern SMODS contexts.
 SMODS.current_mod.optional_features = function()
@@ -191,6 +192,7 @@ SMODS.Sound {
 }
 
 
+assert(SMODS.load_file('src/modes.lua'))()
 assert(SMODS.load_file('src/core.lua'))()
 assert(SMODS.load_file('src/element_compat.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()
@@ -217,6 +219,7 @@ assert(SMODS.load_file('src/vanilla_patches.lua'))()
 assert(SMODS.load_file('src/boss_blinds.lua'))()
 assert(SMODS.load_file('src/decks.lua'))()
 assert(SMODS.load_file("ui.lua"))()
+assert(SMODS.load_file('src/profile_mode.lua'))()
 assert(SMODS.load_file('src/optimiser.lua'))()
 assert(SMODS.load_file('src/music.lua'))()
 

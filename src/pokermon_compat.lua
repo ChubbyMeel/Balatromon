@@ -24,8 +24,13 @@ local PC = BM.pokermon_compat
 
 PC.digimon_shop_share = 0.5
 PC.hunger_source = 'balatromon_pokermon_hunger'
-PC.hunger_max = 5
 PC.hunger_rounds = 2
+
+function PC.get_hunger_max()
+    return BM.get_hunger_max
+        and BM.get_hunger_max()
+        or 5
+end
 
 local function registered_center(key)
     return (SMODS.Centers and SMODS.Centers[key])
@@ -113,7 +118,7 @@ function PC.get_hunger(card)
     return math.max(
         1,
         math.min(
-            PC.hunger_max,
+            PC.get_hunger_max(),
             card.ability.balatromon_hunger
         )
     )
@@ -126,7 +131,7 @@ function PC.sync_hunger_debuff(card)
     end
 
     local starving =
-        PC.get_hunger(card) >= PC.hunger_max
+        PC.get_hunger(card) >= PC.get_hunger_max()
 
     local was_starving =
         card.ability.balatromon_starving == true
@@ -195,14 +200,14 @@ function PC.tick_hunger(card)
     if rounds % PC.hunger_rounds == 0 then
         local old_hunger = PC.get_hunger(card)
         local new_hunger = math.min(
-            PC.hunger_max,
+            PC.get_hunger_max(),
             old_hunger + 1
         )
 
         card.ability.balatromon_hunger = new_hunger
 
         if new_hunger > old_hunger
-        and new_hunger < PC.hunger_max
+        and new_hunger < PC.get_hunger_max()
         and BM.care_animation then
             BM.care_animation(
                 card,
@@ -922,7 +927,7 @@ local function pokemon_hunger_bar(card)
                     BM.care_bar_row(
                         'HUNGER',
                         hunger,
-                        PC.hunger_max,
+                        PC.get_hunger_max(),
                         'hunger'
                     )
                 }
@@ -948,7 +953,7 @@ local function install_hunger_localization()
             name = 'Hunger',
             text = {
                 '{element:1}',
-                'At {C:red}5/5{}, this Pokemon is',
+                'At {C:red}#1#/#1#{}, this Pokemon is',
                 '{C:red}disabled{} until it is fed.'
             }
         }
@@ -974,7 +979,7 @@ and not PC._type_tooltip_wrapped then
         and not info_queue._balatromon_hunger_added then
             info_queue._balatromon_hunger_added = true
 
-            local vars = {}
+            local vars = {PC.get_hunger_max()}
             vars.elements = {
                 pokemon_hunger_bar(card)
             }

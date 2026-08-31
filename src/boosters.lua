@@ -142,6 +142,7 @@ local function make_digital_pack(args)
         weight = args.weight,
         no_collection = false,
         discovered = false,
+        draw_hand = true,
 
         config = {
             extra = args.extra,
@@ -157,7 +158,9 @@ local function make_digital_pack(args)
             },
         },
 
-        select_card = 'consumeables',
+        select_card = function(self, card, pack)
+            return 'consumeables', true
+        end,
 
         create_card = function(self, card, i)
             return pack_card_def(
