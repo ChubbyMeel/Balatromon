@@ -294,8 +294,8 @@ BM.x_antibody_effects.wargreymon =
 function(card, context, base)
     local e = card.ability.extra
 
-    BM.ensure_card_target(
-        card,
+    e.target_rank, e.target_suit = BM.ensure_shared_card_target(
+        'wargreymon_card',
         'wargrey_card'
     )
 
@@ -309,11 +309,10 @@ function(card, context, base)
     and context.cardarea == G.play
     and context.other_card
     and not context.other_card.debuff then
-        local target =
-            BM.ensure_card_target(
-                card,
-                'wargrey_card'
-            )
+        e.target_rank, e.target_suit = BM.ensure_shared_card_target(
+            'wargreymon_card',
+            'wargrey_card'
+        )
 
         local target_rank =
             e.target_rank
@@ -745,9 +744,8 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    BM.ensure_target(
-        card,
-        'target_rank',
+    e.target_rank = BM.ensure_shared_target(
+        'weregarurumon_rank',
         BM.deck_ranks(),
         'weregaruru_rank'
     )
@@ -811,8 +809,8 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    BM.ensure_card_target(
-        card,
+    e.target_rank, e.target_suit = BM.ensure_shared_card_target(
+        'metalgarurumon_card',
         'metalgaruru_card'
     )
 
@@ -954,9 +952,8 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    BM.ensure_target(
-        card,
-        'target_suit',
+    e.target_suit = BM.ensure_shared_target(
+        'x_gomamon_suit',
         BM.deck_suits(),
         'x_gomamon_suit'
     )
@@ -971,15 +968,14 @@ function(card, context, base)
         }
     end
 
-    if context.end_of_round then
-        e.target_suit =
-            BM.random_element(
-                BM.deck_suits(),
-                'x_gomamon_suit_'
-                .. tostring(
-                    card.sort_id or 0
-                )
-            )
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        e.target_suit = BM.reroll_shared_target(
+            'x_gomamon_suit',
+            BM.deck_suits(),
+            'x_gomamon_suit'
+        )
     end
 end
 
@@ -988,9 +984,8 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    BM.ensure_target(
-        card,
-        'target_rank',
+    e.target_rank = BM.ensure_shared_target(
+        'x_crabmon_rank',
         BM.deck_ranks(),
         'x_crabmon_rank'
     )
@@ -1005,15 +1000,14 @@ function(card, context, base)
         }
     end
 
-    if context.end_of_round then
-        e.target_rank =
-            BM.random_element(
-                BM.deck_ranks(),
-                'x_crabmon_rank_'
-                .. tostring(
-                    card.sort_id or 0
-                )
-            )
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        e.target_rank = BM.reroll_shared_target(
+            'x_crabmon_rank',
+            BM.deck_ranks(),
+            'x_crabmon_rank'
+        )
     end
 end
 
@@ -1297,9 +1291,8 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    BM.ensure_target(
-        card,
-        'target_suit',
+    e.target_suit = BM.ensure_shared_target(
+        'x_renamon_family_suit',
         BM.deck_suits(),
         'x_renamon_suit'
     )
@@ -1318,9 +1311,8 @@ function(card, context, base)
     if context.end_of_round
     and context.main_eval
     and not context.blueprint then
-        BM.reroll_target(
-            card,
-            'target_suit',
+        e.target_suit = BM.reroll_shared_target(
+            'x_renamon_family_suit',
             BM.deck_suits(),
             'x_renamon_suit'
         )
@@ -1347,11 +1339,10 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    BM.ensure_target(
-        card,
-        'target_suit',
+    e.target_suit = BM.ensure_shared_target(
+        'x_renamon_family_suit',
         BM.deck_suits(),
-        'x_sakuyamon_suit'
+        'x_renamon_suit'
     )
 
     if context.discard
@@ -1375,11 +1366,10 @@ function(card, context, base)
     if context.end_of_round
     and context.main_eval
     and not context.blueprint then
-        BM.reroll_target(
-            card,
-            'target_suit',
+        e.target_suit = BM.reroll_shared_target(
+            'x_renamon_family_suit',
             BM.deck_suits(),
-            'x_sakuyamon_suit'
+            'x_renamon_suit'
         )
 
         return BM.target_change_return(
@@ -3042,9 +3032,8 @@ function BM.install_x_antibody_tooltips()
 
                     elseif slug == 'renamon' then
                         local target_suit =
-                            BM.ensure_target(
-                                card,
-                                'target_suit',
+                            BM.ensure_shared_target(
+                                'x_renamon_family_suit',
                                 BM.deck_suits(),
                                 'x_renamon_suit'
                             )
@@ -3073,11 +3062,10 @@ function BM.install_x_antibody_tooltips()
                         end
 
                         local target_suit =
-                            BM.ensure_target(
-                                card,
-                                'target_suit',
+                            BM.ensure_shared_target(
+                                'x_renamon_family_suit',
                                 BM.deck_suits(),
-                                'x_sakuyamon_suit'
+                                'x_renamon_suit'
                             )
 
                         result.vars[4] =

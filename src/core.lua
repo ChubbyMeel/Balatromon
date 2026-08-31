@@ -1382,6 +1382,175 @@ function BM.random_element(list, seed)
     return pseudorandom_element(list, pseudoseed(seed))
 end
 
+local function bm_shared_target_store()
+    if not G or not G.GAME then
+        return nil
+    end
+
+    G.GAME.current_round = G.GAME.current_round or {}
+    G.GAME.current_round.balatromon_shared_targets =
+        G.GAME.current_round.balatromon_shared_targets or {}
+
+    return G.GAME.current_round.balatromon_shared_targets
+end
+
+local function bm_value_in_list(value, list)
+    if value == nil then
+        return false
+    end
+
+    for _, candidate in ipairs(list or {}) do
+        if candidate == value then
+            return true
+        end
+    end
+
+    return false
+end
+
+function BM.ensure_shared_target(key, list, seed)
+    list = list or {}
+
+    local store = bm_shared_target_store()
+    if not store then
+        return #list > 0 and BM.random_element(list, seed or key) or nil
+    end
+
+    local entry = store[key] or {}
+    store[key] = entry
+
+    if not bm_value_in_list(entry.value, list) then
+        entry.value = #list > 0 and BM.random_element(
+            list,
+            (seed or key) .. ':round:' .. tostring(G.GAME.round or 0)
+        ) or nil
+    end
+
+    return entry.value
+end
+
+function BM.reroll_shared_target(key, list, seed)
+    list = list or {}
+
+    local store = bm_shared_target_store()
+    if not store then
+        return #list > 0 and BM.random_element(list, seed or key) or nil, nil, true
+    end
+
+    local entry = store[key] or {}
+    store[key] = entry
+
+    local round = G.GAME.round or 0
+    local old_value = entry.value
+
+    if entry.last_reroll_round == round then
+        return entry.value, old_value, false
+    end
+
+    if #list == 0 then
+        entry.value = nil
+        entry.last_reroll_round = round
+        return nil, old_value, true
+    end
+
+    local new_value = BM.random_element(
+        list,
+        (seed or key) .. ':next_round:' .. tostring(round)
+    )
+
+    if old_value ~= nil
+    and #list > 1
+    and new_value == old_value then
+        for i, value in ipairs(list) do
+            if value == old_value then
+                new_value = list[(i % #list) + 1]
+                break
+            end
+        end
+    end
+
+    entry.value = new_value
+    entry.last_reroll_round = round
+
+    return new_value, old_value, true
+end
+
+function BM.ensure_shared_card_target(key, seed)
+    local targets = BM.deck_card_targets()
+    local store = bm_shared_target_store()
+
+    if not store then
+        local target = #targets > 0 and BM.random_element(targets, seed or key) or nil
+        return target and target.rank or nil, target and target.suit or nil
+    end
+
+    local entry = store[key] or {}
+    store[key] = entry
+
+    if not BM.card_target_exists(entry.rank, entry.suit) then
+        local target = #targets > 0 and BM.random_element(
+            targets,
+            (seed or key) .. ':round:' .. tostring(G.GAME.round or 0)
+        ) or nil
+
+        entry.rank = target and target.rank or nil
+        entry.suit = target and target.suit or nil
+    end
+
+    return entry.rank, entry.suit
+end
+
+function BM.reroll_shared_card_target(key, seed)
+    local targets = BM.deck_card_targets()
+    local store = bm_shared_target_store()
+
+    if not store then
+        local target = #targets > 0 and BM.random_element(targets, seed or key) or nil
+        return target and target.rank or nil, target and target.suit or nil, true
+    end
+
+    local entry = store[key] or {}
+    store[key] = entry
+
+    local round = G.GAME.round or 0
+    local old_rank = entry.rank
+    local old_suit = entry.suit
+
+    if entry.last_reroll_round == round then
+        return entry.rank, entry.suit, false
+    end
+
+    if #targets == 0 then
+        entry.rank = nil
+        entry.suit = nil
+        entry.last_reroll_round = round
+        return nil, nil, true
+    end
+
+    local target = BM.random_element(
+        targets,
+        (seed or key) .. ':next_round:' .. tostring(round)
+    )
+
+    if #targets > 1
+    and target.rank == old_rank
+    and target.suit == old_suit then
+        for i, value in ipairs(targets) do
+            if value.rank == old_rank
+            and value.suit == old_suit then
+                target = targets[(i % #targets) + 1]
+                break
+            end
+        end
+    end
+
+    entry.rank = target.rank
+    entry.suit = target.suit
+    entry.last_reroll_round = round
+
+    return entry.rank, entry.suit, true
+end
+
 function BM.ensure_target(card, field, list, seed)
     local e = card.ability.extra
     list = list or {}

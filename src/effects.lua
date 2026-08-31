@@ -169,8 +169,8 @@ H.numemon = function(card, context)
 end
 H.garbagemon = function(card,context)
     local e=card.ability.extra; e.round_xmult=e.round_xmult or 1
-    BM.ensure_target(card,'target_rank',BM.deck_ranks(),'garbage_rank')
-    if context.end_of_round and context.main_eval and not context.blueprint then e.round_xmult=1; BM.reroll_target(card,'target_rank',BM.deck_ranks(),'garbage_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
+    e.target_rank=BM.ensure_shared_target('garbagemon_rank',BM.deck_ranks(),'garbage_rank')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.round_xmult=1; e.target_rank=BM.reroll_shared_target('garbagemon_rank',BM.deck_ranks(),'garbage_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
     if context.discard and BM.card_has_rank(context.other_card,e.target_rank) and not context.blueprint then e.round_xmult=e.round_xmult+0.75; return {message='XMult Up!'} end
     if context.joker_main then return {xmult=e.round_xmult} end
 end
@@ -179,8 +179,8 @@ H.wargreymon = function(card,context)
     e.xmult=e.xmult or 1
     e.seen=e.seen or {}
 
-    BM.ensure_card_target(
-        card,
+    e.target_rank, e.target_suit = BM.ensure_shared_card_target(
+        'wargreymon_card',
         'wargrey_card'
     )
 
@@ -189,8 +189,8 @@ H.wargreymon = function(card,context)
     and not context.blueprint then
         e.seen={}
 
-        BM.reroll_card_target(
-            card,
+        e.target_rank, e.target_suit = BM.reroll_shared_card_target(
+            'wargreymon_card',
             'wargrey_card'
         )
 
@@ -235,8 +235,8 @@ H.wargreymon = function(card,context)
 end
 H.machinedramon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
-    BM.ensure_card_target(card,'machine_card')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_card_target(card,'machine_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
+    e.target_rank,e.target_suit=BM.ensure_shared_card_target('machinedramon_card','machine_card')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank,e.target_suit=BM.reroll_shared_card_target('machinedramon_card','machine_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
     if context.end_of_round and context.individual and context.cardarea==G.hand and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) and not context.blueprint then e.xmult=e.xmult+0.5; return {message='XMult Up!'} end
     if context.joker_main then return {xmult=e.xmult} end
 end
@@ -347,20 +347,20 @@ H.leomon = function(card,context)
 end
 H.madleomon = function(card,context) if context.joker_main then return {chips=1000-100*(G.hand and G.hand.config.card_limit or 0)} end end
 H.weregarurumon = function(card,context)
-    local e=card.ability.extra; e.chips=e.chips or 0; BM.ensure_target(card,'target_rank',BM.deck_ranks(),'weregaruru_rank')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_rank',BM.deck_ranks(),'weregaruru_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
+    local e=card.ability.extra; e.chips=e.chips or 0; e.target_rank=BM.ensure_shared_target('weregarurumon_rank',BM.deck_ranks(),'weregaruru_rank')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('weregarurumon_rank',BM.deck_ranks(),'weregaruru_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
     if context.discard and BM.card_has_rank(context.other_card,e.target_rank) and not context.blueprint then e.chips=e.chips+20; return {message='+20 Chips'} end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
 H.loaderleomon = function(card,context)
-    local e=card.ability.extra; e.chips=e.chips or 0; BM.ensure_target(card,'target_hand',BM.HANDS,'loader_hand')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_hand',BM.HANDS,'loader_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
+    local e=card.ability.extra; e.chips=e.chips or 0; e.target_hand=BM.ensure_shared_target('loaderleomon_hand',BM.HANDS,'loader_hand')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.target_hand=BM.reroll_shared_target('loaderleomon_hand',BM.HANDS,'loader_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
     if context.pre_discard and context.main_eval and not context.blueprint then local h=BM.get_poker_hand_name(G.hand.highlighted); if h==e.target_hand then e.chips=e.chips+50; return {message='+50 Chips'} end end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
 H.metalgarurumon = function(card,context)
-    local e=card.ability.extra; e.xchips=e.xchips or 1; e.seen=e.seen or {}; BM.ensure_card_target(card,'metalgaruru_card')
-    if context.end_of_round and context.main_eval and not context.blueprint then e.seen={}; BM.reroll_card_target(card,'metalgaruru_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
+    local e=card.ability.extra; e.xchips=e.xchips or 1; e.seen=e.seen or {}; e.target_rank,e.target_suit=BM.ensure_shared_card_target('metalgarurumon_card','metalgaruru_card')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.seen={}; e.target_rank,e.target_suit=BM.reroll_shared_card_target('metalgarurumon_card','metalgaruru_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
     if context.individual and context.cardarea==G.play and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) and not context.blueprint then local id=tostring(context.other_card.playing_card or context.other_card.sort_id); if not e.seen[id] then e.seen[id]=true; e.xchips=e.xchips+0.25; return {message='XChips Up!'} end end
     if context.joker_main then return {xchips=e.xchips} end
 end
@@ -642,8 +642,8 @@ end
 H.relemon = eor_dollars(4)
 H.viximon = eor_dollars(5)
 H.renamon = function(card,context)
-    local e=card.ability.extra; BM.ensure_target(card,'target_rank',BM.deck_ranks(),'renamon_rank')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
+    local e=card.ability.extra; e.target_rank=BM.ensure_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
     if context.discard and BM.card_has_rank(context.other_card,e.target_rank) then return {dollars=5} end
 end
 H.kyubimon = function(card,context)
@@ -653,8 +653,8 @@ H.kyubimon = function(card,context)
 end
 H.taomon = function(card,context) if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end end
 H.sakuyamon = function(card,context)
-    local e=card.ability.extra; BM.ensure_target(card,'target_rank',BM.deck_ranks(),'sakuyamon_rank')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_rank',BM.deck_ranks(),'sakuyamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
+    local e=card.ability.extra; e.target_rank=BM.ensure_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
     if context.discard and BM.card_has_rank(context.other_card,e.target_rank) then return {dollars=5} end
     if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end
 end
@@ -816,8 +816,8 @@ H.parrotmon = function(card,context)
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_suit',BM.SUITS,'parrot_suit'); return BM.target_change_return(card,'Target: '..tostring(e.target_suit),(G.C.SUITS and G.C.SUITS[e.target_suit]) or G.C.FILTER) end
 end
 H.hippogryphonmon = function(card,context)
-    local e=card.ability.extra; BM.ensure_card_target(card,'hippo_card')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_card_target(card,'hippo_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
+    local e=card.ability.extra; e.target_rank,e.target_suit=BM.ensure_shared_card_target('hippogryphonmon_card','hippo_card')
+    if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank,e.target_suit=BM.reroll_shared_card_target('hippogryphonmon_card','hippo_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
     if context.individual and context.cardarea==G.play and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) then return {xmult=2} end
 end
 H.phoenixmon = function(card,context)
@@ -1963,9 +1963,8 @@ H.megakabuterimon = function(card, context)
     local e =
         card.ability.extra
 
-    BM.ensure_target(
-        card,
-        'target_rank',
+    e.target_rank = BM.ensure_shared_target(
+        'megakabuterimon_rank',
         BM.deck_ranks(),
         'megakabuterimon_rank'
     )
@@ -1973,9 +1972,8 @@ H.megakabuterimon = function(card, context)
     if context.end_of_round
     and context.main_eval
     and not context.blueprint then
-        BM.reroll_target(
-            card,
-            'target_rank',
+        e.target_rank = BM.reroll_shared_target(
+            'megakabuterimon_rank',
             BM.deck_ranks(),
             'megakabuterimon_rank'
         )

@@ -740,7 +740,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'garbage_rank') or e.target_rank or 14
+            local target_rank=card and BM.ensure_shared_target('garbagemon_rank',BM.RANKS,'garbage_rank') or e.target_rank or 14
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
 elements={BM.care_bars(e,stage)},BM.rank_name(target_rank),e.round_xmult or 1}}
         end,
@@ -793,8 +793,8 @@ do
             local target_suit=e.target_suit
 
             if card then
-                target_rank,target_suit=BM.ensure_card_target(
-                    card,
+                target_rank,target_suit=BM.ensure_shared_card_target(
+                    'wargreymon_card',
                     'wargrey_card'
             )
             end
@@ -867,8 +867,8 @@ do
             local target_suit=e.target_suit
 
             if card then
-                target_rank,target_suit=BM.ensure_card_target(
-                    card,
+                target_rank,target_suit=BM.ensure_shared_card_target(
+                    'machinedramon_card',
                     'machine_card'
                 )
             end
@@ -2242,7 +2242,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MetalGarurumon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'weregaruru_rank') or e.target_rank or 14
+            local target_rank=card and BM.ensure_shared_target('weregarurumon_rank',BM.RANKS,'weregaruru_rank') or e.target_rank or 14
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
 elements={BM.care_bars(e,stage)},BM.rank_name(target_rank),e.chips or 0}}
         end,
@@ -2454,7 +2454,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'HeavyLeomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'loader_hand') or e.target_hand or 'High Card'
+            local target_hand=card and BM.ensure_shared_target('loaderleomon_hand',BM.HANDS,'loader_hand') or e.target_hand or 'High Card'
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
 elements={BM.care_bars(e,stage)},target_hand,e.chips or 0}}
         end,
@@ -2507,8 +2507,8 @@ do
             local target_suit=e.target_suit
 
             if card then
-                target_rank,target_suit=BM.ensure_card_target(
-                    card,
+                target_rank,target_suit=BM.ensure_shared_card_target(
+                    'metalgarurumon_card',
                     'metalgaruru_card'
                 )
             end
@@ -5753,7 +5753,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Kyubimon, ZubaEagermon, Gatomon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local target_rank=card and BM.ensure_target(card,'target_rank',BM.RANKS,'renamon_rank') or e.target_rank or 14
+            local target_rank=card and BM.ensure_shared_target('renamon_family_rank',BM.RANKS,'renamon_rank') or e.target_rank or 14
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
 elements={BM.care_bars(e,stage)},BM.rank_name(target_rank)}}
         end,
@@ -5922,11 +5922,10 @@ do
 
             local target_rank =
                 card
-                and BM.ensure_target(
-                    card,
-                    'target_rank',
+                and BM.ensure_shared_target(
+                    'renamon_family_rank',
                     BM.RANKS,
-                    'sakuyamon_rank'
+                    'renamon_rank'
                 )
                 or e.target_rank
                 or 14
@@ -7103,8 +7102,8 @@ do
             local target_suit=e.target_suit
 
             if card then
-                target_rank,target_suit=BM.ensure_card_target(
-                    card,
+                target_rank,target_suit=BM.ensure_shared_card_target(
+                    'hippogryphonmon_card',
                     'hippo_card'
                 )
             end
@@ -10099,9 +10098,8 @@ bm_register_new_digimon({
 
         if card then
             rank =
-                BM.ensure_target(
-                    card,
-                    'target_rank',
+                BM.ensure_shared_target(
+                    'megakabuterimon_rank',
                     BM.deck_ranks(),
                     'megakabuterimon_rank'
                 )
@@ -10156,9 +10154,8 @@ bm_register_new_digimon({
 
         if card then
             rank =
-                BM.ensure_target(
-                    card,
-                    'target_rank',
+                BM.ensure_shared_target(
+                    'megakabuterimon_rank',
                     BM.deck_ranks(),
                     'megakabuterimon_rank'
                 )
