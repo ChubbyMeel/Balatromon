@@ -2164,11 +2164,14 @@ H.bearmon = function(card, context)
         return
     end
 
+    if SMODS.has_no_rank
+    and SMODS.has_no_rank(context.other_card) then
+        return
+    end
+
     local index
 
-    for i, scored in ipairs(
-        context.scoring_hand
-    ) do
+    for i, scored in ipairs(context.scoring_hand) do
         if scored == context.other_card then
             index = i
             break
@@ -2179,10 +2182,7 @@ H.bearmon = function(card, context)
         return
     end
 
-    local rank =
-        BM.get_rank(
-            context.other_card
-        )
+    local rank = BM.get_rank(context.other_card)
 
     if not rank then
         return
@@ -2191,16 +2191,23 @@ H.bearmon = function(card, context)
     local gained = 0
 
     for i = 1, index - 1 do
-        local left_rank =
-            BM.get_rank(
-                context.scoring_hand[i]
-            )
+        local left_card = context.scoring_hand[i]
 
-        if left_rank then
-            gained = gained
-                + math.abs(
-                    rank - left_rank
-                )
+        local rankless =
+            SMODS.has_no_rank
+            and SMODS.has_no_rank(left_card)
+
+        if not rankless then
+            local left_rank =
+                BM.get_rank(left_card)
+
+            if left_rank then
+                gained =
+                    gained
+                    + math.abs(
+                        rank - left_rank
+                    )
+            end
         end
     end
 
