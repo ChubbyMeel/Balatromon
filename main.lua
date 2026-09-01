@@ -301,3 +301,4 @@ end
 assert(SMODS.load_file('src/pokermon_compat.lua'))()
 assert(SMODS.load_file('src/multiplayer_compat.lua'))()
 assert(SMODS.load_file('src/sleeves_compat.lua'))()
+assert(SMODS.load_file('src/jokerdisplay_compat.lua'))()
