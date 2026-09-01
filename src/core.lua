@@ -2414,6 +2414,20 @@ function BM.on_add(card, slug)
             end
         }))
     end
+
+    if slug == 'imperialdramon_paladin_mode'
+    and G.hand
+    and card
+    and card.ability
+    and card.ability.extra
+    and not card.ability.extra._paladin_hand_size then
+        G.hand:change_size(3)
+
+        card.ability.extra._paladin_hand_size =
+            true
+    end
+
+
 end
 
 function BM.on_remove(card, slug)
@@ -2445,6 +2459,19 @@ function BM.on_remove(card, slug)
             end
         }))
     end
+
+    if slug == 'imperialdramon_paladin_mode'
+    and G.hand
+    and card
+    and card.ability
+    and card.ability.extra
+    and card.ability.extra._paladin_hand_size then
+        G.hand:change_size(-3)
+
+        card.ability.extra._paladin_hand_size =
+            nil
+    end
+
 end
 
 function BM.can_sell(card, slug)

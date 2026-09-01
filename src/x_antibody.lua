@@ -114,6 +114,8 @@ BM.x_antibody_viable = {
     kuwagamon = true,
     okuwamon = true,
     herculeskabuterimon = true,
+    magnamon = true,
+    omegamon = true,
 }
 
 BM.x_antibody_extra_evolutions = {
@@ -2876,6 +2878,27 @@ herculeskabuterimon = {
         '{C:attention}Okuwamon X{} effects'
     }
 },
+magnamon = {
+    name = 'Magnamon X',
+    stage = 'Champion',
+    text = {
+        'Whenever a card is {C:attention}retriggered{},',
+        'retrigger it {C:attention}1 additional time{}',
+        'Each retrigger gives',
+        '{X:mult,C:white}X1.5{} Mult'
+    }
+},
+
+omegamon = {
+    name = 'Omegamon X',
+    stage = 'Beyond',
+    text = {
+        '{C:attention}#4#{} of {V:1}#5#{} gives',
+        '{X:mult,C:white}^1.15{} Mult when triggered',
+        '{C:inactive}(card changes at end of round){}'
+    }
+},
+
 }
 
 local old_process_loc_text =
@@ -3306,7 +3329,14 @@ BM.x_antibody_forms = {
 
     herculeskabuterimon = {
         pos = {x = 4, y = 4}
-    }
+    },
+    magnamon = {
+        pos = {x = 0, y = 5}
+    },
+
+    omegamon = {
+        pos = {x = 1, y = 5}
+    },
 }
 
 
@@ -3358,5 +3388,54 @@ function BM.get_x_evolution_targets(slug)
     end
 
     return out
+end
+
+BM.x_antibody_effects.magnamon =
+function(card, context, base)
+    local base_result =
+        base()
+
+    if context.individual
+    and (
+        context.cardarea == G.play
+        or context.cardarea == G.hand
+    )
+    and context.other_card
+    and context.other_card.repetition_trigger then
+        return {
+            xmult = 1.5
+        }
+    end
+
+    return base_result
+end
+
+BM.x_antibody_effects.omegamon =
+function(card, context, base)
+    local e = card.ability.extra
+
+    e.target_rank,
+    e.target_suit =
+        BM.ensure_shared_card_target(
+            'omegamon_card',
+            'omegamon_card'
+        )
+
+    if context.individual
+    and context.cardarea == G.play
+    and BM.card_matches_target(
+        context.other_card,
+        e.target_rank,
+        e.target_suit
+    ) then
+        BM.emult(
+            card,
+            1.15
+        )
+    end
+
+    if context.end_of_round then
+        return base()
+    end
 end
 

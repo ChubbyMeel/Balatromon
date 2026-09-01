@@ -579,6 +579,85 @@ SMODS.Consumable {
 }
 
 SMODS.Consumable {
+    set = 'Spectral',
+    key = 'golden_digivice',
+
+    atlas = 'Consumable',
+    pos = {x=0,y=4},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = 6,
+
+    hidden = true,
+    soul_set = 'Spectral',
+    soul_rate = 0.01,
+
+    loc_txt = {
+        name = 'Golden Digivice',
+        text = {
+            'Digivolve the leftmost eligible',
+            '{C:attention}Mega{} Digimon into {C:attention}Beyond{}',
+            'If no Digimon can Digivolve,',
+            'turn all cards in hand into',
+            '{C:attention}Glass Cards{}'
+        }
+    },
+
+    can_use = function(self, card)
+        if leftmost_ready_stage(
+            {'Mega'},
+            'golden_digivice'
+        ) then
+            return true
+        end
+
+        return G.hand
+            and G.hand.cards
+            and #G.hand.cards > 0
+    end,
+
+    use = function(self, card, area, copier)
+        local target =
+            leftmost_ready_stage(
+                {'Mega'},
+                'golden_digivice'
+            )
+
+        if target then
+            BM.begin_evolution_sequence(
+                {target},
+                'golden_digivice'
+            )
+
+            return
+        end
+
+        local changes = {}
+
+        for _, playing_card in ipairs(
+            G.hand
+            and G.hand.cards
+            or {}
+        ) do
+            changes[#changes + 1] = {
+                card = playing_card,
+                key = 'm_glass',
+                message = 'Glass!',
+                colour = G.C.ATTENTION
+            }
+        end
+
+        if #changes > 0 then
+            BM.animate_enhancement_changes(
+                changes
+            )
+        end
+    end,
+}
+
+SMODS.Consumable {
     set = 'Spectral', key = 'golden_digitama', atlas = 'Consumable', pos = {x=2,y=2},
     discovered = false, unlocked = true, cost = 4,
     loc_txt = {name='Golden Digitama', text={

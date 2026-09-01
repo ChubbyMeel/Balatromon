@@ -13,6 +13,7 @@ local STAGE_COL = {
     Rare = 4,
     Ultimate = 5,
     Mega = 6,
+    Beyond = 7,
 }
 
 local STAGE_LABEL = {
@@ -22,6 +23,7 @@ local STAGE_LABEL = {
     'CHAMPION / RARE',
     'ULTIMATE',
     'MEGA',
+    'BEYOND',
 }
 
 local VIEW_W = 13.4
@@ -32,7 +34,8 @@ local CARD_W = 126
 local CARD_H = 169
 local LABEL_H = 34
 local NODE_STEP = 255
-local STAGE_X = {58, 305, 552, 799, 1046, 1293}
+local STAGE_X = {58, 305, 552, 799, 1046, 1293, 1540,}
+local WORLD_W = 1724
 local WORLD_TOP = 138
 local WORLD_BOTTOM = 96
 
@@ -1190,52 +1193,134 @@ local function stage_colour(stage)
         return G.C.RED
     end
 
+    if stage == 'Beyond' then
+        return G.C.GOLD
+    end
+
     return G.C.GREEN
 end
 
-local function draw_edge(page, edge, nodes, pan_y)
+local function draw_edge(page, edge, nodes, pan_x, pan_y)
     local from = nodes[edge.from]
     local to = nodes[edge.to]
     local from_pos = page.positions[edge.from]
     local to_pos = page.positions[edge.to]
 
-    if not from or not to or not from_pos or not to_pos then
+    if not from
+    or not to
+    or not from_pos
+    or not to_pos then
         return
     end
 
-    local from_idx = list_index(from.children, edge.to)
-    local to_idx = list_index(to.parents, edge.from)
-    local y1 = from_pos.y - pan_y + CARD_H / 2 + port_offset(from_idx, #from.children)
-    local y2 = to_pos.y - pan_y + CARD_H / 2 + port_offset(to_idx, #to.parents)
+    local from_idx =
+        list_index(
+            from.children,
+            edge.to
+        )
 
-    if math.max(y1, y2) < -80 or math.min(y1, y2) > CANVAS_H + 80 then
+    local to_idx =
+        list_index(
+            to.parents,
+            edge.from
+        )
+
+    local x1 =
+        from_pos.x
+        - pan_x
+        + CARD_W
+        + 7
+
+    local x2 =
+        to_pos.x
+        - pan_x
+        - 7
+
+    local y1 =
+        from_pos.y
+        - pan_y
+        + CARD_H / 2
+        + port_offset(
+            from_idx,
+            #from.children
+        )
+
+    local y2 =
+        to_pos.y
+        - pan_y
+        + CARD_H / 2
+        + port_offset(
+            to_idx,
+            #to.parents
+        )
+
+    if math.max(y1, y2) < -80
+    or math.min(y1, y2) > CANVAS_H + 80 then
         return
     end
 
-    local x1 = from_pos.x + CARD_W + 7
-    local x2 = to_pos.x - 7
-    local dx = math.max(70, x2 - x1)
-    local bend = math.max(72, math.min(135, dx * 0.38))
-    local curve = love.math.newBezierCurve(
-        x1,
-        y1,
-        x1 + bend,
-        y1,
-        x2 - bend,
-        y2,
-        x2,
-        y2
-    )
-    local points = curve:render(5)
-    local colour = edge_colour(edge.rule)
+    if math.max(x1, x2) < -80
+    or math.min(x1, x2) > CANVAS_W + 80 then
+        return
+    end
+
+    local dx =
+        math.max(
+            70,
+            x2 - x1
+        )
+
+    local bend =
+        math.max(
+            72,
+            math.min(
+                135,
+                dx * 0.38
+            )
+        )
+
+    local curve =
+        love.math.newBezierCurve(
+            x1,
+            y1,
+            x1 + bend,
+            y1,
+            x2 - bend,
+            y2,
+            x2,
+            y2
+        )
+
+    local points =
+        curve:render(5)
+
+    local colour =
+        edge_colour(edge.rule)
 
     love.graphics.setLineWidth(10)
-    love.graphics.setColor(0, 0, 0, 0.52)
+    love.graphics.setColor(
+        0,
+        0,
+        0,
+        0.52
+    )
     love.graphics.line(points)
+
     love.graphics.setLineWidth(5)
-    love.graphics.setColor(colour_with_alpha(colour, 0.92))
+    love.graphics.setColor(
+        colour_with_alpha(
+            colour,
+            0.92
+        )
+    )
     love.graphics.line(points)
-    love.graphics.circle('fill', x2, y2, 5)
+
+    love.graphics.circle(
+        'fill',
+        x2,
+        y2,
+        5
+    )
 end
 
 local function draw_map_canvas(sprite)
@@ -1252,6 +1337,7 @@ local function draw_map_canvas(sprite)
         return
     end
 
+    local pan_x = sprite.pan_x or 0
     local pan_y = sprite.pan_y or 0
 
     sprite.canvas:renderTo(function()
@@ -1269,7 +1355,7 @@ local function draw_map_canvas(sprite)
         end
 
         for _, edge in ipairs(page.edges) do
-            draw_edge(page, edge, layout.nodes, pan_y)
+            draw_edge(page, edge, layout.nodes, pan_x, pan_y)
         end
 
         for slug in pairs(page.node_set) do
@@ -1277,10 +1363,10 @@ local function draw_map_canvas(sprite)
             local pos = page.positions[slug]
 
             if node and pos then
-                local x = pos.x
+                local x = pos.x - pan_x
                 local y = pos.y - pan_y
 
-                if y + CARD_H + LABEL_H >= -40 and y <= CANVAS_H + 40 then
+                if y + CARD_H + LABEL_H >= -40 and y <= CANVAS_H + 40 and x + CARD_W + 60 >= -40 and x <= CANVAS_W + 40 then
                     love.graphics.setColor(0, 0, 0, 0.5)
                     love.graphics.rectangle('fill', x - 7, y - 7, CARD_W + 14, CARD_H + LABEL_H + 14, 12, 12)
 
@@ -1335,7 +1421,7 @@ local function draw_map_canvas(sprite)
         draw_text_centered('Page ' .. tostring(page_index) .. ' / ' .. tostring(page_count), 24, 51, CANVAS_W - 48, sprite.font_page, G.C.UI.TEXT_INACTIVE)
 
         for col, label in ipairs(STAGE_LABEL) do
-            draw_text_centered(label, STAGE_X[col] - 58, 76, CARD_W + 116, sprite.font_header, G.C.ATTENTION)
+            draw_text_centered(label, STAGE_X[col] - 58 - pan_x, 76, CARD_W + 116, sprite.font_header, G.C.ATTENTION)
         end
 
         local max_pan_y = math.max(0, page.world_h - CANVAS_H)
@@ -1349,6 +1435,71 @@ local function draw_map_canvas(sprite)
             love.graphics.rectangle('fill', CANVAS_W - 16, 112, 6, track_h, 3, 3)
             love.graphics.setColor(1, 1, 1, 0.34)
             love.graphics.rectangle('fill', CANVAS_W - 16, thumb_y, 6, thumb_h, 3, 3)
+        end
+
+        local max_pan_x =
+            math.max(
+                0,
+                WORLD_W - CANVAS_W
+            )
+
+        if max_pan_x > 0 then
+            local track_x = 12
+            local track_y = CANVAS_H - 16
+            local track_w = CANVAS_W - 40
+
+            local thumb_w =
+                math.max(
+                    90,
+                    track_w
+                    * CANVAS_W
+                    / WORLD_W
+                )
+
+            local thumb_x =
+                track_x
+                + (
+                    track_w
+                    - thumb_w
+                )
+                * (
+                    pan_x
+                    / max_pan_x
+                )
+
+            love.graphics.setColor(
+                1,
+                1,
+                1,
+                0.08
+            )
+
+            love.graphics.rectangle(
+                'fill',
+                track_x,
+                track_y,
+                track_w,
+                6,
+                3,
+                3
+            )
+
+            love.graphics.setColor(
+                1,
+                1,
+                1,
+                0.34
+            )
+
+            love.graphics.rectangle(
+                'fill',
+                thumb_x,
+                track_y,
+                thumb_w,
+                6,
+                3,
+                3
+            )
         end
     end)
 end
@@ -1367,8 +1518,10 @@ local function create_map_canvas(layout)
     sprite.layout = layout
     sprite.page_index = BM.evolution_map_page or 1
     local initial_page = layout.pages[sprite.page_index or 1]
+    sprite.pan_x = 0
     sprite.pan_y = initial_page and initial_page.initial_pan_y or 0
     sprite.dragging_map = false
+    sprite.last_cursor_x = nil
     sprite.last_cursor_y = nil
     sprite.font_small = 22
     sprite.font_page = 20
@@ -1396,6 +1549,33 @@ local function create_map_canvas(layout)
             and local_y >= 0
             and local_x <= transform.w
             and local_y <= transform.h
+    end
+
+    sprite.scroll_x_pixels = function(self, amount)
+        local max_pan_x =
+            math.max(
+                0,
+                WORLD_W - CANVAS_W
+            )
+
+        local old_pan =
+            self.pan_x or 0
+
+        self.pan_x =
+            math.max(
+                0,
+                math.min(
+                    max_pan_x,
+                    old_pan + amount
+                )
+            )
+
+        if self.pan_x ~= old_pan then
+            draw_map_canvas(self)
+            return true
+        end
+
+        return false
     end
 
     sprite.scroll_pixels = function(self, amount)
@@ -1441,16 +1621,24 @@ local function create_map_canvas(layout)
 
         if mouse_down and inside and not self.dragging_map then
             self.dragging_map = true
+            self.last_cursor_x = cursor.x
             self.last_cursor_y = cursor.y
         elseif not mouse_down then
             self.dragging_map = false
+            self.last_cursor_x = nil
             self.last_cursor_y = nil
         end
 
-        if self.dragging_map and mouse_down and self.last_cursor_y then
+        if self.dragging_map and mouse_down and self.last_cursor_x and self.last_cursor_y then
+            local dx = cursor.x - self.last_cursor_x
             local dy = cursor.y - self.last_cursor_y
+            self.last_cursor_x = cursor.x
             self.last_cursor_y = cursor.y
 
+            if dx ~= 0 then
+                local px_per_unit_x = CANVAS_W / math.max(0.01, transform.w)
+                self:scroll_x_pixels(-dx * px_per_unit_x)
+            end
             if dy ~= 0 then
                 local px_per_unit_y = CANVAS_H / math.max(0.01, transform.h)
                 self:scroll_pixels(-dy * px_per_unit_y)
@@ -1472,8 +1660,19 @@ love.wheelmoved = function(x, y)
         and G.OVERLAY_MENU:get_UIE_by_ID('balatromon_evolution_map_holder')
 
     if canvas and holder and canvas.cursor_inside and canvas:cursor_inside() then
-        if canvas:scroll_pixels(-(y or 0) * 105) then
-            return
+        local shift_down = love.keyboard.isDown('lshift') or love.keyboard.isDown('rshift')
+        if shift_down and (y or 0) ~= 0 then
+            if canvas:scroll_x_pixels(
+                -(y or 0) * 105
+            ) then
+                return
+            end
+        elseif (y or 0) ~= 0 then
+            if canvas:scroll_pixels(
+                -(y or 0) * 105
+            ) then
+                return
+            end
         end
     end
 
@@ -1525,8 +1724,10 @@ local function change_page(delta)
     BM.evolution_map_page = next_page
     canvas.page_index = next_page
     local page = layout.pages[next_page]
+    canvas.pan_x = 0
     canvas.pan_y = page and page.initial_pan_y or 0
     canvas.dragging_map = false
+    canvas.last_cursor_x = nil
     canvas.last_cursor_y = nil
     draw_map_canvas(canvas)
 end

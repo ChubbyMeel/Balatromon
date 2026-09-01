@@ -10,6 +10,7 @@ local defs = {
     {stage='Champion',    key='champion',    colour='E69B45'},
     {stage='Ultimate',    key='ultimate',    colour='9B72D0'},
     {stage='Mega',        key='mega',        colour='E45C9C'},
+    {stage='Beyond',      key='beyond',      colour='F4D35E'},
     {stage='Rare',        key='rare_digimon',colour='F2C94C'},
     {stage='Digitama', key='digitama_stage', colour='D8C26E'},
 }

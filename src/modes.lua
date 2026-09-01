@@ -21,6 +21,7 @@ BM.MODE_RULES = {
             Rare = 5,
             Ultimate = 5,
             Mega = 5,
+            Beyond = 5,
             Digitama = 5,
         },
     },
@@ -41,6 +42,7 @@ BM.MODE_RULES = {
             Rare = 7,
             Ultimate = 9,
             Mega = 9,
+            Beyond = 9,
             Digitama = 5,
         },
     },
@@ -127,6 +129,7 @@ local DIGIVICE_KEYS = {
     d3 = true,
     d_ark = true,
     golden_d_ark = true,
+    golden_digivice = true,
 }
 
 function BM.get_digivolution_bond_requirement(card, device_key)

@@ -8,6 +8,69 @@ local function hand_mult(hand,n) return function(card,context) if context.joker_
 local function hand_chips(hand,n) return function(card,context) if context.joker_main and BM.contains_hand(context,hand) then return {chips=n} end end end
 local function eor_dollars(n) return function(card,context) if context.end_of_round and context.main_eval then return {dollars=n} end end end
 
+local function bm_enhancements(card)
+    if not card then
+        return {}
+    end
+
+    if SMODS.get_enhancements then
+        return SMODS.get_enhancements(card) or {}
+    end
+
+    local center =
+        card.config
+        and card.config.center
+
+    if center
+    and center.key
+    and center.key ~= 'c_base' then
+        return {
+            [center.key] = true
+        }
+    end
+
+    return {}
+end
+
+
+local function bm_is_enhanced(card)
+    return next(
+        bm_enhancements(card)
+    ) ~= nil
+end
+
+
+local function bm_same_enhancement(a, b)
+    local first =
+        bm_enhancements(a)
+
+    local second =
+        bm_enhancements(b)
+
+    for key in pairs(first) do
+        if second[key] then
+            return true
+        end
+    end
+
+    return false
+end
+
+
+local function bm_card_effects_have_retrigger(effects)
+    for _, effect in ipairs(
+        effects or {}
+    ) do
+        if type(effect) == 'table'
+        and tonumber(effect.repetitions)
+        and effect.repetitions > 0 then
+            return true
+        end
+    end
+
+    return false
+end
+
 function BM.unique_planets_used()
     local count = 0
 
@@ -2764,5 +2827,290 @@ H.lavogaritamon = function(card, context)
                 held
             )
         end
+    end
+end
+
+H.omegamon = function(card, context)
+    local e = card.ability.extra
+
+    e.emult = e.emult or 1
+    e.xchips = e.xchips or 1
+
+    e.target_rank,
+    e.target_suit =
+        BM.ensure_shared_card_target(
+            'omegamon_card',
+            'omegamon_card'
+        )
+
+    if context.individual
+    and context.cardarea == G.play
+    and BM.card_matches_target(
+        context.other_card,
+        e.target_rank,
+        e.target_suit
+    )
+    and not context.blueprint then
+        e.emult =
+            e.emult + 0.15
+
+        e.xchips =
+            e.xchips + 1
+
+        return {
+            message = 'Power Up!',
+            colour = G.C.ATTENTION
+        }
+    end
+
+    if context.joker_main then
+        BM.emult(
+            card,
+            e.emult
+        )
+
+        return {
+            xchips = e.xchips
+        }
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        e.target_rank,
+        e.target_suit =
+            BM.reroll_shared_card_target(
+                'omegamon_card',
+                'omegamon_card'
+            )
+
+        return BM.target_change_return(
+            card,
+            'Target: '
+                .. BM.rank_name(e.target_rank)
+                .. ' of '
+                .. tostring(e.target_suit),
+            G.C.ATTENTION
+        )
+    end
+end
+
+
+H.magnamon = function(card, context)
+    if not context.repetition then
+        return
+    end
+
+    if context.cardarea ~= G.play
+    and context.cardarea ~= G.hand then
+        return
+    end
+
+    context.balatromon_magnamon_sources =
+        context.balatromon_magnamon_sources
+        or {}
+
+    context.balatromon_magnamon_sources[
+        #context.balatromon_magnamon_sources + 1
+    ] =
+        context.blueprint_card
+        or card
+end
+
+H.raidramon = function(card, context)
+    local e = card.ability.extra
+
+    BM.ensure_target(
+        card,
+        'target_suit',
+        BM.deck_suits(),
+        'raidramon_suit'
+    )
+
+    if context.individual
+    and context.cardarea == G.play
+    and BM.card_has_suit(
+        context.other_card,
+        e.target_suit
+    )
+    and SMODS.pseudorandom_probability(
+        card,
+        'raidramon',
+        1,
+        2
+    ) then
+        return {
+            xchips = 1.25
+        }
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        BM.reroll_target(
+            card,
+            'target_suit',
+            BM.deck_suits(),
+            'raidramon_suit'
+        )
+
+        return BM.target_change_return(
+            card,
+            'Target: '
+                .. tostring(
+                    e.target_suit
+                ),
+            (
+                G.C.SUITS
+                and G.C.SUITS[e.target_suit]
+            )
+            or G.C.FILTER
+        )
+    end
+end
+
+
+H.veedramon = function(card, context)
+    if not (
+        context.repetition
+        and context.cardarea == G.play
+        and context.scoring_hand
+        and context.other_card
+    ) then
+        return
+    end
+
+    local first =
+        context.scoring_hand[1]
+
+    local last =
+        context.scoring_hand[
+            #context.scoring_hand
+        ]
+
+    if (
+        context.other_card == first
+        or context.other_card == last
+    )
+    and bm_is_enhanced(
+        context.other_card
+    ) then
+        return {
+            repetitions = 2
+        }
+    end
+end
+
+
+H.aeroveedramon = function(card, context)
+    if not (
+        context.repetition
+        and context.cardarea == G.play
+        and context.scoring_hand
+        and context.scoring_hand[1]
+        and context.other_card
+    ) then
+        return
+    end
+
+    local first =
+        context.scoring_hand[1]
+
+    if bm_is_enhanced(first)
+    and bm_same_enhancement(
+        first,
+        context.other_card
+    ) then
+        return {
+            repetitions = 2
+        }
+    end
+end
+
+
+H.ultraforceveedramon = function(card, context)
+    if context.repetition
+    and context.cardarea == G.play
+    and context.scoring_hand
+    and context.scoring_hand[1]
+    and context.other_card then
+        local first =
+            context.scoring_hand[1]
+
+        if bm_is_enhanced(first)
+        and bm_same_enhancement(
+            first,
+            context.other_card
+        ) then
+            return {
+                repetitions = 2
+            }
+        end
+    end
+
+    if context.individual
+    and context.cardarea == G.hand
+    and not context.end_of_round
+    and not context.playing_card_end_of_round then
+        if pseudorandom(
+            'ultraforce_hand_'
+            .. tostring(
+                context.other_card.playing_card
+                or context.other_card.sort_id
+                or 0
+            )
+        ) < 0.5 then
+            return {
+                xmult = 2
+            }
+        end
+
+        return {
+            dollars = 2
+        }
+    end
+
+    if context.individual
+    and context.cardarea == G.play
+    and SMODS.pseudorandom_probability(
+        card,
+        'ultraforce_scoring',
+        1,
+        3
+    ) then
+        if pseudorandom(
+            'ultraforce_reward_'
+            .. tostring(
+                context.other_card.playing_card
+                or context.other_card.sort_id
+                or 0
+            )
+        ) < 0.5 then
+            return {
+                xmult = 2
+            }
+        end
+
+        return {
+            mult = 20
+        }
+    end
+end
+
+
+H.imperialdramon_paladin_mode =
+function(card, context)
+    if context.repetition
+    and context.cardarea == G.play then
+        return {
+            repetitions = 2
+        }
+    end
+
+    if context.repetition
+    and context.cardarea == G.hand then
+        return {
+            repetitions = 1
+        }
     end
 end

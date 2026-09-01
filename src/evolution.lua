@@ -6,6 +6,7 @@ BM.evolution_rules = {
         greymon = {note = 'Standard route'},
         tyrannomon = {min_hunger = 2, note = 'Hungry route'},
         numemon = {bad_path = true, note = 'Care Crisis route'},
+        veedramon = {note = 'Alternate Standard route'},
     },
     greymon = {
         metalgreymon = {note = 'Standard route'},
@@ -14,6 +15,9 @@ BM.evolution_rules = {
     metalgreymon = {
         wargreymon = {note = 'Standard route'},
         machinedramon = {min_care = 1, note = 'Rough-care route'},
+    },
+    wargreymon = {
+        omegamon = {device = 'golden_digivice', note = 'Beyond route'}
     },
     tyrannomon = {
         metalgreymon = {note = 'Standard route'},
@@ -79,6 +83,9 @@ BM.evolution_rules = {
         loaderleomon = {note = 'Standard route'},
         knightmon = {min_hunger = 3, note = 'High-Hunger route'},
     },
+    metalgarurumon = {
+        omegamon = {device = 'golden_digivice', note = 'Beyond route'}
+    },
     bukamon = {
         gomamon = {note = 'Standard route'},
         crabmon = {min_hunger = 2, note = 'Hungry route'},
@@ -134,6 +141,12 @@ BM.evolution_rules = {
     veemon = {
         exveemon = {note = 'Standard route'},
         flamedramon = {device = 'd3', note = 'D-3 Armor route'},
+        raidramon = {device = 'd3', note = 'D-3 Armor route'},
+        veedramon = {min_hunger = 3, note = 'High-Hunger route'},
+    },
+    exveemon = {
+        paildramon = {note = 'Standard route'},
+        magnamon = {device = 'd3', note = 'D-3 Armor route'}
     },
     flamedramon = {
         wingdramon = {note = 'Standard route'},
@@ -142,6 +155,12 @@ BM.evolution_rules = {
     paildramon = {
         imperialdramon_fighter_mode = {note = 'Mode choice'},
         imperialdramon_dragon_mode = {note = 'Mode choice'},
+    },
+    imperialdramon_fighter_mode = {
+        imperialdramon_paladin_mode = {device = 'golden_digivice', note = 'Beyond route'}
+    },
+    imperialdramon_dragon_mode = {
+        imperialdramon_paladin_mode = {device = 'golden_digivice', note = 'Beyond route'}
     },
     wingdramon = {
         gallantmon = {note = 'Standard route'},
@@ -593,6 +612,13 @@ BM.evolution_rules = {
         },
 
     },
+
+    veedramon = {
+        aeroveedramon = {note = 'Standard route'}
+    },
+    aeroveedramon = {
+        ultraforceveedramon = {note = 'Standard route'}
+    },
 }
 
 BM.evolution_queue = BM.evolution_queue or {}
@@ -739,6 +765,7 @@ local CARE_STAGE_RANK = {
     Rare = 4,
     Ultimate = 5,
     Mega = 6,
+    Beyond = 7,
 }
 
 local function care_reversion_note()
@@ -1216,6 +1243,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         mult = e.mult,
         xmult = e.xmult,
         xchips = e.xchips,
+        emult = e.emult,
         x_garurumon_chips = e.x_garurumon_chips,
         permanently_disabled = e.permanently_disabled,
     }
@@ -1256,6 +1284,19 @@ function BM.perform_digivolution(card, option, device_key, opts)
     card.ability.extra =
         card.ability.extra or {}
 
+    if option.slug == 'omegamon' then
+        card.ability.extra.emult = 1
+        card.ability.extra.xchips = 1
+
+        if old_slug == 'wargreymon' then
+            card.ability.extra.emult =
+                1 + ((carry.xmult or 1) / 100)
+
+        elseif old_slug == 'metalgarurumon' then
+            card.ability.extra.xchips =
+                1 + ((carry.xchips or 1) / 100)
+        end
+    end
     if old_slug == 'meramon'
     and option.slug == 'bluemeramon' then
         card.ability.extra.xmult =
