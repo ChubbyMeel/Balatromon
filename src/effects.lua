@@ -1022,9 +1022,21 @@ if not BM._is_suit_patched and Card and Card.is_suit then
     end
 end
 
-function BM.run_effect(slug,card,context)
-    local fn=H[slug]
-    if fn then return fn(card,context) end
+function BM.run_effect(slug, card, context)
+    if context
+    and context.check_enhancement then
+        return
+    end
+
+    local fn =
+        H[slug]
+
+    if fn then
+        return fn(
+            card,
+            context
+        )
+    end
 end
 
 local function has_active_digimon(slug)

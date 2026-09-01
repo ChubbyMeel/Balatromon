@@ -2372,6 +2372,11 @@ BM._run_effect_without_x =
 
 BM.run_effect =
 function(slug, card, context)
+    if context
+    and context.check_enhancement then
+        return
+    end
+
     if BM.has_x_antibody(card) then
         local x_effect =
             BM.x_antibody_effects[

@@ -429,20 +429,21 @@ function BM.deck_card_targets()
 end
 
 function BM.card_target_exists(rank, suit)
-    if not rank
-    or not suit then
+    if rank == nil
+    or suit == nil then
         return false
     end
 
     for _, card in ipairs(
         G.playing_cards or {}
     ) do
-        if BM.card_matches_target(
-            card,
-            rank,
-            suit
-        ) then
-            return true
+        for _, identity in ipairs(
+            BM.card_identities(card)
+        ) do
+            if identity.rank == rank
+            and identity.suit == suit then
+                return true
+            end
         end
     end
 
@@ -925,24 +926,31 @@ function BM.is_jogress_card(card)
 end
 
 function BM.native_card_identity(card)
-    if not card then
+    if not card
+    or not card.base then
         return nil
     end
 
-    if SMODS.has_no_rank
-    and SMODS.has_no_rank(card) then
+    local center =
+        card.config
+        and card.config.center
+
+    if center
+    and (
+        center.no_rank == true
+        or center.no_suit == true
+    ) then
         return nil
     end
 
-    if SMODS.has_no_suit
-    and SMODS.has_no_suit(card) then
-        return nil
-    end
+    local rank =
+        card.base.id
 
-    local rank = BM.get_rank(card)
-    local suit = card.base and card.base.suit
+    local suit =
+        card.base.suit
 
-    if not rank or not suit then
+    if rank == nil
+    or suit == nil then
         return nil
     end
 
