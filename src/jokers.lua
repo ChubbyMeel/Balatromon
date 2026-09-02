@@ -2496,10 +2496,23 @@ do
         end,
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
-            local previous=e.previous_form_value
-            if previous == nil then previous = 3 end
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)},previous/3}}
+
+            local xmult = 5
+            if e.inherited_gallantmon_value then
+                xmult = e.inherited_gallantmon_value / 3
+            end
+
+            return {
+                vars = {
+                    e.hunger or 1,
+                    e.bond or 0,
+                    e.care_mistakes or 0,
+                    elements = {
+                        BM.care_bars(e, stage)
+                    },
+                    xmult
+                }
+            }
         end,
         in_pool = function(self,args)
             return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'

@@ -366,9 +366,20 @@ H.triceramon = function(card, context)
         )
     end
 end
-H.gallantmon = function(card,context)
-    local e=card.ability.extra; e.previous_form_value=e.previous_form_value or 3
-    if context.joker_main then return {xmult=e.previous_form_value/3} end
+H.gallantmon = function(card, context)
+    local e = card.ability.extra
+
+    if context.joker_main then
+        local xmult = 5
+
+        if e.inherited_gallantmon_value then
+            xmult = e.inherited_gallantmon_value / 3
+        end
+
+        return {
+            xmult = xmult
+        }
+    end
 end
 H.cotsucomon = function(card,context) BM.apply_blind_reduction(card,context,0.02,false) end
 H.kakkinmon = function(card,context) BM.apply_blind_reduction(card,context,0.03,false) end
