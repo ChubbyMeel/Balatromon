@@ -134,8 +134,10 @@ local function bm_register_new_digimon(def)
                 )
             }
 
+            local dynamic = {}
+
             if def.dynamic_vars then
-                local dynamic =
+                dynamic =
                     def.dynamic_vars(
                         card,
                         e
@@ -149,7 +151,9 @@ local function bm_register_new_digimon(def)
                         value
                 end
             end
-
+            if type(dynamic.colours) == 'table' and #dynamic.colours > 0 then
+                vars.colours = dynamic.colours
+            end
             return {
                 vars = vars
             }
@@ -1984,12 +1988,21 @@ bm_register_new_digimon({
                 'omegamon_card'
             )
 
-        return {
+        local vars = {
             BM.rank_name(rank),
             suit,
             e.emult or 1,
             e.xchips or 1
         }
+
+        vars.colours = {
+            (
+                G.C.SUITS
+                and G.C.SUITS[suit]
+            )
+            or G.C.FILTER
+        }
+        return vars
     end,
 
     effect = 'Gain ^0.15 Mult and X1 Chips whenever the target card is triggered'
@@ -5240,11 +5253,20 @@ bm_register_new_digimon({
                 'raidramon'
             )
 
-        return {
+        local vars = {
             numerator,
             denominator,
-            e.target_suit or 'Hearts'
+            suit
         }
+        vars.colours = {
+            (
+                G.C.SUITS
+                and G.C.SUITS[suit]
+            )
+            or G.C.FILTER
+        }
+        return vars
+
     end,
 
     effect = '1 in 2 chance for played cards of the target suit to give X1.25 Chips'

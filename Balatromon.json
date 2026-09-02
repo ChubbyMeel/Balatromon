@@ -8,5 +8,8 @@
   "prefix": "DigiMeel",
   "main_file": "main.lua",
   "version": "0.9.1",
-  "icon_path": "Balatromon_Icon.png"
+  "icon_path": "Balatromon_Icon.png",
+  "dependencies": [
+    "Steamodded (>=1.0.0~BETA-1814a)"
+  ]
 }
