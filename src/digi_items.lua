@@ -1,5 +1,86 @@
 local BM = Balatromon
 
+local function can_swap_jogress(card)
+    if not card
+    or not BM.is_jogress_card(card) then
+        return false
+    end
+
+    local current =
+        BM.native_card_identity(card)
+
+    local sources =
+        card.ability
+        and card.ability.extra
+        and card.ability.extra.jogress_sources
+
+    local second =
+        type(sources) == 'table'
+        and sources[2]
+
+    return current ~= nil
+        and second ~= nil
+        and second.rank ~= nil
+        and second.suit ~= nil
+end
+
+
+local function swap_jogress_identities(card)
+    if not can_swap_jogress(card) then
+        return false
+    end
+
+    local old_base =
+        BM.native_card_identity(card)
+
+    local sources =
+        card.ability.extra.jogress_sources
+
+    local old_second = {
+        rank = sources[2].rank,
+        suit = sources[2].suit
+    }
+
+    local rank_key =
+        BM.rank_name(
+            old_second.rank
+        )
+
+    local changed, err =
+        SMODS.change_base(
+            card,
+            old_second.suit,
+            rank_key
+        )
+
+    if not changed then
+        print(
+            '[Balatromon] Failed to swap Jogress: '
+            .. tostring(err)
+        )
+
+        return false
+    end
+
+    card.ability.extra.jogress_sources = {
+        {
+            rank = old_second.rank,
+            suit = old_second.suit
+        },
+
+        {
+            rank = old_base.rank,
+            suit = old_base.suit
+        }
+    }
+
+    card:juice_up(
+        0.5,
+        0.5
+    )
+
+    return true
+end
 
 SMODS.ConsumableType {
     key = 'DigiItem',
@@ -1381,17 +1462,29 @@ SMODS.Consumable {
         self,
         card
     )
-        if not G.hand
-        or #G.hand.highlighted ~= 2 then
+        if not G.hand then
             return false
         end
 
-        return can_jogress_source(
-            G.hand.highlighted[1]
-        )
-        and can_jogress_source(
-            G.hand.highlighted[2]
-        )
+        local selected =
+            G.hand.highlighted or {}
+
+        if #selected == 1 then
+            return can_swap_jogress(
+                selected[1]
+            )
+        end
+
+        if #selected == 2 then
+            return can_jogress_source(
+                selected[1]
+            )
+            and can_jogress_source(
+                selected[2]
+            )
+        end
+
+        return false
     end,
 
     use = function(
@@ -1406,6 +1499,36 @@ SMODS.Consumable {
 
         local targets =
             selected_playing_cards(2)
+
+        if #targets == 1
+        and can_swap_jogress(
+            targets[1]
+        ) then
+            local target =
+                targets[1]
+
+            if swap_jogress_identities(
+                target
+            ) then
+                card_eval_status_text(
+                    target,
+                    'extra',
+                    nil,
+                    nil,
+                    nil,
+                    {
+                        message = 'Swap!',
+                        colour = G.C.PURPLE
+                    }
+                )
+            end
+
+            if G.hand then
+                G.hand:unhighlight_all()
+            end
+
+            return
+        end
 
         if #targets ~= 2 then
             return
