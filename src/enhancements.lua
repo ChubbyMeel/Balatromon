@@ -402,7 +402,12 @@ SMODS.Enhancement {
             or {}
 
         local first =
-            sources[1]
+            BM.native_card_identity(card)
+
+        if not first then
+            first =
+                sources[1]
+        end
 
         local second =
             sources[2]

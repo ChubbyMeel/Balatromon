@@ -1496,29 +1496,48 @@ function BM.card_identities(card)
             type(extra) == 'table'
             and extra.jogress_sources
 
-        if type(sources) == 'table' then
-            for i = 1, math.min(2, #sources) do
-                local source = sources[i]
-
-                if source
-                and source.rank
-                and source.suit then
-                    identities[#identities + 1] = {
-                        rank = source.rank,
-                        suit = source.suit
-                    }
-                end
-            end
-        end
-    end
-
-    if #identities == 0 then
-        local identity =
+        local first =
             BM.native_card_identity(card)
 
-        if identity then
-            identities[1] = identity
+        if not first
+        and type(sources) == 'table'
+        and sources[1]
+        and sources[1].rank
+        and sources[1].suit then
+            first = {
+                rank = sources[1].rank,
+                suit = sources[1].suit
+            }
         end
+
+        if first then
+            identities[#identities + 1] = {
+                rank = first.rank,
+                suit = first.suit
+            }
+        end
+
+        local second =
+            type(sources) == 'table'
+            and sources[2]
+
+        if second
+        and second.rank
+        and second.suit then
+            identities[#identities + 1] = {
+                rank = second.rank,
+                suit = second.suit
+            }
+        end
+
+        return identities
+    end
+
+    local identity =
+        BM.native_card_identity(card)
+
+    if identity then
+        identities[1] = identity
     end
 
     return identities
