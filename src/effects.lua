@@ -1562,33 +1562,132 @@ end
 
 function BM.refresh_sunflowmon_shop_packs()
     if not BM.has_sunflowmon_effect()
-    or not G.shop_booster then
+    or not G.shop_booster
+    or not G.shop_booster.cards then
         return
     end
 
-    for i, card in ipairs(G.shop_booster.cards or {}) do
-        local key = card.config
+    local replacements = {}
+
+    for i, card in ipairs(
+        G.shop_booster.cards
+    ) do
+        local key =
+            card.config
             and card.config.center
             and card.config.center.key
 
-        local mega_key = key
-            and BM.mega_digital_pack_key(
-                key,
-                'sunflowmon_existing_' .. tostring(i)
-            )
+        local size =
+            key
+            and BM.digital_pack_size(key)
 
-        if mega_key
-        and mega_key ~= key
-        and G.P_CENTERS[mega_key] then
-            card:set_ability(
-                G.P_CENTERS[mega_key],
-                nil,
-                true
-            )
+        if size
+        and size ~= 'mega' then
+            local mega_key =
+                BM.mega_digital_pack_key(
+                    key,
+                    'sunflowmon_existing_'
+                    .. tostring(i)
+                )
 
-            if card.set_cost then
-                card:set_cost()
+            if mega_key
+            and G.P_CENTERS[mega_key] then
+                replacements[
+                    #replacements + 1
+                ] = {
+                    old = card,
+                    key = mega_key,
+
+                    booster_pos =
+                        card.ability
+                        and card.ability.booster_pos
+                        or i,
+
+                    couponed =
+                        card.ability
+                        and card.ability.couponed
+                        or false
+                }
             end
+        end
+    end
+
+    for _, replacement in ipairs(
+        replacements
+    ) do
+        local old =
+            replacement.old
+
+        if old
+        and not old.REMOVED then
+            G.shop_booster:remove_card(
+                old
+            )
+
+            old:remove()
+
+            local center =
+                G.P_CENTERS[
+                    replacement.key
+                ]
+
+            local new_card =
+                Card(
+                    G.shop_booster.T.x
+                        + G.shop_booster.T.w / 2
+                        - G.CARD_W * 0.635,
+
+                    G.shop_booster.T.y,
+
+                    G.CARD_W * 1.27,
+                    G.CARD_H * 1.27,
+
+                    G.P_CARDS.empty,
+                    center,
+
+                    {
+                        bypass_discovery_center =
+                            true,
+
+                        bypass_discovery_ui =
+                            true
+                    }
+                )
+
+            new_card.ability.booster_pos =
+                replacement.booster_pos
+
+            if replacement.couponed then
+                new_card.ability.couponed =
+                    true
+
+                new_card:set_cost()
+            end
+
+            create_shop_card_ui(
+                new_card,
+                'Booster',
+                G.shop_booster
+            )
+
+            if G.GAME
+            and G.GAME.current_round
+            and G.GAME.current_round.used_packs
+            and replacement.booster_pos then
+                G.GAME.current_round.used_packs[
+                    replacement.booster_pos
+                ] =
+                    replacement.key
+            end
+
+            new_card.states.visible =
+                false
+
+            G.shop_booster:emplace(
+                new_card
+            )
+
+            new_card:start_materialize()
         end
     end
 end

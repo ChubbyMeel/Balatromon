@@ -297,6 +297,79 @@ add_pack_key(
     'mega_digital_pack_orange'
 )
 
+if get_pack
+and not BM._sunflowmon_get_pack_hook then
+    BM._sunflowmon_get_pack_hook =
+        true
+
+    local old_get_pack =
+        get_pack
+
+    get_pack =
+    function(_key, _type, ...)
+        local pack =
+            old_get_pack(
+                _key,
+                _type,
+                ...
+            )
+
+        if _key ~= 'shop_pack'
+        or not pack
+        or not BM.has_sunflowmon_effect
+        or not BM.has_sunflowmon_effect() then
+            return pack
+        end
+
+        local key =
+            pack.key
+
+        local size =
+            key
+            and BM.digital_pack_size(
+                key
+            )
+
+        if not size
+        or size == 'mega' then
+            return pack
+        end
+
+        local ante =
+            G.GAME
+            and G.GAME.round_resets
+            and G.GAME.round_resets.ante
+            or 0
+
+        local reroll =
+            G.GAME
+            and G.GAME.current_round
+            and G.GAME.current_round.reroll_cost
+            or 0
+
+        local mega_key =
+            BM.mega_digital_pack_key(
+                key,
+
+                'sunflowmon_pack_'
+                .. tostring(ante)
+                .. '_'
+                .. tostring(reroll)
+                .. '_'
+                .. tostring(key)
+            )
+
+        if mega_key
+        and G.P_CENTERS[mega_key] then
+            return G.P_CENTERS[
+                mega_key
+            ]
+        end
+
+        return pack
+    end
+end
+
 local function weighted_digimon_key(seed)
     local pool = {}
 

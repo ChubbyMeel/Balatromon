@@ -537,17 +537,6 @@ if not BM._shop_pool_patched and get_current_pool then
         _append
     )
 
-    if _type == 'Booster'
-    and BM.has_active_digimon
-    and BM.has_sunflowmon_effect()
-    and type(pool) == 'table' then
-        for i, key in ipairs(pool) do
-            pool[i] = BM.mega_digital_pack_key(
-                key,
-                'sunflowmon_shop_' .. tostring(i)
-            )
-        end
-    end
 
     return pool, pool_key
     end
