@@ -19,7 +19,7 @@ local function bm_register_new_digimon(def)
 
     SMODS.Joker {
         key = slug,
-
+        unlocked = def.unlocked ~= false,
         loc_txt = {
             name = def.name,
             text = {
@@ -29,7 +29,8 @@ local function bm_register_new_digimon(def)
                         stage
                     ),
                 }
-            }
+            },
+            unlock = def.unlock
         },
 
         config = {
@@ -203,6 +204,12 @@ local function bm_register_new_digimon(def)
                 slug
             )
         end,
+
+        check_for_unlock =
+            def.check_for_unlock,
+
+        locked_loc_vars =
+            def.locked_loc_vars,
 
         calculate = function(
             self,
@@ -1959,6 +1966,98 @@ do
         }
     end
 end
+
+bm_register_new_digimon({
+    slug =
+        'bancholeomon',
+
+    name =
+        'BanchoLeomon',
+
+    stage =
+        'Mega',
+
+    evolves_to =
+        'BanchoLeomon Burst Mode',
+    
+    unlocked = false,
+
+    unlock = {
+        'Have any {C:attention}Leomon{}',
+        'die from {C:attention}starvation{}'
+    },
+
+    check_for_unlock = function(
+        self,
+        args
+    )
+        return args
+            and args.type
+                == 'balatromon_leomon_died'
+    end,
+
+    pos = {
+        x = 7,
+        y = 19
+    },
+
+    blueprint_compat =
+        false,
+
+    negative_tooltip =
+        true,
+
+    text = {
+        'At the end of a',
+        '{C:attention}Boss Blind{}, create a',
+        'random {C:dark_edition}Negative{}',
+        '{C:attention}Leomon{}'
+    },
+
+    effect =
+        'At the end of a Boss Blind, create a Negative random Leomon'
+})
+
+
+bm_register_new_digimon({
+    slug =
+        'bancholeomon_burst_mode',
+
+    name =
+        'BanchoLeomon Burst Mode',
+
+    stage =
+        'Beyond',
+
+    evolves_to =
+        '-',
+
+    pos = {
+        x = 8,
+        y = 19
+    },
+
+    blueprint_compat =
+        false,
+
+    negative_tooltip =
+        true,
+
+    digimon_tooltips = {
+        'bancholeomon'
+    },
+
+    text = {
+        'At the end of the round,',
+        'each other {C:attention}Leomon{} gains',
+        '{C:attention}twice{} its normal',
+        'scaling amount',
+        'Applies {C:attention}BanchoLeomon{}'
+    },
+
+    effect =
+        'Double the normal scaling gain of each Leomon at end of round and apply BanchoLeomon'
+})
 
 bm_register_new_digimon({
     slug = 'omegamon',

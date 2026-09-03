@@ -704,6 +704,67 @@ function BM.build_evolution_map_layout()
         end
     end
 
+    local filtered_pages = {}
+
+    for _, page in ipairs(
+        normal_pages
+    ) do
+        local standalone_bancho =
+            page.roots
+            and #page.roots == 1
+            and page.roots[1]
+                == 'bancholeomon'
+
+        if not standalone_bancho then
+            local has_leomon =
+                false
+
+            for slug in pairs(
+                page.node_set or {}
+            ) do
+                if slug
+                    ~= 'bancholeomon'
+                and slug
+                    ~= 'bancholeomon_burst_mode'
+                and BM.is_leomon_slug(
+                    slug
+                ) then
+                    has_leomon =
+                        true
+
+                    break
+                end
+            end
+
+            if has_leomon then
+                if nodes.bancholeomon then
+                    page.node_set
+                        .bancholeomon =
+                        true
+                end
+
+                if nodes[
+                    'bancholeomon_burst_mode'
+                ] then
+                    page.node_set[
+                        'bancholeomon_burst_mode'
+                    ] =
+                        true
+                end
+            end
+
+            filtered_pages[
+                #filtered_pages + 1
+            ] =
+                page
+        end
+    end
+
+    normal_pages =
+        filtered_pages
+
+
+
     local baby_order = {}
     local next_baby_order = 1
 

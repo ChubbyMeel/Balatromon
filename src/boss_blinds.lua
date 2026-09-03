@@ -315,7 +315,8 @@ local function blind_is(key)
 end
 
 local function restore_chain_drag(card)
-    if not card then
+    if type(card) ~= 'table'
+    or card.REMOVED then
         return
     end
 
@@ -325,7 +326,8 @@ local function restore_chain_drag(card)
             card.states.drag.can =
                 card._balatromon_chain_old_drag
         else
-            card.states.drag.can = true
+            card.states.drag.can =
+                true
         end
     end
 
@@ -333,8 +335,9 @@ local function restore_chain_drag(card)
         nil
 end
 
+
 local function lock_chain_card(card)
-    if not card
+    if type(card) ~= 'table'
     or card.REMOVED
     or not card.states
     or not card.states.drag then
@@ -346,21 +349,61 @@ local function lock_chain_card(card)
             card.states.drag.can
     end
 
-    card.states.drag.can = false
+    card.states.drag.can =
+        false
 end
+
+
+local function chain_card_id(card)
+    if type(card) ~= 'table' then
+        return nil
+    end
+
+    return card.sort_id
+end
+
+
+local function find_chain_card(id)
+    if id == nil
+    or not G.jokers
+    or not G.jokers.cards then
+        return nil
+    end
+
+    for _, card in ipairs(
+        G.jokers.cards
+    ) do
+        if card
+        and card.sort_id == id then
+            return card
+        end
+    end
+
+    return nil
+end
+
 
 local function clear_chain()
     if not G.GAME then
         return
     end
 
-    restore_chain_drag(
-        G.GAME.balatromon_chain_left
-    )
+    for _, card in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        restore_chain_drag(
+            card
+        )
+    end
 
-    restore_chain_drag(
-        G.GAME.balatromon_chain_right
-    )
+    G.GAME.balatromon_chain_left_id =
+        nil
+
+    G.GAME.balatromon_chain_right_id =
+        nil
+
 
     G.GAME.balatromon_chain_left =
         nil
@@ -368,6 +411,7 @@ local function clear_chain()
     G.GAME.balatromon_chain_right =
         nil
 end
+
 
 local function start_chain()
     clear_chain()
@@ -386,23 +430,33 @@ local function start_chain()
             #G.jokers.cards
         ]
 
-    G.GAME.balatromon_chain_left =
+    G.GAME.balatromon_chain_left_id =
+        chain_card_id(
+            left
+        )
+
+    G.GAME.balatromon_chain_right_id =
+        chain_card_id(
+            right
+        )
+
+    lock_chain_card(
         left
-
-    G.GAME.balatromon_chain_right =
-        right
-
-    lock_chain_card(left)
+    )
 
     if right ~= left then
-        lock_chain_card(right)
+        lock_chain_card(
+            right
+        )
     end
 end
+
 
 local function enforce_chain_positions()
     if not blind_is('chain')
     or not G.jokers
-    or not G.jokers.cards then
+    or not G.jokers.cards
+    or not G.GAME then
         return
     end
 
@@ -410,10 +464,17 @@ local function enforce_chain_positions()
         G.jokers.cards
 
     local left =
-        G.GAME.balatromon_chain_left
+        find_chain_card(
+            G.GAME
+                .balatromon_chain_left_id
+        )
 
     local right =
-        G.GAME.balatromon_chain_right
+        find_chain_card(
+            G.GAME
+                .balatromon_chain_right_id
+        )
+
 
     if left
     and not left.REMOVED then
@@ -434,8 +495,11 @@ local function enforce_chain_positions()
             end
         end
 
-        lock_chain_card(left)
+        lock_chain_card(
+            left
+        )
     end
+
 
     if right
     and right ~= left
@@ -449,13 +513,16 @@ local function enforce_chain_positions()
 
                 cards[
                     #cards + 1
-                ] = right
+                ] =
+                    right
 
                 break
             end
         end
 
-        lock_chain_card(right)
+        lock_chain_card(
+            right
+        )
     end
 end
 

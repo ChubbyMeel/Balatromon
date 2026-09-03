@@ -168,6 +168,530 @@ function BM.get_card_slug(card)
     return key
 end
 
+function BM.is_leomon_slug(slug)
+    if not slug then
+        return false
+    end
+
+    slug = BM.slug(slug)
+
+    local def =
+        BM.joker_defs
+        and BM.joker_defs[slug]
+
+    local name =
+        def
+        and def.name
+        or slug
+
+    return string.find(
+        string.lower(tostring(name)),
+        'leomon',
+        1,
+        true
+    ) ~= nil
+end
+
+
+function BM.is_leomon(card)
+    return BM.is_digimon(card)
+        and BM.is_leomon_slug(
+            BM.get_card_slug(card)
+        )
+end
+
+
+function BM.get_leomon_essences()
+    local out = {}
+
+    local key =
+        'c_'
+        .. BM.PREFIX
+        .. '_leomon_essence'
+
+    for _, card in ipairs(
+        G.consumeables
+        and G.consumeables.cards
+        or {}
+    ) do
+        if card
+        and card.config
+        and card.config.center
+        and card.config.center.key == key then
+            out[#out + 1] =
+                card
+        end
+    end
+
+    return out
+end
+
+
+function BM.count_leomon_essence()
+    return #BM.get_leomon_essences()
+end
+
+
+function BM.create_leomon_essence()
+    if not G.consumeables then
+        return nil
+    end
+
+    local essence =
+        SMODS.add_card {
+            set = 'DigiItem',
+            area = G.consumeables,
+
+            key =
+                'c_'
+                .. BM.PREFIX
+                .. '_leomon_essence',
+
+            edition = 'e_negative',
+
+            key_append =
+                'balatromon_leomon_death'
+        }
+
+    if essence then
+        BM.try_summon_bancholeomon()
+    end
+
+    return essence
+end
+
+
+function BM.try_summon_bancholeomon()
+    if not G.GAME
+    or not G.jokers
+    or not G.consumeables
+    or not G.E_MANAGER then
+        return false
+    end
+
+    if G.GAME
+        .balatromon_bancho_summon_pending then
+        return false
+    end
+
+    local essences =
+        BM.get_leomon_essences()
+
+    if #essences < 10 then
+        return false
+    end
+
+    if not BM.has_room(G.jokers) then
+        return false
+    end
+
+    local key =
+        BM.center_key(
+            'bancholeomon'
+        )
+
+    if not (
+        G.P_CENTERS
+        and G.P_CENTERS[key]
+    ) then
+        return false
+    end
+
+    G.GAME
+        .balatromon_bancho_summon_pending =
+        true
+
+    G.E_MANAGER:add_event(
+        Event({
+            trigger = 'after',
+            delay = 0.1,
+
+            func = function()
+                local current =
+                    BM.get_leomon_essences()
+
+                if #current < 10
+                or not BM.has_room(
+                    G.jokers
+                ) then
+                    G.GAME
+                        .balatromon_bancho_summon_pending =
+                        nil
+
+                    return true
+                end
+
+                local bancho =
+                    SMODS.add_card {
+                        set = 'Joker',
+                        area = G.jokers,
+                        key = key,
+
+                        key_append =
+                            'leomon_essence_summon'
+                    }
+
+                if bancho then
+                    local consumed = {}
+
+                    for i = 1, 10 do
+                        consumed[i] =
+                            current[i]
+                    end
+
+                    SMODS.destroy_cards(
+                        consumed,
+                        {
+                            delay = 0.15
+                        }
+                    )
+
+                    card_eval_status_text(
+                        bancho,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message =
+                                'I have arrived.',
+                            colour =
+                                G.C.ATTENTION
+                        }
+                    )
+                end
+
+                G.GAME
+                    .balatromon_bancho_summon_pending =
+                    nil
+
+                return true
+            end
+        })
+    )
+
+    return true
+end
+
+
+function BM.kill_starved_leomon(card)
+    if not card
+    or card.REMOVED
+    or not BM.is_leomon(card) then
+        return false
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+
+    if not e then
+        return false
+    end
+
+    if e._leomon_death_pending then
+        return true
+    end
+
+    e._leomon_death_pending =
+        true
+
+    e.permanently_disabled =
+        true
+
+    if not (
+        G.GAME
+        and (
+            G.GAME.seeded
+            or G.GAME.challenge
+        )
+    )
+    and check_for_unlock then
+        check_for_unlock({
+            type =
+                'balatromon_leomon_died'
+        })
+    end
+
+    BM.bad_care_animation(
+        card,
+        'Died!'
+    )
+
+    G.E_MANAGER:add_event(
+        Event({
+            trigger = 'after',
+            delay = 0.35,
+
+            func = function()
+                if card
+                and not card.REMOVED then
+                    BM.create_leomon_essence()
+
+                    SMODS.destroy_cards(
+                        card,
+                        {
+                            delay = 0.15
+                        }
+                    )
+                end
+
+                return true
+            end
+        })
+    )
+
+    return true
+end
+
+
+function BM.create_negative_random_leomon(seed)
+    if not G.jokers then
+        return nil
+    end
+
+    local pool = {}
+
+    for slug, def in pairs(
+        BM.joker_defs or {}
+    ) do
+        if BM.is_leomon_slug(slug)
+        and slug ~= 'bancholeomon'
+        and slug ~= 'bancholeomon_burst_mode' then
+            local key =
+                BM.center_key(slug)
+
+            if G.P_CENTERS
+            and G.P_CENTERS[key] then
+                pool[#pool + 1] =
+                    key
+            end
+        end
+    end
+
+    table.sort(pool)
+
+    if #pool == 0 then
+        return nil
+    end
+
+    local key =
+        BM.random_element(
+            pool,
+            seed or 'bancholeomon_spawn'
+        )
+
+    if not key then
+        return nil
+    end
+
+    return SMODS.add_card {
+        set = 'Joker',
+        area = G.jokers,
+        key = key,
+        edition = 'e_negative',
+        allow_duplicates = true,
+        key_append =
+            seed
+            or 'bancholeomon_spawn'
+    }
+end
+
+function BM.queue_bancholeomon_spawn(
+    card,
+    seed
+)
+    if not card
+    or card.REMOVED
+    or not G.E_MANAGER then
+        return false
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+
+    if not e then
+        return false
+    end
+
+    if e._bancho_spawn_queued then
+        return false
+    end
+
+    e._bancho_spawn_queued =
+        true
+
+    G.E_MANAGER:add_event(
+        Event({
+            trigger = 'after',
+            delay = 0.15,
+
+            func = function()
+                if not card
+                or card.REMOVED then
+                    return true
+                end
+
+                local extra =
+                    card.ability
+                    and card.ability.extra
+
+                if extra then
+                    extra._bancho_spawn_queued =
+                        nil
+                end
+
+                local created =
+                    BM.create_negative_random_leomon(
+                        seed
+                    )
+
+                if created then
+                    card_eval_status_text(
+                        card,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message = 'Leomon!',
+                            colour =
+                                G.C.ATTENTION
+                        }
+                    )
+                end
+
+                return true
+            end
+        })
+    )
+
+    return true
+end
+
+function BM.apply_bancho_burst_growth(
+    source
+)
+    if not G.jokers then
+        return 0
+    end
+
+    local grown = 0
+
+    for _, target in ipairs(
+        G.jokers.cards or {}
+    ) do
+        local slug =
+            BM.get_card_slug(
+                target
+            )
+
+        if target ~= source
+        and BM.is_leomon_slug(slug)
+        and slug ~= 'bancholeomon'
+        and slug
+            ~= 'bancholeomon_burst_mode'
+        and target.ability
+        and target.ability.extra then
+
+            local e =
+                target.ability.extra
+
+            local message =
+                nil
+
+            if slug == 'leomon' then
+                if BM.has_x_antibody
+                and BM.has_x_antibody(
+                    target
+                ) then
+                    e.x_leomon_chips =
+                        e.x_leomon_chips
+                        or e.x_gabumon_chips
+                        or 1
+
+                    e.x_leomon_chips =
+                        e.x_leomon_chips
+                        + 1
+
+                    message =
+                        '+X1 Chips'
+                else
+                    e.chips =
+                        (e.chips or 0)
+                        + 30
+
+                    message =
+                        '+30 Chips'
+                end
+
+            elseif slug
+                == 'loaderleomon' then
+
+                e.chips =
+                    (e.chips or 0)
+                    + 100
+
+                message =
+                    '+100 Chips'
+
+            elseif slug
+                == 'grapleomon' then
+
+                e.stored_chips =
+                    (e.stored_chips or 0)
+                    + 120
+
+                message =
+                    '+120 Stored'
+
+            elseif slug
+                == 'heavyleomon' then
+
+                e.xchips =
+                    (e.xchips or 1)
+                    + 0.5
+
+                message =
+                    '+X0.5 Chips'
+
+            elseif slug
+                == 'saberleomon' then
+
+                e.stored_xchips =
+                    (e.stored_xchips or 1)
+                    * 4
+
+                message =
+                    'X4 Stored'
+
+            else
+                e.bancho_burst_chips =
+                    (
+                        e.bancho_burst_chips
+                        or 0
+                    )
+                    + 50
+
+                message =
+                    '+50 Chips'
+            end
+
+            grown =
+                grown + 1
+
+            BM.care_animation(
+                target,
+                message,
+                G.C.CHIPS
+            )
+        end
+    end
+
+    return grown
+end
+
 function BM.has_passive_deck_effect(slug)
     return slug == 'pururumon'
         or slug == 'poromon'
@@ -2058,15 +2582,35 @@ function BM.care_tick(card, context)
     end
 
     if (e.hunger or 1) >= hunger_max then
-        local slug = BM.get_card_slug(card)
+        local slug =
+            BM.get_card_slug(card)
 
-        e.permanently_disabled = true
+        if BM.is_leomon_slug(slug) then
+            BM.kill_starved_leomon(
+                card
+            )
 
-        if slug and BM.has_passive_deck_effect(slug) then
-            BM.on_remove(card, slug)
+            return
         end
 
-        SMODS.debuff_card(card, true, 'balatromon_hunger')
+        e.permanently_disabled =
+            true
+
+        if slug
+        and BM.has_passive_deck_effect(
+            slug
+        ) then
+            BM.on_remove(
+                card,
+                slug
+            )
+        end
+
+        SMODS.debuff_card(
+            card,
+            true,
+            'balatromon_hunger'
+        )
     end
 end
 

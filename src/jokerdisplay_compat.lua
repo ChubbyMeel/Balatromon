@@ -733,12 +733,18 @@ SPECIAL.tsunomon = function(card, e, scoring, out)
     out.chips = 90 - 5 * (e.discards or 0)
 end
 
-SPECIAL.madleomon = function(card, e, scoring, out)
-    out.chips = 1000
+SPECIAL.madleomon =
+function(card, e, scoring, out)
+    out.chips =
+        1000
         - 100 * (
             G.hand
             and G.hand.config
             and G.hand.config.card_limit
+            or 0
+        )
+        + (
+            e.bancho_burst_chips
             or 0
         )
 end

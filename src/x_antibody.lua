@@ -59,6 +59,17 @@ SMODS.Sticker {
 }
 BM.X_ANTIBODY_ROUNDS = 5
 
+local function x_inherit_exponent(value, divisor)
+    value = tonumber(value) or 1
+    divisor = divisor or 10
+
+    return 1
+        + math.max(
+            0,
+            value - 1
+        ) / divisor
+end
+
 function BM.can_x_evolve_to(slug)
     if not slug then
         return false
@@ -296,10 +307,20 @@ BM.x_antibody_effects.wargreymon =
 function(card, context, base)
     local e = card.ability.extra
 
-    e.target_rank, e.target_suit = BM.ensure_shared_card_target(
-        'wargreymon_card',
-        'wargrey_card'
-    )
+    if e.x_wargreymon_emult == nil then
+        e.x_wargreymon_emult =
+            x_inherit_exponent(
+                e.xmult,
+                10
+            )
+    end
+
+    e.target_rank,
+    e.target_suit =
+        BM.ensure_shared_card_target(
+            'wargreymon_card',
+            'wargrey_card'
+        )
 
     if context.before
     and context.main_eval
@@ -311,24 +332,20 @@ function(card, context, base)
     and context.cardarea == G.play
     and context.other_card
     and not context.other_card.debuff then
-        e.target_rank, e.target_suit = BM.ensure_shared_card_target(
-            'wargreymon_card',
-            'wargrey_card'
-        )
-
-        local target_rank =
-            e.target_rank
-
-        local target_suit =
-            e.target_suit
+        e.target_rank,
+        e.target_suit =
+            BM.ensure_shared_card_target(
+                'wargreymon_card',
+                'wargrey_card'
+            )
 
         local played =
             context.other_card
 
         if BM.card_matches_target(
             played,
-            target_rank,
-            target_suit
+            e.target_rank,
+            e.target_suit
         ) then
             e._x_wargrey_seen =
                 e._x_wargrey_seen
@@ -339,23 +356,22 @@ function(card, context, base)
                     played
                 )
 
-            if not e._x_wargrey_seen[
-                id
-            ] then
+            if not e._x_wargrey_seen[id] then
                 e._x_wargrey_seen[id] =
                     true
 
-                e.xmult =
-                    (e.xmult or 1)
+                e.x_wargreymon_emult =
+                    e.x_wargreymon_emult
                     + 0.1
 
                 return {
                     message =
                         '^'
                         .. tostring(
-                            e.xmult
+                            e.x_wargreymon_emult
                         )
                         .. ' Mult',
+
                     colour =
                         G.C.MULT
                 }
@@ -366,37 +382,50 @@ function(card, context, base)
     if context.joker_main then
         BM.emult(
             card,
-            e.xmult or 1
+            e.x_wargreymon_emult
         )
     end
 
     if context.end_of_round then
-        e._x_wargrey_seen = nil
+        e._x_wargrey_seen =
+            nil
+
         return base()
     end
 end
 
 BM.x_antibody_effects.blackwargreymon =
 function(card, context, base)
-    local e = card.ability.extra
+    local e =
+        card.ability.extra
+
+    if e.x_blackwargreymon_emult == nil then
+        e.x_blackwargreymon_emult =
+            x_inherit_exponent(
+                e.xmult,
+                10
+            )
+    end
 
     if context.remove_playing_cards
-    and context.removed then
+    and context.removed
+    and not context.blueprint then
         local count =
             #context.removed
 
         if count > 0 then
-            e.xmult =
-                (e.xmult or 1)
+            e.x_blackwargreymon_emult =
+                e.x_blackwargreymon_emult
                 + 0.1 * count
 
             return {
                 message =
                     '^'
                     .. tostring(
-                        e.xmult
+                        e.x_blackwargreymon_emult
                     )
                     .. ' Mult',
+
                 colour =
                     G.C.MULT
             }
@@ -406,7 +435,7 @@ function(card, context, base)
     if context.joker_main then
         BM.emult(
             card,
-            e.xmult or 1
+            e.x_blackwargreymon_emult
         )
     end
 end
@@ -537,19 +566,24 @@ end
 
 BM.x_antibody_effects.gallantmon =
 function(card, context, base)
-    local e = card.ability.extra
+    local e =
+        card.ability.extra
+
+    if e.x_gallantmon_emult == nil then
+        local normal_xmult =
+            normal_gallantmon_xmult(e)
+
+        e.x_gallantmon_emult =
+            x_inherit_exponent(
+                normal_xmult,
+                10
+            )
+    end
 
     if context.joker_main then
-        local previous =
-            e.previous_form_value
-
-        if previous == nil then
-            previous = 3
-        end
-
         BM.emult(
             card,
-            previous / 3
+            e.x_gallantmon_emult
         )
     end
 end
@@ -811,15 +845,26 @@ function(card, context, base)
     local e =
         card.ability.extra
 
-    e.target_rank, e.target_suit = BM.ensure_shared_card_target(
-        'metalgarurumon_card',
-        'metalgaruru_card'
-    )
+    if e.x_metalgarurumon_echips == nil then
+        e.x_metalgarurumon_echips =
+            x_inherit_exponent(
+                e.xchips,
+                10
+            )
+    end
+
+    e.target_rank,
+    e.target_suit =
+        BM.ensure_shared_card_target(
+            'metalgarurumon_card',
+            'metalgaruru_card'
+        )
 
     if context.before
     and context.main_eval
     and not context.blueprint then
-        e._x_metalgarurumon_seen = {}
+        e._x_metalgarurumon_seen =
+            {}
     end
 
     if context.individual
@@ -829,16 +874,10 @@ function(card, context, base)
         local played =
             context.other_card
 
-        local rank =
-            e.target_rank
-
-        local suit =
-            e.target_suit
-
         if BM.card_matches_target(
             played,
-            rank,
-            suit
+            e.target_rank,
+            e.target_suit
         ) then
             e._x_metalgarurumon_seen =
                 e._x_metalgarurumon_seen
@@ -856,17 +895,18 @@ function(card, context, base)
                     id
                 ] = true
 
-                e.xchips =
-                    (e.xchips or 1)
+                e.x_metalgarurumon_echips =
+                    e.x_metalgarurumon_echips
                     + 0.05
 
                 return {
                     message =
                         '^'
                         .. tostring(
-                            e.xchips
+                            e.x_metalgarurumon_echips
                         )
                         .. ' Chips',
+
                     colour =
                         G.C.CHIPS
                 }
@@ -875,12 +915,10 @@ function(card, context, base)
     end
 
     if context.joker_main then
-        return {
-            BM.echips(
-                card,
-                e.xchips or 1
-            )
-        }
+        BM.echips(
+            card,
+            e.x_metalgarurumon_echips
+        )
     end
 
     if context.end_of_round then
@@ -2189,13 +2227,17 @@ function BM.remove_x_antibody(card)
 
                 if card.ability
                 and card.ability.extra then
-                    card.ability.extra
-                        .x_antibody_rounds =
+                    local e = card.ability.extra
+                        e.x_antibody_rounds =
                         nil
 
-                    card.ability.extra
-                        ._x_antibody_ticked =
+
+                        e._x_antibody_ticked =
                         nil
+                        
+                        e.x_wargreymon_emult = nil
+                        e.x_metalgarurumon_echips = nil
+                        e.x_blackwargreymon_emult = nil
                 end
 
                 card:remove_sticker(
@@ -3008,7 +3050,31 @@ function BM.install_x_antibody_tooltips()
                         and card.ability.extra
                         or {}
 
-                    if slug == 'wargrowlmon' then
+                    if slug == 'wargreymon' then
+                        result.vars[6] =
+                            e.x_wargreymon_emult
+                            or x_inherit_exponent(
+                                e.xmult,
+                                10
+                            )
+
+                    elseif slug == 'metalgarurumon' then
+                        result.vars[6] =
+                            e.x_metalgarurumon_echips
+                            or x_inherit_exponent(
+                                e.xchips,
+                                10
+                            )
+
+                    elseif slug == 'blackwargreymon' then
+                        result.vars[4] =
+                            e.x_blackwargreymon_emult
+                            or x_inherit_exponent(
+                                e.xmult,
+                                10
+                            )
+
+                    elseif slug == 'wargrowlmon' then
                         result.vars[5] =
                             e.x_antibody_wargrowl_xmult
                             or math.max(

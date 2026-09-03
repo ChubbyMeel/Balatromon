@@ -86,6 +86,15 @@ BM.evolution_rules = {
     metalgarurumon = {
         omegamon = {device = 'golden_digivice', note = 'Beyond route'}
     },
+    bancholeomon = {
+        bancholeomon_burst_mode = {
+            device =
+                'golden_digivice',
+
+            note =
+                'Beyond route'
+        }
+    },
     bukamon = {
         gomamon = {note = 'Standard route'},
         crabmon = {min_hunger = 2, note = 'Hungry route'},

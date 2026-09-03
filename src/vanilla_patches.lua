@@ -6,7 +6,7 @@ local function mega_digimon_pool()
     for slug, def in pairs(
         BM.joker_defs or {}
     ) do
-        if def.stage == 'Mega' then
+        if def.stage == 'Mega' and slug ~= 'bancholeomon' then
             local key =
                 BM.center_key(slug)
 

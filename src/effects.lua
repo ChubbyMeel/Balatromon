@@ -419,7 +419,22 @@ H.leomon = function(card,context)
     if context.before and context.main_eval and BM.contains_hand(context,e.target_hand) and not context.blueprint then e.chips=e.chips+15; return {message='+15 Chips'} end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
-H.madleomon = function(card,context) if context.joker_main then return {chips=1000-100*(G.hand and G.hand.config.card_limit or 0)} end end
+H.madleomon = function(card, context)
+    local e = card.ability.extra
+
+    if context.joker_main then
+        return {
+            chips =
+                1000
+                - 100 * (
+                    G.hand
+                    and G.hand.config
+                    and G.hand.config.card_limit
+                    or 0
+                )
+        }
+    end
+end
 H.weregarurumon = function(card,context)
     local e=card.ability.extra; e.chips=e.chips or 0; e.target_rank=BM.ensure_shared_target('weregarurumon_rank',BM.deck_ranks(),'weregaruru_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('weregarurumon_rank',BM.deck_ranks(),'weregaruru_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
@@ -1033,7 +1048,11 @@ if not BM._is_suit_patched and Card and Card.is_suit then
     end
 end
 
-function BM.run_effect(slug, card, context)
+function BM.run_effect(
+    slug,
+    card,
+    context
+)
     if context
     and context.check_enhancement then
         return
@@ -1042,12 +1061,40 @@ function BM.run_effect(slug, card, context)
     local fn =
         H[slug]
 
+    local result
+
     if fn then
-        return fn(
-            card,
-            context
-        )
+        result =
+            fn(
+                card,
+                context
+            )
     end
+
+    if context
+    and context.joker_main
+    and BM.is_leomon_slug
+    and BM.is_leomon_slug(slug)
+    and card
+    and card.ability
+    and card.ability.extra then
+
+        local bonus =
+            card.ability.extra
+                .bancho_burst_chips
+            or 0
+
+        if bonus ~= 0 then
+            result =
+                result or {}
+
+            result.chips =
+                (result.chips or 0)
+                + bonus
+        end
+    end
+
+    return result
 end
 
 local function has_active_digimon(slug)
@@ -3135,5 +3182,84 @@ function(card, context)
         return {
             repetitions = 1
         }
+    end
+end
+
+H.bancholeomon =
+function(card, context)
+    if not context then
+        return
+    end
+
+    if context.end_of_round
+    and context.cardarea == G.jokers
+    and context.main_eval
+    and context.beat_boss
+    and not context.blueprint
+    and not context.retrigger_joker then
+
+        local ante =
+            G.GAME
+            and G.GAME.round_resets
+            and G.GAME.round_resets.ante
+            or 0
+
+        local seed =
+            'bancholeomon_'
+            .. tostring(ante)
+            .. '_'
+            .. tostring(
+                card.sort_id or 0
+            )
+
+        BM.queue_bancholeomon_spawn(
+            card,
+            seed
+        )
+    end
+end
+
+
+H.bancholeomon_burst_mode =
+function(card, context)
+    if not context then
+        return
+    end
+
+    if context.end_of_round
+    and context.cardarea == G.jokers
+    and context.main_eval
+    and not context.blueprint
+    and not context.retrigger_joker then
+
+        if context.beat_boss then
+            local ante =
+                G.GAME
+                and G.GAME.round_resets
+                and G.GAME.round_resets.ante
+                or 0
+
+            BM.queue_bancholeomon_spawn(
+                card,
+                'bancho_burst_'
+                    .. tostring(ante)
+                    .. '_'
+                    .. tostring(
+                        card.sort_id or 0
+                    )
+            )
+        end
+
+        local grown =
+            BM.apply_bancho_burst_growth(
+                card
+            )
+
+        if grown > 0 then
+            return {
+                message = 'Burst!',
+                colour = G.C.ATTENTION
+            }
+        end
     end
 end

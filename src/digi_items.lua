@@ -1604,3 +1604,143 @@ SMODS.Consumable {
         )
     end,
 }
+
+SMODS.Consumable {
+    set = 'DigiItem',
+
+    key = 'leomon_essence',
+
+    atlas = 'Consumable',
+    pos = {
+        x = 1,
+        y = 4
+    },
+
+    discovered = false,
+    unlocked = true,
+
+    cost = 0,
+
+    loc_txt = {
+        name = 'Leomon Essence',
+
+        text = {
+            'When you own {C:attention}10{} copies',
+            'and have an empty {C:attention}Joker slot{},',
+            'consume {C:attention}10{} to create',
+            '{C:attention}BanchoLeomon{}',
+            '{C:dark_edition}Always Negative{}',
+            '{C:inactive}(Currently #1#/10){}'
+        }
+    },
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        if G.P_CENTERS
+        and G.P_CENTERS.e_negative then
+            info_queue[
+                #info_queue + 1
+            ] =
+                G.P_CENTERS.e_negative
+        end
+
+        return {
+            vars = {
+                BM.count_leomon_essence()
+            }
+        }
+    end,
+
+    in_pool = function(
+        self,
+        args
+    )
+        return false
+    end,
+
+    can_use = function(
+        self,
+        card
+    )
+        return false
+    end,
+
+    use = function()
+    end,
+
+    add_to_deck = function(
+        self,
+        card
+    )
+        if not (
+            card.edition
+            and card.edition.negative
+        ) then
+            card:set_edition(
+                {
+                    negative = true
+                },
+                true,
+                true
+            )
+        end
+
+        BM.try_summon_bancholeomon()
+    end,
+
+    update = function(
+        self,
+        card,
+        dt
+    )
+        if not card
+        or card.REMOVED
+        or not G.consumeables
+        or card.area ~= G.consumeables then
+            return
+        end
+
+        if not (
+            card.edition
+            and card.edition.negative
+        )
+        and not card
+            ._bm_restoring_negative then
+
+            card._bm_restoring_negative =
+                true
+
+            G.E_MANAGER:add_event(
+                Event({
+                    trigger = 'after',
+                    delay = 0,
+
+                    func = function()
+                        if card
+                        and not card.REMOVED then
+                            card:set_edition(
+                                {
+                                    negative =
+                                        true
+                                },
+                                true,
+                                true
+                            )
+
+                            card
+                                ._bm_restoring_negative =
+                                nil
+                        end
+
+                        return true
+                    end
+                })
+            )
+        end
+
+        BM.try_summon_bancholeomon()
+    end,
+}
