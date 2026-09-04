@@ -356,6 +356,95 @@ local function random_ready_stage_targets(stages, amount, seed, device_key)
     return result
 end
 
+local function eligible_d3_cards()
+    local out = {}
+
+    for _, c in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        if BM.is_digimon(c) then
+            local stage =
+                c.config
+                and c.config.center
+                and c.config.center
+                    .balatromon_stage
+
+            local slug =
+                BM.get_card_slug(c)
+
+            local normal_target =
+                stage == 'In-Training'
+                or stage == 'Rookie'
+
+            local special_target =
+                slug == 'exveemon'
+
+            if (
+                normal_target
+                or special_target
+            )
+            and BM.can_digivolve_with(
+                c,
+                'd3'
+            ) then
+                out[#out + 1] = c
+            end
+        end
+    end
+
+    return out
+end
+
+
+local function d3_can_use()
+    return #eligible_d3_cards() > 0
+end
+
+
+local function d3_use()
+    local pool =
+        eligible_d3_cards()
+
+    local targets = {}
+
+    while #pool > 0
+    and #targets < 2 do
+        local pick =
+            BM.random_element(
+                pool,
+                'd3'
+                    .. tostring(
+                        #targets + 1
+                    )
+            )
+
+        if not pick then
+            break
+        end
+
+        targets[#targets + 1] =
+            pick
+
+        for i, c in ipairs(pool) do
+            if c == pick then
+                table.remove(
+                    pool,
+                    i
+                )
+
+                break
+            end
+        end
+    end
+
+    BM.begin_evolution_sequence(
+        targets,
+        'd3'
+    )
+end
+
 local function device_can_use(stages, random_count, device_key)
     if random_count then
         return #eligible_stage_cards(stages, device_key) > 0
@@ -921,13 +1010,27 @@ SMODS.Consumable {
     discovered = false, unlocked = true, cost = 5,
     loc_txt = {name='D-3', text={
         'Digivolve {C:attention}2 random{}',
-        '{C:attention}In-Training{} or {C:attention}Rookie{} Digimon',
+        '{C:attention}In-Training{}, {C:attention}Rookie{} or any possible armor digivolution',
         '{C:inactive}(Choose a form if it branches){}'
     }},
-    can_use = function(self, card) return device_can_use({'In-Training','Rookie'}, 2, 'd3') end,
-    use = function(self, card, area, copier)
-        BM.remember_digi_item(card)
-        device_use({'In-Training','Rookie'}, 2, 'd3', 'd3')
+    can_use = function(
+        self,
+        card
+    )
+        return d3_can_use()
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        BM.remember_digi_item(
+            card
+        )
+
+        d3_use()
     end,
 }
 

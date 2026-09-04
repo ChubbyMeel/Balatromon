@@ -987,7 +987,8 @@ H.bakemon = function(card, context)
         local empty = BM.empty_joker_slots({
             raremon = true,
             phantomon = true,
-            pumpkinmon = true
+            pumpkinmon = true,
+            bakemon = true,
         })
 
         return {
@@ -1001,7 +1002,8 @@ H.phantomon = function(card, context)
         local empty = BM.empty_joker_slots({
             raremon = true,
             phantomon = true,
-            pumpkinmon = true
+            pumpkinmon = true,
+            bakemon = true,
         })
 
         return {
@@ -1015,7 +1017,8 @@ H.pumpkinmon = function(card, context)
         local empty = BM.empty_joker_slots({
             raremon = true,
             phantomon = true,
-            pumpkinmon = true
+            pumpkinmon = true,
+            bakemon = true,
         })
 
         return {
@@ -1351,6 +1354,118 @@ local function consume_self(card)
             return true
         end
     }))
+end
+
+local function bm_hand_has_rank(
+    cards,
+    rank
+)
+    for _, played in ipairs(
+        cards or {}
+    ) do
+        if BM.card_has_rank(
+            played,
+            rank
+        ) then
+            return true
+        end
+    end
+
+    return false
+end
+
+
+local function bm_lopmon_hand(
+    cards
+)
+    return bm_hand_has_rank(
+        cards,
+        13
+    )
+    and bm_hand_has_rank(
+        cards,
+        12
+    )
+    and bm_hand_has_rank(
+        cards,
+        10
+    )
+end
+
+
+local function bm_cherubimon_effect(
+    card,
+    context,
+    wants_most,
+    gain
+)
+    local e =
+        card.ability.extra
+
+    e.emult =
+        e.emult or 1
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint then
+        local is_most =
+            BM.is_most_played_hand_before_play(
+                context.scoring_name
+            )
+
+        if is_most == wants_most then
+            e.emult =
+                e.emult
+                + gain
+
+            return {
+                message =
+                    '^'
+                    .. tostring(e.emult)
+                    .. ' Mult',
+
+                colour =
+                    G.C.MULT
+            }
+        end
+    end
+
+    if context.joker_main then
+        BM.emult(
+            card,
+            e.emult
+        )
+    end
+end
+
+
+BM.cherubimon_good_effect =
+function(
+    card,
+    context,
+    gain
+)
+    return bm_cherubimon_effect(
+        card,
+        context,
+        true,
+        gain
+    )
+end
+
+
+BM.cherubimon_evil_effect =
+function(
+    card,
+    context,
+    gain
+)
+    return bm_cherubimon_effect(
+        card,
+        context,
+        false,
+        gain
+    )
 end
 
 H.yuramon = function()
@@ -3393,4 +3508,358 @@ function(card, context)
             }
         end
     end
+end
+
+H.conomon =
+function(card, context)
+    if context.individual
+    and context.cardarea == G.play
+    and context.other_card
+    and BM.is_face(
+        context.other_card
+    )
+    and SMODS.pseudorandom_probability(
+        card,
+        'conomon_face',
+        1,
+        2
+    ) then
+        return {
+            dollars = 2
+        }
+    end
+end
+
+
+H.kokomon =
+function(card, context)
+    local conomon =
+        H.conomon(
+            card,
+            context
+        )
+
+    if conomon then
+        return conomon
+    end
+
+    if context.end_of_round
+    and context.main_eval
+    and not context.blueprint then
+        card.ability.extra_value =
+            (
+                card.ability.extra_value
+                or 0
+            )
+            + 3
+
+        if card.set_cost then
+            card:set_cost()
+        end
+
+        return {
+            message =
+                '+$3 Sell Value',
+
+            colour =
+                G.C.MONEY
+        }
+    end
+end
+
+
+H.lopmon =
+function(card, context)
+    local e =
+        card.ability.extra
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint then
+        e._lopmon_successes =
+            0
+
+        if not bm_lopmon_hand(
+            context.full_hand
+        ) then
+            return
+        end
+
+        local planet =
+            false
+
+        local spectral =
+            false
+
+        if SMODS.pseudorandom_probability(
+            card,
+            'lopmon_planet',
+            1,
+            3
+        ) then
+            local created =
+                BM.add_consumable(
+                    'Planet'
+                )
+
+            if created then
+                planet = true
+
+                e._lopmon_successes =
+                    e._lopmon_successes
+                    + 1
+            end
+        end
+
+        if SMODS.pseudorandom_probability(
+            card,
+            'lopmon_spectral',
+            1,
+            5
+        ) then
+            local created =
+                BM.add_consumable(
+                    'Spectral'
+                )
+
+            if created then
+                spectral = true
+
+                e._lopmon_successes =
+                    e._lopmon_successes
+                    + 1
+            end
+        end
+
+        if planet
+        and spectral then
+            return {
+                message =
+                    'Planet + Spectral!',
+
+                colour =
+                    G.C.PURPLE
+            }
+
+        elseif planet then
+            return {
+                message =
+                    'Planet!',
+
+                colour =
+                    G.C.SECONDARY_SET.Planet
+            }
+
+        elseif spectral then
+            return {
+                message =
+                    'Spectral!',
+
+                colour =
+                    G.C.PURPLE
+            }
+        end
+    end
+end
+
+
+H.turuiemon =
+function(card, context)
+    local e =
+        card.ability.extra
+
+    e.mult =
+        e.mult or 0
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint then
+        local qualifies =
+            BM.is_most_played_hand_before_play(
+                context.scoring_name
+            )
+
+        if qualifies then
+            e.mult =
+                e.mult + 10
+
+            return {
+                message =
+                    '+' .. tostring(
+                        e.mult
+                    ) .. ' Mult',
+
+                colour =
+                    G.C.MULT
+            }
+        end
+
+        if e.mult ~= 0 then
+            e.mult = 0
+
+            return {
+                message =
+                    'Reset!',
+
+                colour =
+                    G.C.RED
+            }
+        end
+    end
+
+    if context.joker_main
+    and e.mult > 0 then
+        return {
+            mult =
+                e.mult
+        }
+    end
+end
+
+
+H.wendigomon =
+function(card, context)
+    local e =
+        card.ability.extra
+
+    e.mult =
+        e.mult or 0
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint then
+        local qualifies =
+            not BM.is_most_played_hand_before_play(
+                context.scoring_name
+            )
+
+        if qualifies then
+            e.mult =
+                e.mult + 15
+
+            return {
+                message =
+                    '+' .. tostring(
+                        e.mult
+                    ) .. ' Mult',
+
+                colour =
+                    G.C.MULT
+            }
+        end
+
+        if e.mult ~= 0 then
+            e.mult = 0
+
+            return {
+                message =
+                    'Reset!',
+
+                colour =
+                    G.C.RED
+            }
+        end
+    end
+
+    if context.joker_main
+    and e.mult > 0 then
+        return {
+            mult =
+                e.mult
+        }
+    end
+end
+
+
+H.antylamon =
+function(card, context)
+    local e =
+        card.ability.extra
+
+    e.good_xmult =
+        e.good_xmult or 1
+
+    e.evil_xmult =
+        e.evil_xmult or 1
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint then
+        local is_good =
+            BM.is_most_played_hand_before_play(
+                context.scoring_name
+            )
+
+        e._antylamon_alignment =
+            is_good
+            and 'good'
+            or 'evil'
+
+        if is_good then
+            e.good_xmult =
+                e.good_xmult
+                + 0.2
+
+            return {
+                message =
+                    'Good X'
+                    .. tostring(
+                        e.good_xmult
+                    ),
+
+                colour =
+                    G.C.GREEN
+            }
+        end
+
+        e.evil_xmult =
+            e.evil_xmult
+            + 0.75
+
+        return {
+            message =
+                'Evil X'
+                .. tostring(
+                    e.evil_xmult
+                ),
+
+            colour =
+                G.C.PURPLE
+        }
+    end
+
+    if context.joker_main then
+        if e._antylamon_alignment
+            == 'good' then
+            return {
+                xmult =
+                    e.good_xmult
+            }
+        end
+
+        return {
+            xmult =
+                e.evil_xmult
+        }
+    end
+end
+
+
+H.cherubimon_good =
+function(card, context)
+    return BM.cherubimon_good_effect(
+        card,
+        context,
+        0.01
+    )
+end
+
+
+H.cherubimon_evil =
+function(card, context)
+    return BM.cherubimon_evil_effect(
+        card,
+        context,
+        0.03
+    )
 end

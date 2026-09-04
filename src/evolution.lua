@@ -154,8 +154,22 @@ BM.evolution_rules = {
         veedramon = {min_hunger = 3, note = 'High-Hunger route'},
     },
     exveemon = {
-        paildramon = {note = 'Standard route'},
-        magnamon = {device = 'd3', note = 'D-3 Armor route'}
+        paildramon = {
+            note = 'Standard route',
+
+            valid = function(
+                card,
+                target_center,
+                device_key
+            )
+                return device_key ~= 'd3'
+            end
+        },
+
+        magnamon = {
+            device = 'd3',
+            note = 'D-3 Armor route'
+        }
     },
     flamedramon = {
         wingdramon = {note = 'Standard route'},
@@ -627,6 +641,51 @@ BM.evolution_rules = {
     },
     aeroveedramon = {
         ultraforceveedramon = {note = 'Standard route'}
+    },
+
+    
+
+    conomon = {
+        kokomon = {
+            note = 'Standard route'
+        }
+    },
+
+    kokomon = {
+        lopmon = {
+            note = 'Standard route'
+        }
+    },
+
+    lopmon = {
+        turuiemon = {
+            note = 'Standard route'
+        },
+
+        wendigomon = {bad_path = true, note = 'Care Crisis route'},
+    },
+
+    turuiemon = {
+        antylamon = {
+            note = 'Standard route'
+        }
+    },
+
+    wendigomon = {
+        antylamon = {
+            note = 'Standard route'
+        }
+    },
+
+    antylamon = {
+        cherubimon_good = {
+            note = 'Standard route'
+        },
+
+        cherubimon_evil = {
+            min_hunger = 3,
+            note = 'High-Hunger route'
+        },
     },
 }
 

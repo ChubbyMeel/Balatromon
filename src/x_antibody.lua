@@ -127,6 +127,9 @@ BM.x_antibody_viable = {
     herculeskabuterimon = true,
     magnamon = true,
     omegamon = true,
+    lopmon = true,
+    cherubimon_good = true,
+    cherubimon_evil = true,
 }
 
 BM.x_antibody_extra_evolutions = {
@@ -136,7 +139,8 @@ BM.x_antibody_extra_evolutions = {
     tokomon = {
         'salamon',
         'renamon',
-        'terriermon'
+        'terriermon',
+        'lopmon'
     },
     angewomon = {
         'sakuyamon'
@@ -160,8 +164,17 @@ BM.x_antibody_extra_evolutions = {
     keramon = {
         'monzaemon',
         'kuwagamon'
+    },
+    lopmon = {
+        'cherubimon_good',
+        'cherubimon_evil',
+    },
+    metalgreymon = {
+        'magnamon'
+    },
+    wargrowlmon = {
+        'magnamon'
     }
-
 }
 
 BM.evolution_rules.salamon.pegasusmon = {
@@ -2951,6 +2964,47 @@ omegamon = {
     }
 },
 
+lopmon = {
+    name = 'Lopmon X',
+    stage = 'Rookie',
+
+    text = {
+        'If played hand contains a {C:attention}King{},',
+        '{C:attention}Queen{}, and {C:attention}10{},',
+        '{C:green}#4# in #5#{} chance to create a',
+        'random {C:planet}Planet{} card and',
+        '{C:green}#6# in #7#{} chance to create a',
+        'random {C:spectral}Spectral{} card',
+        'Each successful creation gives',
+        '{X:chips,C:white}X1.7{} Chips for that hand',
+        '{C:inactive}(Effects can trigger independently){}'
+    }
+},
+
+cherubimon_good = {
+    name = 'Cherubimon G X',
+    stage = 'Mega',
+
+    text = {
+        'Whenever one of your {C:attention}most played{}',
+        'poker hands is played, permanently',
+        'gains {X:mult,C:white}^0.2{} Mult',
+        '{C:inactive}(Currently {X:mult,C:white}^#4#{C:inactive} Mult){}'
+    }
+},
+
+cherubimon_evil = {
+    name = 'Cherubimon E X',
+    stage = 'Mega',
+
+    text = {
+        'Whenever a poker hand that is {C:attention}not{}',
+        'one of your most played hands is played,',
+        'permanently gains {X:mult,C:white}^0.2{} Mult',
+        '{C:inactive}(Currently {X:mult,C:white}^#4#{C:inactive} Mult){}'
+    }
+},
+
 }
 
 local old_process_loc_text =
@@ -3413,6 +3467,26 @@ BM.x_antibody_forms = {
     omegamon = {
         pos = {x = 1, y = 5}
     },
+    lopmon = {
+        pos = {
+            x = 2,
+            y = 5
+        }
+    },
+
+    cherubimon_good = {
+        pos = {
+            x = 3,
+            y = 5
+        }
+    },
+
+    cherubimon_evil = {
+        pos = {
+            x = 4,
+            y = 5
+        }
+    },
 }
 
 
@@ -3515,3 +3589,70 @@ function(card, context, base)
     end
 end
 
+BM.x_antibody_effects.lopmon =
+function(card, context, base)
+    local e =
+        card.ability.extra
+
+    local result =
+        base()
+
+    if context.before
+    and context.main_eval then
+        local successes =
+            e._lopmon_successes
+            or 0
+
+        if successes > 0 then
+            e._lopmon_xchips_hand =
+                1.7 ^ successes
+        else
+            e._lopmon_xchips_hand =
+                1
+        end
+
+        e._lopmon_successes =
+            nil
+    end
+
+    if context.joker_main then
+        local xchips =
+            e._lopmon_xchips_hand
+            or 1
+
+        if xchips > 1 then
+            return {
+                xchips =
+                    xchips
+            }
+        end
+    end
+
+    if context.after
+    and context.main_eval
+    and not context.blueprint then
+        e._lopmon_xchips_hand =
+            nil
+    end
+
+    return result
+end
+
+BM.x_antibody_effects.cherubimon_good =
+function(card, context, base)
+    return BM.cherubimon_good_effect(
+        card,
+        context,
+        0.2
+    )
+end
+
+
+BM.x_antibody_effects.cherubimon_evil =
+function(card, context, base)
+    return BM.cherubimon_evil_effect(
+        card,
+        context,
+        0.2
+    )
+end
