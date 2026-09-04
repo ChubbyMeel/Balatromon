@@ -194,6 +194,7 @@ SMODS.Sound {
 
 assert(SMODS.load_file('src/modes.lua'))()
 assert(SMODS.load_file('src/core.lua'))()
+assert(SMODS.load_file('src/target_hints.lua'))()
 assert(SMODS.load_file('src/tired.lua'))()
 assert(SMODS.load_file('src/element_compat.lua'))()
 assert(SMODS.load_file('src/rarities.lua'))()

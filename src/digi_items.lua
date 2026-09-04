@@ -1,5 +1,7 @@
 local BM = Balatromon
 
+
+
 local function can_swap_jogress(card)
     if not card
     or not BM.is_jogress_card(card) then
@@ -158,6 +160,34 @@ local function card_is_highlighted(card)
     end
 
     return false
+end
+
+local function update_x_antibody_target_hints(card)
+    if card_is_highlighted(card) then
+        BM._x_antibody_hint_card =
+            card
+
+    elseif BM._x_antibody_hint_card
+        == card then
+
+        BM._x_antibody_hint_card =
+            nil
+    end
+end
+
+
+function BM.x_antibody_targeting_active()
+    local card =
+        BM._x_antibody_hint_card
+
+    if not card
+    or card.REMOVED then
+        return false
+    end
+
+    return card_is_highlighted(
+        card
+    )
 end
 
 local function clear_extra_joker_highlights()
@@ -1777,6 +1807,12 @@ SMODS.Consumable {
 
     cost = 5,
 
+    update = function(self, card, dt)
+        update_x_antibody_target_hints(
+            card
+        )
+    end,
+
     loc_txt = {
         name =
             'X-Antibody',
@@ -1821,6 +1857,8 @@ SMODS.Consumable {
         BM.apply_x_antibody(
             target
         )
+
+        BM._x_antibody_hint_card = nil
 
         if G.jokers
         and G.jokers.unhighlight_all then
