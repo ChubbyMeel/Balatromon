@@ -2419,6 +2419,11 @@ function(slug, card, context)
         return
     end
 
+    if BM.is_tired
+    and BM.is_tired(card) then
+        return
+    end
+
     if BM.has_x_antibody(card) then
         local x_effect =
             BM.x_antibody_effects[

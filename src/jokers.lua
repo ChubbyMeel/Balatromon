@@ -8879,8 +8879,8 @@ do
             text = {
                 {
                     'Feeds itself at the end of each round',
-                    '{C:mult}+3{} Mult for every {C:attention}Food{} and',
-                    '{C:attention}Hefty Food{} in your consumable area',
+                    '{C:mult}+3{} Mult for every {C:attention}Food Item{} and',
+                    'in your consumable area',
                     '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
                     'Also applies {C:attention}Tanemon{} effect',
                 },
@@ -8974,7 +8974,7 @@ elements={BM.care_bars(e,stage)},
         name = 'Palmon',
         stage = stage,
         evolves_to = 'Togemon, Numemon',
-        effect = '+3 Mult for each Food or Hefty Food, also applies Tanemon effect'
+        effect = '+3 Mult for each Food Item, also applies Tanemon effect'
     }
 
     local weight = BM.stage_shop_weight(stage)
@@ -9006,8 +9006,8 @@ do
             text = {
                 {
                     'Feeds itself at the end of each round',
-                    '{C:chips}+30{} Chips for every {C:attention}Food{} and',
-                    '{C:attention}Hefty Food{} in your consumable area',
+                    '{C:chips}+30{} Chips for every {C:attention}Food Item{} and',
+                    'in your consumable area',
                     '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
                     'Also applies {C:attention}Tanemon{} effect',
                 },
@@ -9101,7 +9101,7 @@ elements={BM.care_bars(e,stage)},
         name = 'Lalamon',
         stage = stage,
         evolves_to = 'Sunflowmon',
-        effect = '+30 Chips for each Food or Hefty Food, also applies Tanemon effect'
+        effect = '+30 Chips for each Food Item, also applies Tanemon effect'
     }
 
     local weight = BM.stage_shop_weight(stage)
@@ -9134,7 +9134,7 @@ do
                 {
                     'Feeds itself at the end of each round',
                     'Earn {C:money}$2{} at end of round for every',
-                    '{C:attention}Food{} and {C:attention}Hefty Food{} held',
+                    '{C:attention}Food Item{} held',
                     '{C:inactive}(Currently {C:money}$#4#{C:inactive}){}',
                     'Also applies {C:attention}Tanemon{} effect',
                 },
@@ -9228,7 +9228,7 @@ elements={BM.care_bars(e,stage)},
         name = 'Mushroomon',
         stage = stage,
         evolves_to = 'RedVegiemon, Woodmon',
-        effect = '$2 at end of round for each Food or Hefty Food, also applies Tanemon effect'
+        effect = '$2 at end of round for each Food Item, also applies Tanemon effect'
     }
 
     local weight = BM.stage_shop_weight(stage)
@@ -9255,7 +9255,7 @@ do
             text = {
                 {
                     'Feeds itself at the end of each round',
-                    'Each {C:attention}Food{} and {C:attention}Hefty Food{} gives',
+                    'Each {C:attention}Food Item{} gives',
                     '{X:mult,C:white}X0.5{} Mult',
                     '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
                     'Also applies {C:attention}Tanemon{} effect',
@@ -9337,7 +9337,7 @@ elements={BM.care_bars(e,stage)},
         name='Togemon',
         stage=stage,
         evolves_to='Lillymon',
-        effect='Each Food or Hefty Food gives X0.5 Mult, also applies Tanemon effect'
+        effect='Each Food Item gives X0.5 Mult, also applies Tanemon effect'
     }
 
     local weight=BM.stage_shop_weight(stage)
@@ -9469,7 +9469,7 @@ do
             text={
                 {
                     'Feeds itself at the end of each round',
-                    '{C:attention}Food{} and {C:attention}Hefty Food{}',
+                    '{C:attention}Food Item{}',
                     'in the shop are {C:money}free{}',
                 },
                 {
@@ -9546,7 +9546,7 @@ elements={BM.care_bars(e,stage)}
         name='RedVegiemon',
         stage=stage,
         evolves_to='Jagamon, Pumpkinmon',
-        effect='Food and Hefty Food in the shop are free'
+        effect='Food Item in the shop are free'
     }
 
     local weight=BM.stage_shop_weight(stage)

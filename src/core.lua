@@ -1143,6 +1143,227 @@ function BM.is_digimon(card)
     return c and c.balatromon == true
 end
 
+function BM.is_tired(card)
+    if not BM.is_digimon(card) then
+        return false
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+
+    return e
+        and (e.tired_hands or 0) > 0
+end
+
+
+function BM.make_tired(card, hands)
+    if not BM.is_digimon(card) then
+        return false
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+
+    if not e
+    or e.permanently_disabled then
+        return false
+    end
+
+    -- Do not refresh/extend Tired if already Tired.
+    if (e.tired_hands or 0) > 0 then
+        return false
+    end
+
+    e.tired_hands =
+        math.max(
+            1,
+            math.floor(hands or 2)
+        )
+
+    e._tired_last_hand =
+        nil
+
+    local slug =
+        BM.get_card_slug(card)
+
+    -- Temporarily suspend passive deck effects too.
+    if slug
+    and BM.has_passive_deck_effect
+    and BM.has_passive_deck_effect(slug)
+    and e._bm_passive_applied
+    and not e._bm_passive_removed then
+
+        BM.remove_passive_deck_effect(
+            card,
+            slug
+        )
+
+        e._tired_passive_suspended =
+            true
+    end
+
+    if BM.invalidate_optimiser then
+        BM.invalidate_optimiser(
+            'jokers'
+        )
+    end
+
+    BM.bad_care_animation(
+        card,
+        'Tired!'
+    )
+
+    return true
+end
+
+
+function BM.wake_tired(card)
+    if not BM.is_digimon(card) then
+        return false
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+
+    if not e then
+        return false
+    end
+
+    e.tired_hands =
+        nil
+
+    e._tired_last_hand =
+        nil
+
+    local slug =
+        BM.get_card_slug(card)
+
+    if e._tired_passive_suspended then
+        e._tired_passive_suspended =
+            nil
+
+        if not e.permanently_disabled
+        and slug
+        and BM.has_passive_deck_effect
+        and BM.has_passive_deck_effect(
+            slug
+        ) then
+            BM.apply_passive_deck_effect(
+                card,
+                slug
+            )
+        end
+    end
+
+    if BM.invalidate_optimiser then
+        BM.invalidate_optimiser(
+            'jokers'
+        )
+    end
+
+    BM.care_animation(
+        card,
+        'Awake!',
+        G.C.GREEN
+    )
+
+    return true
+end
+
+
+function BM.tick_tired(card, context)
+    if not BM.is_tired(card) then
+        return
+    end
+
+    if not context
+    or not context.after
+    or not context.main_eval
+    or context.blueprint
+    or context.retrigger_joker then
+        return
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+
+    if not e then
+        return
+    end
+
+    local hand_id =
+        tostring(
+            G.GAME
+            and G.GAME.hands_played
+            or 0
+        )
+        .. ':'
+        .. tostring(
+            G.GAME
+            and G.GAME.current_round
+            and G.GAME.current_round.hands_played
+            or 0
+        )
+
+    if e._tired_last_hand
+        == hand_id then
+        return
+    end
+
+    e._tired_last_hand =
+        hand_id
+
+    G.E_MANAGER:add_event(
+        Event({
+            trigger = 'after',
+            delay = 0,
+
+            func = function()
+                if not card
+                or card.REMOVED then
+                    return true
+                end
+
+                local extra =
+                    card.ability
+                    and card.ability.extra
+
+                if not extra
+                or (extra.tired_hands or 0)
+                    <= 0 then
+                    return true
+                end
+
+                if extra._tired_last_hand
+                    ~= hand_id then
+                    return true
+                end
+
+                extra.tired_hands =
+                    math.max(
+                        0,
+                        extra.tired_hands - 1
+                    )
+
+                if extra.tired_hands <= 0 then
+                    BM.wake_tired(card)
+
+                elseif BM.invalidate_optimiser then
+                    BM.invalidate_optimiser(
+                        'jokers'
+                    )
+                end
+
+                return true
+            end
+        })
+    )
+end
+
 function BM.get_stage(card)
     if not BM.is_digimon(card) then return nil end
     return card.config.center.balatromon_stage
@@ -2402,10 +2623,29 @@ function BM.feed(card, amount)
 end
 
 function BM.is_active_digimon(card, slug)
-    if not BM.is_digimon(card) then return false end
-    if slug and BM.get_card_slug(card) ~= BM.slug(slug) then return false end
-    if card.debuff then return false end
-    local e = card.ability and card.ability.extra or {}
+    if not BM.is_digimon(card) then
+        return false
+    end
+
+    if slug
+    and BM.get_card_slug(card)
+        ~= BM.slug(slug) then
+        return false
+    end
+
+    if card.debuff then
+        return false
+    end
+
+    if BM.is_tired(card) then
+        return false
+    end
+
+    local e =
+        card.ability
+        and card.ability.extra
+        or {}
+
     return not e.permanently_disabled
 end
 
@@ -2423,11 +2663,52 @@ function BM.has_active_digimon(slug)
     return #BM.active_digimon(slug) > 0
 end
 
+BM.FOOD_KEYS =
+    BM.FOOD_KEYS
+    or {
+        [
+            'c_'
+            .. BM.PREFIX
+            .. '_food'
+        ] = true,
+
+        [
+            'c_'
+            .. BM.PREFIX
+            .. '_hefty_food'
+        ] = true,
+
+        [
+            'c_'
+            .. BM.PREFIX
+            .. '_frozen_meal'
+        ] = true,
+
+        [
+            'c_'
+            .. BM.PREFIX
+            .. '_spicy_buffet'
+        ] = true,
+    }
+
+
+function BM.is_food_key(key)
+    return key
+        and BM.FOOD_KEYS[key]
+        == true
+end
+
+
 function BM.is_food_card(card)
-    local center = card and card.config and card.config.center
-    local key = center and center.key
-    return key == 'c_' .. BM.PREFIX .. '_food'
-        or key == 'c_' .. BM.PREFIX .. '_hefty_food'
+    local center =
+        card
+        and card.config
+        and card.config.center
+
+    return BM.is_food_key(
+        center
+        and center.key
+    )
 end
 
 function BM.count_food()
@@ -2534,6 +2815,14 @@ function BM.get_hunger_rounds(card)
 end
 
 function BM.care_tick(card, context)
+
+    if BM.tick_tired then
+        BM.tick_tired(
+            card,
+            context
+        )
+    end
+
     if BM.should_bond_shake
     and BM.should_bond_shake(card) then
         BM.start_bond_shake(card)

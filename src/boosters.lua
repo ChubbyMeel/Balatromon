@@ -14,6 +14,30 @@ local REGULAR_WEIGHT = REGULAR_TOTAL_WEIGHT / 4
 local JUMBO_WEIGHT = JUMBO_TOTAL_WEIGHT / 2
 local MEGA_WEIGHT = MEGA_TOTAL_WEIGHT / 2
 
+BM.digital_food_pool =
+    BM.digital_food_pool
+    or {
+        {
+            slug = 'food',
+            weight = 35
+        },
+
+        {
+            slug = 'frozen_meal',
+            weight = 35
+        },
+
+        {
+            slug = 'hefty_food',
+            weight = 25
+        },
+
+        {
+            slug = 'spicy_buffet',
+            weight = 5
+        },
+    }
+
 local function booster_center_key(slug)
     return 'p_' .. BM.PREFIX .. '_' .. slug
 end
@@ -62,6 +86,55 @@ function BM.mega_digital_pack_key(key, seed)
     end
 
     return BM.random_digital_pack_key('mega', seed) or key
+end
+
+local function weighted_food_key(
+    seed
+)
+    local pool = {}
+
+    for _, entry in ipairs(
+        BM.digital_food_pool
+        or {}
+    ) do
+        local key =
+            'c_'
+            .. BM.PREFIX
+            .. '_'
+            .. entry.slug
+
+        if G.P_CENTERS
+        and G.P_CENTERS[key] then
+            local weight =
+                math.max(
+                    1,
+                    math.floor(
+                        entry.weight
+                        or 1
+                    )
+                )
+
+            for _ = 1, weight do
+                pool[
+                    #pool + 1
+                ] =
+                    key
+            end
+        end
+    end
+
+    if #pool == 0 then
+        return
+            'c_'
+            .. BM.PREFIX
+            .. '_food'
+    end
+
+    return BM.random_element(
+        pool,
+        seed
+            or 'balatromon_digital_food'
+    )
 end
 
 local function digiitem_keys()
@@ -132,7 +205,55 @@ local function pack_card_def(seed_base, i)
     }
 end
 
-local function make_digital_pack(args)
+local function food_pack_card_def(
+    seed_base,
+    i
+)
+    local index =
+        i or 1
+
+    local key =
+        weighted_food_key(
+            seed_base
+            .. '_food_'
+            .. tostring(index)
+        )
+
+    if not key then
+        return nil
+    end
+
+    return {
+        set = 'DigiItem',
+
+        area =
+            G.pack_cards,
+
+        key =
+            key,
+
+        skip_materialize =
+            true,
+
+        soulable =
+            false,
+
+        key_append =
+            seed_base
+            .. '_food_'
+            .. tostring(index),
+    }
+end
+
+local function make_digital_pack(
+    args
+)
+    local normal_slots =
+        args.extra
+
+    local total_slots =
+        normal_slots + 1
+
     SMODS.Booster {
         key = args.key,
         kind = 'Digital',
@@ -145,24 +266,49 @@ local function make_digital_pack(args)
         draw_hand = true,
 
         config = {
-            extra = args.extra,
-            choose = args.choose,
+            extra =
+                total_slots,
+
+            choose =
+                args.choose,
         },
 
         loc_txt = {
-            name = args.display_name,
-            group_name = 'Digital Pack',
+            name =
+                args.display_name,
+
+            group_name =
+                'Digital Pack',
+
             text = {
                 'Choose {C:attention}#1#{} of up to',
                 '{C:attention}#2#{} {C:attention}Digi Items{}',
             },
         },
 
-        select_card = function(self, card, pack)
-            return 'consumeables', true
+        select_card = function(
+            self,
+            card,
+            pack
+        )
+            return
+                'consumeables',
+                true
         end,
 
-        create_card = function(self, card, i)
+        create_card = function(
+            self,
+            card,
+            i
+        )
+            -- The final card is always Food.
+            if i == total_slots then
+                return food_pack_card_def(
+                    args.key,
+                    i
+                )
+            end
+
             return pack_card_def(
                 args.key,
                 i

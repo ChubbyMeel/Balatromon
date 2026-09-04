@@ -430,6 +430,47 @@ local function tick_food_spoilage(card, context)
     end
 end
 
+local function food_in_pool(
+    self,
+    args
+)
+    if args
+    and args.source
+        == 'digital_pack' then
+        return false
+    end
+
+    return true
+end
+
+
+local function maybe_make_tired(
+    source,
+    target,
+    numerator,
+    denominator,
+    seed
+)
+    if not target
+    or target.REMOVED then
+        return false
+    end
+
+    if SMODS.pseudorandom_probability(
+        source,
+        seed,
+        numerator,
+        denominator
+    ) then
+        return BM.make_tired(
+            target,
+            2
+        )
+    end
+
+    return false
+end
+
 SMODS.Consumable {
     set = COMMON_CARD.set,
     key = 'food',
@@ -438,7 +479,7 @@ SMODS.Consumable {
     discovered = false,
     unlocked = true,
     cost = 3,
-
+    in_pool = food_in_pool,
     config = {
         extra = {
             spoil_turns = 6
@@ -504,7 +545,7 @@ SMODS.Consumable {
     discovered = false,
     unlocked = true,
     cost = 4,
-
+    in_pool = food_in_pool,
     config = {
         extra = {
             spoil_turns = 4
@@ -551,6 +592,279 @@ SMODS.Consumable {
         if BM.on_food_used then
             BM.on_food_used()
         end
+    end,
+}
+
+SMODS.Consumable {
+    set = COMMON_CARD.set,
+
+    key = 'frozen_meal',
+
+    atlas = 'Consumable',
+
+    pos = {
+        x = 2,
+        y = 4
+    },
+
+    discovered = false,
+    unlocked = true,
+
+    cost = 3,
+
+    in_pool =
+        food_in_pool,
+
+    loc_txt = {
+        name =
+            'Frozen Meal',
+
+        text = {
+            'Reduce {C:attention}Hunger{} by {C:attention}1{}',
+            'for up to {C:attention}2{} selected Digimon',
+            '{C:green}#1# in #2#{} chance for each',
+            'to become {C:attention}Tired{} for {C:attention}2 hands{}',
+            '{C:blue}Does not spoil{}'
+        }
+    },
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        local numerator,
+        denominator =
+            SMODS.get_probability_vars(
+                card,
+                1,
+                2,
+                'frozen_meal_tired'
+            )
+
+        return {
+            vars = {
+                numerator,
+                denominator
+            }
+        }
+    end,
+
+    update = function(
+        self,
+        card,
+        dt
+    )
+        update_multi_joker_targeting(
+            card,
+            2
+        )
+    end,
+
+    can_use = function(
+        self,
+        card
+    )
+        local targets =
+            selected_digimon(3)
+
+        return #targets >= 1
+            and #targets <= 2
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        local targets =
+            selected_digimon(2)
+
+        BM.remember_digi_item(
+            card
+        )
+
+        for i, target in ipairs(
+            targets
+        ) do
+            BM.feed(
+                target,
+                1
+            )
+
+            maybe_make_tired(
+                card,
+                target,
+                1,
+                2,
+                'frozen_meal_tired_'
+                    .. tostring(i)
+                    .. '_'
+                    .. tostring(
+                        target.sort_id
+                        or 0
+                    )
+            )
+        end
+
+        if BM.on_food_used then
+            BM.on_food_used()
+        end
+
+        stop_multi_joker_targeting(
+            card,
+            true
+        )
+    end,
+}
+
+SMODS.Consumable {
+    set = COMMON_CARD.set,
+
+    key = 'spicy_buffet',
+
+    atlas = 'Consumable',
+
+    pos = {
+        x = 3,
+        y = 4
+    },
+
+    discovered = false,
+    unlocked = true,
+
+    cost = 5,
+
+    in_pool =
+        food_in_pool,
+
+    config = {
+        extra = {
+            spoil_turns = 3
+        }
+    },
+
+    loc_txt = {
+        name =
+            'Spicy Buffet',
+
+        text = {
+            'Reduce {C:attention}Hunger{} by {C:attention}1{}',
+            'for up to {C:attention}3{} selected Digimon',
+            '{C:green}#2# in #3#{} chance for each',
+            'to become {C:attention}Tired{} for {C:attention}2 hands{}',
+            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} turns{}'
+        }
+    },
+
+    loc_vars = function(
+        self,
+        info_queue,
+        card
+    )
+        local turns =
+            card
+            and card.ability
+            and card.ability.extra
+            and card.ability.extra.spoil_turns
+            or 3
+
+        local numerator,
+        denominator =
+            SMODS.get_probability_vars(
+                card,
+                1,
+                15,
+                'spicy_buffet_tired'
+            )
+
+        return {
+            vars = {
+                turns,
+                numerator,
+                denominator
+            }
+        }
+    end,
+
+    update = function(
+        self,
+        card,
+        dt
+    )
+        update_multi_joker_targeting(
+            card,
+            3
+        )
+    end,
+
+    calculate = function(
+        self,
+        card,
+        context
+    )
+        return tick_food_spoilage(
+            card,
+            context
+        )
+    end,
+
+    can_use = function(
+        self,
+        card
+    )
+        local targets =
+            selected_digimon(4)
+
+        return #targets >= 1
+            and #targets <= 3
+    end,
+
+    use = function(
+        self,
+        card,
+        area,
+        copier
+    )
+        local targets =
+            selected_digimon(3)
+
+        BM.remember_digi_item(
+            card
+        )
+
+        for i, target in ipairs(
+            targets
+        ) do
+            BM.feed(
+                target,
+                1
+            )
+
+            maybe_make_tired(
+                card,
+                target,
+                1,
+                15,
+                'spicy_buffet_tired_'
+                    .. tostring(i)
+                    .. '_'
+                    .. tostring(
+                        target.sort_id
+                        or 0
+                    )
+            )
+        end
+
+        if BM.on_food_used then
+            BM.on_food_used()
+        end
+
+        stop_multi_joker_targeting(
+            card,
+            true
+        )
     end,
 }
 

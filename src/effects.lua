@@ -1075,13 +1075,14 @@ if not BM._is_suit_patched and Card and Card.is_suit then
     end
 end
 
-function BM.run_effect(
-    slug,
-    card,
-    context
-)
+function BM.run_effect(slug, card, context)
     if context
     and context.check_enhancement then
+        return
+    end
+
+    if BM.is_tired
+    and BM.is_tired(card) then
         return
     end
 
@@ -1137,6 +1138,10 @@ local function has_active_digimon(slug)
         if center
         and center.key == BM.center_key(slug)
         and not joker.debuff
+        and not (
+            BM.is_tired
+            and BM.is_tired(joker)
+        )
         and not (
             joker.ability
             and joker.ability.set == 'Joker'
