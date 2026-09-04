@@ -2247,10 +2247,37 @@ function BM.count_deck_enhancement(key)
 end
 
 function BM.add_consumable(set, key, edition)
-    if not G.consumeables or not BM.has_room(G.consumeables) then return nil end
-    local args = {set = set, area = G.consumeables, key_append = 'balatromon'}
-    if key and G.P_CENTERS[key] then args.key = key end
-    if edition then args.edition = edition end
+    if not G.consumeables then
+        return nil
+    end
+
+    local is_negative =
+        edition == 'e_negative'
+        or (
+            type(edition) == 'table'
+            and edition.negative
+        )
+
+    if not is_negative
+    and not BM.has_room(G.consumeables) then
+        return nil
+    end
+
+    local args = {
+        set = set,
+        area = G.consumeables,
+        key_append = 'balatromon'
+    }
+
+    if key
+    and G.P_CENTERS[key] then
+        args.key = key
+    end
+
+    if edition then
+        args.edition = edition
+    end
+
     return SMODS.add_card(args)
 end
 

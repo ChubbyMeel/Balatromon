@@ -450,7 +450,7 @@ SMODS.Consumable {
         text = {
             'Reduce {C:attention}Hunger{} by {C:attention}1{}',
             'for up to {C:attention}2{} selected Digimon',
-            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} turns{}'
+            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} hands{}'
         }
     },
 
@@ -516,7 +516,7 @@ SMODS.Consumable {
         text = {
             'Reduce {C:attention}Hunger{} by {C:attention}2{}',
             'for {C:attention}1{} selected Digimon',
-            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} turns{}'
+            '{C:inactive}Spoils in {C:attention}#1#{C:inactive} hands{}'
         }
     },
 

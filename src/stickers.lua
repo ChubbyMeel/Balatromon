@@ -12,8 +12,8 @@ SMODS.Sticker {
     pos = {x = 4, y = 0},
 
     loc_txt = {
-        name = 'Famined',
-        label = 'Famined',
+        name = 'Famished',
+        label = 'Famished',
         text = {
             'This Digimon gets',
             '{C:red}hungry{} every',

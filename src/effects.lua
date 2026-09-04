@@ -909,9 +909,36 @@ H.hippogryphonmon = function(card,context)
     if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank,e.target_suit=BM.reroll_shared_card_target('hippogryphonmon_card','hippo_card'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank)..' of '..tostring(e.target_suit),G.C.ATTENTION) end
     if context.individual and context.cardarea==G.play and BM.card_matches_target(context.other_card,e.target_rank,e.target_suit) then return {xmult=2} end
 end
-H.phoenixmon = function(card,context)
-    if context.selling_card and context.card and context.card.config and context.card.config.center and context.card.config.center.set=='Joker' then BM.last_sold_joker_key=context.card.config.center.key end
-    if context.blind_defeated and BM.is_boss() and BM.last_sold_joker_key and not context.blueprint and BM.has_room(G.jokers) then local c=SMODS.add_card{set='Joker',area=G.jokers,key=BM.last_sold_joker_key,no_edition=true}; if c then c:set_edition('e_negative',true) end; return {message='Returned!'} end
+H.phoenixmon = function(card, context)
+    if context.selling_card
+    and context.card
+    and context.card.config
+    and context.card.config.center
+    and context.card.config.center.set == 'Joker' then
+        BM.last_sold_joker_key =
+            context.card.config.center.key
+    end
+
+    if context.blind_defeated
+    and BM.is_boss()
+    and BM.last_sold_joker_key
+    and not context.blueprint then
+
+        local c =
+            SMODS.add_card {
+                set = 'Joker',
+                area = G.jokers,
+                key = BM.last_sold_joker_key,
+                edition = 'e_negative',
+                key_append = 'phoenixmon_return'
+            }
+
+        if c then
+            return {
+                message = 'Returned!'
+            }
+        end
+    end
 end
 H.valkyrimon = function(card,context) local played=context.other_card; if context.individual and context.cardarea==G.play and (BM.card_has_rank(played,13) or BM.card_has_rank(played,12)) then return {xmult=2} end end
 H.akatorimon = function(card,context)
