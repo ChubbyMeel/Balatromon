@@ -2770,12 +2770,19 @@ function BM.open_evolution_display(card)
         return
     end
 
-    local options = BM.get_display_evolutions(card)
-
     local is_collection =
         card.area
         and card.area.config
         and card.area.config.collection == true
+
+    if not is_collection
+    and G.jokers
+    and card.area == G.jokers
+    and card.facing == 'back' then
+        return
+    end
+
+    local options = BM.get_display_evolutions(card)
 
     BM.evolution_display = {
         card = card,
