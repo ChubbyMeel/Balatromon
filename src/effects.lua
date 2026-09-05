@@ -1065,16 +1065,40 @@ if not BM._shortcut_patched then
 end
 
 if not BM._is_suit_patched and Card and Card.is_suit then
-    BM._is_suit_patched=true
-    local old_is_suit=Card.is_suit
-    Card.is_suit=function(self,suit,bypass_debuff,flush_calc)
-        if SMODS.find_card(BM.center_key('andromon'),true)[1] then
-            if suit=='Hearts' and old_is_suit(self,'Diamonds',bypass_debuff,flush_calc) then return true end
-            if suit=='Diamonds' and old_is_suit(self,'Hearts',bypass_debuff,flush_calc) then return true end
-            if suit=='Spades' and old_is_suit(self,'Clubs',bypass_debuff,flush_calc) then return true end
-            if suit=='Clubs' and old_is_suit(self,'Spades',bypass_debuff,flush_calc) then return true end
+    BM._is_suit_patched = true
+    local old_is_suit = Card.is_suit
+
+    local function bm_is_suit(card, suit, bypass_debuff, flush_calc)
+        if old_is_suit(card, suit, bypass_debuff, flush_calc) then
+            return true
         end
-        return old_is_suit(self,suit,bypass_debuff,flush_calc)
+
+        if not BM.is_jogress_card(card) then
+            return false
+        end
+
+        if card.debuff and not bypass_debuff then
+            return false
+        end
+
+        for _, identity in ipairs(BM.card_identities(card)) do
+            if identity.suit == suit then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    Card.is_suit = function(self, suit, bypass_debuff, flush_calc)
+        if SMODS.find_card(BM.center_key('andromon'), true)[1] then
+            if suit == 'Hearts' and bm_is_suit(self, 'Diamonds', bypass_debuff, flush_calc) then return true end
+            if suit == 'Diamonds' and bm_is_suit(self, 'Hearts', bypass_debuff, flush_calc) then return true end
+            if suit == 'Spades' and bm_is_suit(self, 'Clubs', bypass_debuff, flush_calc) then return true end
+            if suit == 'Clubs' and bm_is_suit(self, 'Spades', bypass_debuff, flush_calc) then return true end
+        end
+
+        return bm_is_suit(self, suit, bypass_debuff, flush_calc)
     end
 end
 
