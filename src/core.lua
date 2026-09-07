@@ -1,22 +1,5 @@
 local BM = Balatromon
 
-local function update_x_antibody_target_hints(card)
-    if card_is_highlighted(card) then
-        BM._x_antibody_hint_card = card
-
-    elseif BM._x_antibody_hint_card == card then
-        BM._x_antibody_hint_card = nil
-    end
-end
-
-function BM.x_antibody_targeting_active()
-    local card =
-        BM._x_antibody_hint_card
-
-    return card
-        and not card.REMOVED
-        and card_is_highlighted(card)
-end
 
 function BM.emult(card, amount)
     if not amount or amount == 1 then
@@ -2839,11 +2822,6 @@ function BM.care_tick(card, context)
             card,
             context
         )
-    end
-
-    if BM.should_bond_shake
-    and BM.should_bond_shake(card) then
-        BM.start_bond_shake(card)
     end
 
     if not (context.end_of_round and context.main_eval and not context.blueprint) then return end
