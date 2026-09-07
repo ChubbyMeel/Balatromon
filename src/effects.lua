@@ -2936,7 +2936,7 @@ H.saberleomon = function(card, context)
         local stored =
             false
 
-        if BM.is_least_played_hand_before_play(
+        if not BM.is_most_played_hand_before_play(
             context.scoring_name
         ) then
             e.stored_xchips =

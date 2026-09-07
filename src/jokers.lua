@@ -1833,7 +1833,7 @@ do
             name = 'SaberLeomon',
             text = {
                 'Doubles stored {C:chips}Chips{} when the',
-                '{C:attention}least played poker hand{} is played',
+                '{C:attention}non-most played poker hand{} is played',
                 'Releases stored Chips while this',
                 'Joker is {C:attention}leftmost{}',
                 '{C:inactive}(Currently {X:chips,C:white}X#4#{C:inactive} Chips){}',
