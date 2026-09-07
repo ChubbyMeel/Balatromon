@@ -693,6 +693,45 @@ function BM.apply_bancho_burst_growth(
     return grown
 end
 
+local function install_digivolution_tooltips()
+    G.localization.descriptions.Other =
+        G.localization.descriptions.Other or {}
+
+    G.localization.descriptions.Other.balatromon_digivice_requirement = {
+        name = 'Digivolution Requirement',
+        text = {
+            '{C:attention}Casual:{} Minimum {C:green}3 Bond{}',
+            '{C:attention}Standard:{} {C:green}Full Bond{}',
+        }
+    }
+
+    G.localization.descriptions.Other.balatromon_ready_to_digivolve = {
+        name = 'Ready to Digivolve!',
+        text = {
+            '{C:attention}Double Click{} to activate',
+        }
+    }
+end
+
+local old_process_loc_text = SMODS.current_mod.process_loc_text
+
+SMODS.current_mod.process_loc_text = function(self)
+    if old_process_loc_text then
+        old_process_loc_text(self)
+    end
+
+    install_digivolution_tooltips()
+end
+
+install_digivolution_tooltips()
+
+function BM.add_digivice_requirement_tooltip(info_queue)
+    info_queue[#info_queue + 1] = {
+        set = 'Other',
+        key = 'balatromon_digivice_requirement'
+    }
+end
+
 function BM.has_passive_deck_effect(slug)
     return slug == 'pururumon'
         or slug == 'poromon'

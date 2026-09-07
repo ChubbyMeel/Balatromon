@@ -1703,8 +1703,8 @@ do
         loc_txt = {name='MetalGarurumon', text={
             {
                 'Gain {X:chips,C:white}X0.25{} Chips for every {C:attention}#4#{} of {V:1}#5#{} Played',
-                '{C:inactive}(Upgrade limited once per card including',
-                'retrigger){} {C:inactive}(card changes at end of round){}',
+                '{C:inactive}(Upgrade limited once per card including retrigger){}',
+                '{C:inactive}(card changes at end of round){}',
                 '{C:inactive}(Currently {X:chips,C:white}X#6#{C:inactive} Chips){}',
             },
             {

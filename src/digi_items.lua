@@ -1028,6 +1028,10 @@ SMODS.Consumable {
         '{C:attention}In-Training{}, or {C:attention}Rookie{} Digimon',
         '{C:inactive}(Choose a form if it branches){}'
     }},
+    loc_vars = function(self, info_queue, card)
+        BM.add_digivice_requirement_tooltip(info_queue)
+        return {vars = {}}
+    end,
     can_use = function(self, card) return device_can_use({'Fresh','In-Training','Rookie'}, nil, 'digivice') end,
     use = function(self, card, area, copier)
         BM.remember_digi_item(card)
@@ -1043,6 +1047,10 @@ SMODS.Consumable {
         '{C:attention}In-Training{}, {C:attention}Rookie{} or any possible armor digivolution',
         '{C:inactive}(Choose a form if it branches){}'
     }},
+    loc_vars = function(self, info_queue, card)
+        BM.add_digivice_requirement_tooltip(info_queue)
+        return {vars = {}}
+    end,    
     can_use = function(
         self,
         card
@@ -1072,6 +1080,10 @@ SMODS.Consumable {
         'or {C:attention}Champion{} Digimon',
         '{C:inactive}(Choose a form if it branches){}'
     }},
+    loc_vars = function(self, info_queue, card)
+        BM.add_digivice_requirement_tooltip(info_queue)
+        return {vars = {}}
+    end,
     can_use = function(self, card) return device_can_use({'Rookie','Champion','Rare'}, nil, 'd_ark') end,
     use = function(self, card, area, copier)
         BM.remember_digi_item(card)
@@ -1102,6 +1114,10 @@ SMODS.Consumable {
         'or {C:attention}Mega{} Digimon',
         '{C:inactive}(Choose a form if it branches){}'
     }},
+    loc_vars = function(self, info_queue, card)
+        BM.add_digivice_requirement_tooltip(info_queue)
+        return {vars = {}}
+    end,
     can_use = function(self, card) return device_can_use({'Ultimate','Mega'}, nil, 'golden_d_ark') end,
     use = function(self, card, area, copier) device_use({'Ultimate','Mega'}, nil, 'golden_d_ark', 'golden_d_ark') end,
 }
@@ -1132,7 +1148,10 @@ SMODS.Consumable {
             '{C:attention}Glass Cards{}'
         }
     },
-
+    loc_vars = function(self, info_queue, card)
+        BM.add_digivice_requirement_tooltip(info_queue)
+        return {vars = {}}
+    end,
     can_use = function(self, card)
         if leftmost_ready_stage(
             {'Mega'},
