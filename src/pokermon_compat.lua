@@ -37,6 +37,158 @@ local function registered_center(key)
         or (G.P_CENTERS and G.P_CENTERS[key])
 end
 
+PC.digital_pack_weight_mult = 2
+PC.food_reroll_interval = 4
+
+local function boost_digital_pack_weights()
+    if PC._digital_pack_weights_boosted then
+        return
+    end
+
+    PC._digital_pack_weights_boosted = true
+
+    for _, list in pairs(BM.digital_pack_keys or {}) do
+        for _, key in ipairs(list or {}) do
+            local center = registered_center(key)
+
+            if center and center.weight then
+                center.weight =
+                    center.weight
+                    * PC.digital_pack_weight_mult
+            end
+        end
+    end
+end
+
+local function shop_has_food()
+    local food_key =
+        'c_' .. BM.PREFIX .. '_food'
+
+    for _, card in ipairs(
+        G.shop_jokers
+        and G.shop_jokers.cards
+        or {}
+    ) do
+        local key =
+            card
+            and card.config
+            and card.config.center
+            and card.config.center.key
+
+        if key == food_key then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function force_food_into_shop()
+    if not G.shop_jokers
+    or not G.shop_jokers.cards
+    or #G.shop_jokers.cards == 0
+    or shop_has_food() then
+        return
+    end
+
+    local food_key =
+        'c_' .. BM.PREFIX .. '_food'
+
+    local center =
+        registered_center(food_key)
+
+    if not center then
+        return
+    end
+
+    local old =
+        G.shop_jokers.cards[
+            #G.shop_jokers.cards
+        ]
+
+    local x =
+        old
+        and old.T
+        and old.T.x
+        or G.shop_jokers.T.x
+
+    local y =
+        old
+        and old.T
+        and old.T.y
+        or G.shop_jokers.T.y
+
+    if old then
+        G.shop_jokers:remove_card(old)
+        old:remove()
+    end
+
+    local food = Card(
+        x,
+        y,
+        G.CARD_W,
+        G.CARD_H,
+        G.P_CARDS.empty,
+        center,
+        {
+            bypass_discovery_center = true,
+            bypass_discovery_ui = true
+        }
+    )
+
+    create_shop_card_ui(
+        food,
+        'DigiItem',
+        G.shop_jokers
+    )
+
+    food.states.visible = false
+    G.shop_jokers:emplace(food)
+    food:start_materialize()
+end
+
+boost_digital_pack_weights()
+
+if G.FUNCS
+and G.FUNCS.reroll_shop
+and not PC._reroll_shop_wrapped then
+    PC._reroll_shop_wrapped = true
+
+    local old_reroll_shop =
+        G.FUNCS.reroll_shop
+
+    G.FUNCS.reroll_shop = function(e)
+        local ret = old_reroll_shop(e)
+
+        if G.GAME then
+            G.GAME.balatromon_pokermon_rerolls =
+                (G.GAME.balatromon_pokermon_rerolls or 0)
+                + 1
+
+            if G.GAME.balatromon_pokermon_rerolls
+                % PC.food_reroll_interval
+                == 0 then
+                local function guarantee_food()
+                    force_food_into_shop()
+                    return true
+                end
+
+                if G.E_MANAGER then
+                    G.E_MANAGER:add_event(Event({
+                        trigger = 'after',
+                        delay = 0.05,
+                        func = guarantee_food
+                    }))
+                else
+                    guarantee_food()
+                end
+            end
+        end
+
+        return ret
+    end
+end
+
 function PC.is_pokemon_center(center)
     return center
         and center.set == 'Joker'

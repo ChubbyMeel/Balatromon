@@ -1135,7 +1135,7 @@ SMODS.Consumable {
     cost = 6,
 
     hidden = true,
-    soul_set = 'Spectral',
+    soul_set = 'Tarot',
     soul_rate = 0.01,
 
     loc_txt = {
