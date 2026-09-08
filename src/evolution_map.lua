@@ -584,10 +584,16 @@ function BM.build_evolution_map_layout()
         end
     end
 
+    local map_only_line_members = {
+        gabumon_naked = 'punimon',
+    }
+
     local roots = {}
 
     for slug, node in pairs(nodes) do
-        if not node.x_form and #node.parents == 0 then
+        if not node.x_form
+        and #node.parents == 0
+        and not map_only_line_members[slug] then
             roots[#roots + 1] = slug
         end
     end
@@ -669,6 +675,19 @@ function BM.build_evolution_map_layout()
 
         for slug in pairs(set) do
             covered[slug] = true
+        end
+    end
+
+    for slug, line_root in pairs(map_only_line_members) do
+        if nodes[slug] and nodes[line_root] then
+            for _, page in ipairs(normal_pages) do
+                if page.node_set
+                and page.node_set[line_root] then
+                    page.node_set[slug] = true
+                    covered[slug] = true
+                    break
+                end
+            end
         end
     end
 

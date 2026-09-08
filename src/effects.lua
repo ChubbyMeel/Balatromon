@@ -366,19 +366,351 @@ H.triceramon = function(card, context)
         )
     end
 end
-H.gallantmon = function(card, context)
-    local e = card.ability.extra
 
-    if context.joker_main then
-        local xmult = 5
+local GABUMON_NAKED_TAROT_EFFECTS = {
+    c_magician = {kind = 'enhancement', key = 'm_lucky'},
+    c_empress = {kind = 'enhancement', key = 'm_mult'},
+    c_heirophant = {kind = 'enhancement', key = 'm_bonus'},
+    c_lovers = {kind = 'enhancement', key = 'm_wild'},
+    c_chariot = {kind = 'enhancement', key = 'm_steel'},
+    c_justice = {kind = 'enhancement', key = 'm_glass'},
+    c_devil = {kind = 'enhancement', key = 'm_gold'},
+    c_tower = {kind = 'enhancement', key = 'm_stone'},
+    c_star = {kind = 'suit', suit = 'Diamonds'},
+    c_moon = {kind = 'suit', suit = 'Clubs'},
+    c_sun = {kind = 'suit', suit = 'Hearts'},
+    c_world = {kind = 'suit', suit = 'Spades'},
+    c_strength = {kind = 'strength'},
+    c_death = {kind = 'death'},
+    c_hanged_man = {kind = 'destroy'},
+}
 
-        if e.inherited_gallantmon_value then
-            xmult = e.inherited_gallantmon_value / 3
+local GABUMON_NAKED_NEXT_RANK = {
+    ['2'] = '3',
+    ['3'] = '4',
+    ['4'] = '5',
+    ['5'] = '6',
+    ['6'] = '7',
+    ['7'] = '8',
+    ['8'] = '9',
+    ['9'] = '10',
+    ['10'] = 'Jack',
+    Jack = 'Queen',
+    Queen = 'King',
+    King = 'Ace',
+    Ace = '2',
+}
+
+if not BM._last_tarot_used_hooked
+and Card
+and Card.use_consumeable then
+    BM._last_tarot_used_hooked = true
+
+    local old_use_consumeable =
+        Card.use_consumeable
+
+    Card.use_consumeable =
+    function(self, ...)
+        local center =
+            self
+            and self.config
+            and self.config.center
+
+        if G
+        and G.GAME
+        and center
+        and center.set == 'Tarot' then
+            G.GAME.balatromon_last_tarot =
+                center.key
         end
 
+        return old_use_consumeable(
+            self,
+            ...
+        )
+    end
+end
+
+function BM.gabumon_naked_tarot_info()
+    local key =
+        G
+        and G.GAME
+        and G.GAME.balatromon_last_tarot
+
+    local center =
+        key
+        and G.P_CENTERS
+        and G.P_CENTERS[key]
+
+    local name = 'None'
+
+    if center then
+        local ok, localized =
+            pcall(
+                localize,
+                {
+                    type = 'name_text',
+                    set = center.set,
+                    key = key
+                }
+            )
+
+        if ok
+        and localized then
+            name = localized
+        elseif center.name then
+            name = center.name
+        end
+    end
+
+    local compatible =
+        key
+        and GABUMON_NAKED_TAROT_EFFECTS[key]
+        ~= nil
+
+    local status =
+        key
+        and (
+            compatible
+            and 'Compatible'
+            or 'Incompatible'
+        )
+        or 'None'
+
+    local colour =
+        compatible
+        and G.C.GREEN
+        or (
+            key
+            and G.C.RED
+            or (
+                G.C.UI
+                and G.C.UI.TEXT_INACTIVE
+                or G.C.WHITE
+            )
+        )
+
+    return name, status, colour, key
+end
+
+local function gabumon_naked_strip(card)
+    if not card
+    or BM.is_unenhanced(card)
+    or not G.P_CENTERS
+    or not G.P_CENTERS.c_base then
+        return false
+    end
+
+    card:set_ability(
+        G.P_CENTERS.c_base,
+        nil,
+        true
+    )
+
+    if card.juice_up then
+        card:juice_up(
+            0.5,
+            0.4
+        )
+    end
+
+    return true
+end
+
+local function gabumon_naked_snapshot(card)
+    if not card then
+        return nil
+    end
+
+    local center =
+        card.config
+        and card.config.center
+
+    return {
+        suit =
+            card.base
+            and card.base.suit,
+        rank =
+            card.base
+            and card.base.value,
+        center_key =
+            center
+            and center.key
+            or 'c_base'
+    }
+end
+
+local function gabumon_naked_apply_tarot(cards, effect, snapshots)
+    if not effect then
+        return
+    end
+
+    if effect.kind == 'enhancement' then
+        for _, played in ipairs(cards) do
+            BM.set_enhancement(
+                played,
+                effect.key
+            )
+        end
+
+    elseif effect.kind == 'suit' then
+        for _, played in ipairs(cards) do
+            local rank =
+                played.base
+                and played.base.value
+
+            SMODS.change_base(
+                played,
+                effect.suit,
+                rank
+            )
+
+            if played.juice_up then
+                played:juice_up(
+                    0.5,
+                    0.4
+                )
+            end
+        end
+
+    elseif effect.kind == 'strength' then
+        for _, played in ipairs(cards) do
+            local current =
+                played.base
+                and played.base.value
+
+            local next_rank =
+                current
+                and GABUMON_NAKED_NEXT_RANK[current]
+
+            if next_rank then
+                SMODS.change_base(
+                    played,
+                    played.base
+                        and played.base.suit,
+                    next_rank
+                )
+
+                if played.juice_up then
+                    played:juice_up(
+                        0.5,
+                        0.4
+                    )
+                end
+            end
+        end
+
+    elseif effect.kind == 'death' then
+        for i = #cards, 2, -1 do
+            local played =
+                cards[i]
+
+            local source =
+                snapshots
+                and snapshots[i - 1]
+
+            if played
+            and source
+            and source.suit
+            and source.rank then
+                SMODS.change_base(
+                    played,
+                    source.suit,
+                    source.rank
+                )
+
+                local center =
+                    source.center_key
+                    and G.P_CENTERS
+                    and G.P_CENTERS[
+                        source.center_key
+                    ]
+
+                if center then
+                    played:set_ability(
+                        center,
+                        nil,
+                        true
+                    )
+                end
+
+                if played.juice_up then
+                    played:juice_up(
+                        0.5,
+                        0.4
+                    )
+                end
+            end
+        end
+    end
+end
+
+local function current_scoring_mult()
+    local param =
+        SMODS.Scoring_Parameters
+        and SMODS.Scoring_Parameters.mult
+
+    return param
+        and param.current
+        or mult
+        or 0
+end
+
+function BM.gallantmon_current_xmult(card)
+    local e =
+        card
+        and card.ability
+        and card.ability.extra
+        or {}
+
+    if type(
+        e.inherited_gallantmon_value
+    ) == 'number' then
+        return
+            e.inherited_gallantmon_value
+            / 3
+    end
+
+    return 5
+end
+
+H.gallantmon = function(card, context)
+    if context.joker_main then
         return {
-            xmult = xmult
+            xmult =
+                BM.gallantmon_current_xmult(
+                    card
+                )
         }
+    end
+end
+
+H.gallantmon_crimson_mode =
+function(card, context)
+    local e =
+        card.ability.extra
+
+    e.emult =
+        e.emult
+        or (5 / 3)
+
+    if context.individual
+    and context.cardarea == G.play then
+        local current =
+            current_scoring_mult()
+
+        if current ~= 0 then
+            return {
+                mult = current
+            }
+        end
+    end
+
+    if context.joker_main then
+        BM.emult(
+            card,
+            e.emult
+        )
     end
 end
 H.cotsucomon = function(card,context) BM.apply_blind_reduction(card,context,0.02,false) end
@@ -391,7 +723,40 @@ H.knightmon = function(card,context)
     if context.after and context.main_eval and not context.blueprint and not SMODS.last_hand_oneshot then e.mult=e.mult+10; return {message='+10 Mult'} end
     if context.joker_main and e.mult~=0 then return {mult=e.mult} end
 end
-H.bryweludramon = function(card,context) if context.setting_blind and context.main_eval and BM.is_boss() and G.GAME.blind.disable and not context.blueprint then G.GAME.blind:disable(); return {message='Boss Disabled!'} end end
+H.bryweludramon = function(card,context)
+    if context.setting_blind
+    and context.main_eval
+    and BM.is_boss()
+    and G.GAME.blind.disable
+    and not context.blueprint then
+        G.GAME.blind:disable()
+        return {message='Boss Disabled!'}
+    end
+end
+
+H.ragnaloardmon = function(card, context)
+    local bryweludramon =
+        H.bryweludramon(
+            card,
+            context
+        )
+
+    if bryweludramon then
+        return bryweludramon
+    end
+
+    if context.individual
+    and context.cardarea == G.play
+    and BM.has_enhancement(
+        context.other_card,
+        'm_gold'
+    ) then
+        return {
+            dollars = 8,
+            xmult = 3
+        }
+    end
+end
 H.punimon = simple_chips(20)
 H.tsunomon = function(card,context)
     local e=card.ability.extra; e.discards=e.discards or 0
@@ -408,6 +773,94 @@ H.gabumon = function(card,context)
     end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
+
+H.gabumon_naked = function(card, context)
+    local e =
+        card.ability.extra
+
+    e.xchips =
+        e.xchips
+        or 1
+
+    local key =
+        G
+        and G.GAME
+        and G.GAME.balatromon_last_tarot
+
+    local tarot_effect =
+        key
+        and GABUMON_NAKED_TAROT_EFFECTS[key]
+
+    if context.before
+    and context.main_eval
+    and not context.blueprint
+    and tarot_effect then
+        local cards =
+            context.full_hand
+            or {}
+
+        local snapshots = {}
+
+        if tarot_effect.kind == 'death' then
+            for i, played in ipairs(cards) do
+                snapshots[i] =
+                    gabumon_naked_snapshot(
+                        played
+                    )
+            end
+        end
+
+        local stripped = 0
+
+        for _, played in ipairs(cards) do
+            if gabumon_naked_strip(
+                played
+            ) then
+                stripped =
+                    stripped + 1
+            end
+        end
+
+        if tarot_effect.kind
+            ~= 'destroy' then
+            gabumon_naked_apply_tarot(
+                cards,
+                tarot_effect,
+                snapshots
+            )
+        end
+
+        if stripped > 0 then
+            e.xchips =
+                e.xchips
+                + 0.35 * stripped
+
+            return {
+                message =
+                    'XChips Up!',
+                colour =
+                    G.C.CHIPS
+            }
+        end
+    end
+
+    if context.destroying_card
+    and not context.blueprint
+    and tarot_effect
+    and tarot_effect.kind
+        == 'destroy' then
+        return true
+    end
+
+    if context.joker_main
+    and e.xchips ~= 1 then
+        return {
+            xchips =
+                e.xchips
+        }
+    end
+end
+
 H.garurumon = function(card,context)
     local e=card.ability.extra; e.chips=e.chips or 0
     if context.before and context.main_eval and not context.blueprint then for _,c in ipairs(context.scoring_hand or {}) do if BM.is_face(c) then e.chips=e.chips+10; return {message='+10 Chips'} end end end

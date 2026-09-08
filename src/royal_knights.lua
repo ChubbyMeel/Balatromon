@@ -2,6 +2,7 @@ local BM = Balatromon
 
 BM.royal_knights = {
     gallantmon = true,
+    gallantmon_crimson_mode = true,
     omegamon = true,
     magnamon = true,
     ultraforceveedramon = true,

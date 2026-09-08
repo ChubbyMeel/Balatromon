@@ -41,6 +41,9 @@ BM.evolution_rules = {
         gallantmon = {note = 'Standard route'},
         blackwargreymon = {bad_path = true, note = 'Care Crisis route'},
     },
+    gallantmon = {
+        gallantmon_crimson_mode = {device = 'golden_digivice', note = 'Beyond route'},
+    },
     megadramon = {
         machinedramon = {note = 'Standard route'},
         blackwargreymon = {bad_path = true, note = 'Care Crisis route'},
@@ -57,6 +60,9 @@ BM.evolution_rules = {
     tialudomon = {
         raijiludomon = {note = 'Standard route'},
         knightmon = {min_care = 1, note = 'Rough-care route'},
+    },
+    bryweludramon = {
+        ragnaloardmon = {device = 'golden_digivice', note = 'Beyond route'},
     },
     tsunomon = {
         gabumon = {note = 'Standard route'},
@@ -94,6 +100,9 @@ BM.evolution_rules = {
             note =
                 'Beyond route'
         }
+    },
+    durandamon = {
+        ragnaloardmon = {device = 'golden_digivice', note = 'Beyond route'},
     },
     bukamon = {
         gomamon = {note = 'Standard route'},
@@ -1300,6 +1309,12 @@ function BM.perform_digivolution(card, option, device_key, opts)
         previous_form_value = e.xmult
     end
 
+    local gallantmon_xmult =
+        old_slug == 'gallantmon'
+        and BM.gallantmon_current_xmult
+        and BM.gallantmon_current_xmult(card)
+        or nil
+
     local carry = {
         hunger = e.hunger or 1,
         care_mistakes = e.care_mistakes or 0,
@@ -1351,6 +1366,12 @@ function BM.perform_digivolution(card, option, device_key, opts)
 
     card.ability.extra =
         card.ability.extra or {}
+
+    if old_slug == 'gallantmon'
+    and option.slug == 'gallantmon_crimson_mode' then
+        card.ability.extra.emult =
+            (gallantmon_xmult or 5) / 3
+    end
 
     if option.slug == 'omegamon' then
         card.ability.extra.emult = 1

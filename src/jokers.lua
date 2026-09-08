@@ -1126,6 +1126,45 @@ elements={BM.care_bars(e,stage)},e.chips or 0}}
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
 
+bm_register_new_digimon({
+    slug = 'gabumon_naked',
+    name = 'Gabumon (Naked)',
+    stage = 'Rare',
+    evolves_to = '-',
+    pos = {x=9,y=20},
+    blueprint_compat = false,
+    extra = {
+        xchips = 1
+    },
+    text = {
+        'Strip played cards of their {C:attention}Enhancement{}',
+        'and replace it with the effect of the',
+        'last {C:tarot}Tarot{} used',
+        'Gain {X:chips,C:white}X0.35{} Chips for each',
+        'Enhancement stripped',
+        '{C:inactive}(Last Tarot Used: {C:tarot}#4#{C:inactive}){}',
+        '{V:1}#5#{}',
+        '{C:inactive}(Currently {X:chips,C:white}X#6#{C:inactive} Chips){}',
+    },
+    dynamic_vars = function(card, e)
+        local tarot_name,
+            compatibility,
+            colour =
+                BM.gabumon_naked_tarot_info()
+
+        return {
+            tarot_name,
+            compatibility,
+            e.xchips or 1,
+            colours = {
+                colour
+            }
+        }
+    end,
+    effect = 'Strips played card enhancements and applies the last compatible Tarot effect; gains X0.35 Chips per enhancement stripped'
+})
+
+
 do
     local slug = 'elecmon'
     local stage = 'Rookie'
@@ -1703,8 +1742,8 @@ do
         loc_txt = {name='MetalGarurumon', text={
             {
                 'Gain {X:chips,C:white}X0.25{} Chips for every {C:attention}#4#{} of {V:1}#5#{} Played',
-                '{C:inactive}(Upgrade limited once per card including retrigger){}',
-                '{C:inactive}(card changes at end of round){}',
+                '{C:inactive}(Upgrade limited once per card including',
+                'retrigger){} {C:inactive}(card changes at end of round){}',
                 '{C:inactive}(Currently {X:chips,C:white}X#6#{C:inactive} Chips){}',
             },
             {
@@ -2594,7 +2633,7 @@ do
         atlas = 'Joker', pos = {x=2,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = '-',
+        balatromon_stage = stage, balatromon_evolves_to = 'Gallantmon Crimson Mode',
         set_badges = function(
             self,
             card,
@@ -2637,10 +2676,34 @@ do
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='Gallantmon', stage=stage, evolves_to='-', effect='X[1/3 of the previous values of this card when it was unevolved] Mult'}
+    BM.joker_defs[slug] = {name='Gallantmon', stage=stage, evolves_to='Gallantmon Crimson Mode', effect='X[1/3 of the previous values of this card when it was unevolved] Mult'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
+
+bm_register_new_digimon({
+    slug = 'gallantmon_crimson_mode',
+    name = 'Gallantmon Crimson Mode',
+    stage = 'Beyond',
+    evolves_to = '-',
+    pos = {x=7,y=20},
+    extra = {
+        emult = 5 / 3
+    },
+    text = {
+        '{X:mult,C:white}^#4#{} Mult',
+        'Each played card gives {C:mult}+Mult{} equal to',
+        'the {C:mult}current Mult{} when scored',
+        '{C:inactive}(Exponent is 1/3 of Gallantmon\'s XMult){}',
+    },
+    dynamic_vars = function(card, e)
+        return {
+            e.emult or (5 / 3)
+        }
+    end,
+    effect = '^1/3 of Gallantmon XMult; each scored card gives +Mult equal to current Mult'
+})
+
 
 do
     local slug = 'cotsucomon'
@@ -2934,7 +2997,7 @@ do
         atlas = 'Joker', pos = {x=9,y=2},
         blueprint_compat = true, eternal_compat = true, perishable_compat = true,
         balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = '-',
+        balatromon_stage = stage, balatromon_evolves_to = 'RagnaLoardmon',
         loc_vars = function(self,info_queue,card)
             local e=card and card.ability and card.ability.extra or extra
             return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
@@ -2952,10 +3015,293 @@ elements={BM.care_bars(e,stage)}}}
             return BM.run_effect(slug,card,context)
         end,
     }
-    BM.joker_defs[slug] = {name='BryweLudramon', stage=stage, evolves_to='-', effect='Disable boss blind'}
+    BM.joker_defs[slug] = {name='BryweLudramon', stage=stage, evolves_to='RagnaLoardmon', effect='Disable boss blind'}
     local weight=BM.stage_shop_weight(stage)
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
+
+do
+    local slug = 'sakumon'
+    local stage = 'Fresh'
+    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+    SMODS.Joker {
+        key = slug,
+        loc_txt = {name='Sakumon', text={
+            {
+                'If played card is a single card,',
+                'turn it into a gold card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
+        }},
+        config = {extra=extra},
+        rarity = BM.stage_rarity(stage),
+        cost = STAGE_COSTS[stage] or 5,
+        atlas = 'Joker', pos = {x=7,y=7},
+        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        balatromon = true,
+        balatromon_stage = stage, balatromon_evolves_to = 'Sakuttomon',
+        loc_vars = function(self,info_queue,card)
+            local e=card and card.ability and card.ability.extra or extra
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
+        end,
+        in_pool = function(self,args)
+            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+        end,
+        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
+        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
+        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+        calculate = function(self,card,context)
+            BM.care_tick(card,context)
+            if card.ability.extra.permanently_disabled then return end
+            return BM.run_effect(slug,card,context)
+        end,
+    }
+    BM.joker_defs[slug] = {name='Sakumon', stage=stage, evolves_to='Sakuttomon', effect='If the first played card is a single card, turn it into a gold card'}
+    local weight=BM.stage_shop_weight(stage)
+    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'sakuttomon'
+    local stage = 'In-Training'
+    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+    SMODS.Joker {
+        key = slug,
+        loc_txt = {name='Sakuttomon', text={
+            {
+                'Create a negative devil at the end of a boss',
+                'blind',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
+        }},
+        config = {extra=extra},
+        rarity = BM.stage_rarity(stage),
+        cost = STAGE_COSTS[stage] or 5,
+        atlas = 'Joker', pos = {x=8,y=7},
+        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        balatromon = true,
+        balatromon_stage = stage, balatromon_evolves_to = 'Zubamon',
+        loc_vars = function(self,info_queue,card)
+            local e=card and card.ability and card.ability.extra or extra
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
+        end,
+        in_pool = function(self,args)
+            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+        end,
+        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
+        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
+        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+        calculate = function(self,card,context)
+            BM.care_tick(card,context)
+            if card.ability.extra.permanently_disabled then return end
+            return BM.run_effect(slug,card,context)
+        end,
+    }
+    BM.joker_defs[slug] = {name='Sakuttomon', stage=stage, evolves_to='Zubamon', effect='Create a negative devil at the end of a boss blind'}
+    local weight=BM.stage_shop_weight(stage)
+    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'zubamon'
+    local stage = 'Rookie'
+    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+    SMODS.Joker {
+        key = slug,
+        loc_txt = {name='Zubamon', text={
+            {
+                'All played face cards turn to gold card',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
+        }},
+        config = {extra=extra},
+        rarity = BM.stage_rarity(stage),
+        cost = STAGE_COSTS[stage] or 5,
+        atlas = 'Joker', pos = {x=9,y=7},
+        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        balatromon = true,
+        balatromon_stage = stage, balatromon_evolves_to = 'ZubaEagermon',
+        loc_vars = function(self,info_queue,card)
+            local e=card and card.ability and card.ability.extra or extra
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
+        end,
+        in_pool = function(self,args)
+            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+        end,
+        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
+        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
+        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+        calculate = function(self,card,context)
+            BM.care_tick(card,context)
+            if card.ability.extra.permanently_disabled then return end
+            return BM.run_effect(slug,card,context)
+        end,
+    }
+    BM.joker_defs[slug] = {name='Zubamon', stage=stage, evolves_to='ZubaEagermon', effect='All played face cards turn to gold card'}
+    local weight=BM.stage_shop_weight(stage)
+    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'zubaeagermon'
+    local stage = 'Champion'
+    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+    SMODS.Joker {
+        key = slug,
+        loc_txt = {name='ZubaEagermon', text={
+            {
+                'Each played gold card gives {C:money}$4{}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
+        }},
+        config = {extra=extra},
+        rarity = BM.stage_rarity(stage),
+        cost = STAGE_COSTS[stage] or 5,
+        atlas = 'Joker', pos = {x=0,y=8},
+        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        balatromon = true,
+        balatromon_stage = stage, balatromon_evolves_to = 'Duramon',
+        loc_vars = function(self,info_queue,card)
+            local e=card and card.ability and card.ability.extra or extra
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
+        end,
+        in_pool = function(self,args)
+            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+        end,
+        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
+        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
+        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+        calculate = function(self,card,context)
+            BM.care_tick(card,context)
+            if card.ability.extra.permanently_disabled then return end
+            return BM.run_effect(slug,card,context)
+        end,
+    }
+    BM.joker_defs[slug] = {name='ZubaEagermon', stage=stage, evolves_to='Duramon', effect='Each played gold card gives $4'}
+    local weight=BM.stage_shop_weight(stage)
+    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'duramon'
+    local stage = 'Ultimate'
+    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+    SMODS.Joker {
+        key = slug,
+        loc_txt = {name='Duramon', text={
+            {
+                'Each played gold card gives {C:money}$6{}',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
+        }},
+        config = {extra=extra},
+        rarity = BM.stage_rarity(stage),
+        cost = STAGE_COSTS[stage] or 5,
+        atlas = 'Joker', pos = {x=1,y=8},
+        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        balatromon = true,
+        balatromon_stage = stage, balatromon_evolves_to = 'Durandamon',
+        loc_vars = function(self,info_queue,card)
+            local e=card and card.ability and card.ability.extra or extra
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
+        end,
+        in_pool = function(self,args)
+            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+        end,
+        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
+        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
+        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+        calculate = function(self,card,context)
+            BM.care_tick(card,context)
+            if card.ability.extra.permanently_disabled then return end
+            return BM.run_effect(slug,card,context)
+        end,
+    }
+    BM.joker_defs[slug] = {name='Duramon', stage=stage, evolves_to='Durandamon', effect='Each played gold card gives $6'}
+    local weight=BM.stage_shop_weight(stage)
+    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+do
+    local slug = 'durandamon'
+    local stage = 'Mega'
+    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
+    SMODS.Joker {
+        key = slug,
+        loc_txt = {name='Durandamon', text={
+            {
+                'Each played gold card gives {C:money}$6{} and {X:mult,C:white}X1.5{} Mult',
+            },
+            {
+                BM.care_status_text(stage),
+            }
+            
+        }},
+        config = {extra=extra},
+        rarity = BM.stage_rarity(stage),
+        cost = STAGE_COSTS[stage] or 5,
+        atlas = 'Joker', pos = {x=2,y=8},
+        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
+        balatromon = true,
+        balatromon_stage = stage, balatromon_evolves_to = 'RagnaLoardmon',
+        loc_vars = function(self,info_queue,card)
+            local e=card and card.ability and card.ability.extra or extra
+            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
+elements={BM.care_bars(e,stage)}}}
+        end,
+        in_pool = function(self,args)
+            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
+        end,
+        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
+        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
+        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
+        calculate = function(self,card,context)
+            BM.care_tick(card,context)
+            if card.ability.extra.permanently_disabled then return end
+            return BM.run_effect(slug,card,context)
+        end,
+    }
+    BM.joker_defs[slug] = {name='Durandamon', stage=stage, evolves_to='RagnaLoardmon', effect='Each played gold card gives $6 and X1.5 Mult'}
+    local weight=BM.stage_shop_weight(stage)
+    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
+end
+
+bm_register_new_digimon({
+    slug = 'ragnaloardmon',
+    name = 'RagnaLoardmon',
+    stage = 'Beyond',
+    evolves_to = '-',
+    pos = {x=8,y=20},
+    digimon_tooltips = {
+        'bryweludramon'
+    },
+    text = {
+        'Each played {C:attention}Gold Card{} gives',
+        '{C:money}$8{} and {X:mult,C:white}X3{} Mult',
+        'Also applies {C:attention}BryweLudramon{} effect',
+    },
+    effect = 'Applies BryweLudramon; each played Gold Card gives $8 and X3 Mult'
+})
 
 do
     local slug = 'monzaemon'
@@ -4703,271 +5049,6 @@ elements={BM.care_bars(e,stage)},e.xmult or 1}}
     if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
 end
 
-do
-    local slug = 'sakumon'
-    local stage = 'Fresh'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
-    SMODS.Joker {
-        key = slug,
-        loc_txt = {name='Sakumon', text={
-            {
-                'If played card is a single card,',
-                'turn it into a gold card',
-            },
-            {
-                BM.care_status_text(stage),
-            }
-            
-        }},
-        config = {extra=extra},
-        rarity = BM.stage_rarity(stage),
-        cost = STAGE_COSTS[stage] or 5,
-        atlas = 'Joker', pos = {x=7,y=7},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
-        balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Sakuttomon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}}}
-        end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
-        end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
-        end,
-    }
-    BM.joker_defs[slug] = {name='Sakumon', stage=stage, evolves_to='Sakuttomon', effect='If the first played card is a single card, turn it into a gold card'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
-end
-
-do
-    local slug = 'sakuttomon'
-    local stage = 'In-Training'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
-    SMODS.Joker {
-        key = slug,
-        loc_txt = {name='Sakuttomon', text={
-            {
-                'Create a negative devil at the end of a boss',
-                'blind',
-            },
-            {
-                BM.care_status_text(stage),
-            }
-            
-        }},
-        config = {extra=extra},
-        rarity = BM.stage_rarity(stage),
-        cost = STAGE_COSTS[stage] or 5,
-        atlas = 'Joker', pos = {x=8,y=7},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
-        balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Zubamon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}}}
-        end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
-        end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
-        end,
-    }
-    BM.joker_defs[slug] = {name='Sakuttomon', stage=stage, evolves_to='Zubamon', effect='Create a negative devil at the end of a boss blind'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
-end
-
-do
-    local slug = 'zubamon'
-    local stage = 'Rookie'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
-    SMODS.Joker {
-        key = slug,
-        loc_txt = {name='Zubamon', text={
-            {
-                'All played face cards turn to gold card',
-            },
-            {
-                BM.care_status_text(stage),
-            }
-            
-        }},
-        config = {extra=extra},
-        rarity = BM.stage_rarity(stage),
-        cost = STAGE_COSTS[stage] or 5,
-        atlas = 'Joker', pos = {x=9,y=7},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
-        balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'ZubaEagermon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}}}
-        end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
-        end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
-        end,
-    }
-    BM.joker_defs[slug] = {name='Zubamon', stage=stage, evolves_to='ZubaEagermon', effect='All played face cards turn to gold card'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
-end
-
-do
-    local slug = 'zubaeagermon'
-    local stage = 'Champion'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
-    SMODS.Joker {
-        key = slug,
-        loc_txt = {name='ZubaEagermon', text={
-            {
-                'Each played gold card gives {C:money}$4{}',
-            },
-            {
-                BM.care_status_text(stage),
-            }
-            
-        }},
-        config = {extra=extra},
-        rarity = BM.stage_rarity(stage),
-        cost = STAGE_COSTS[stage] or 5,
-        atlas = 'Joker', pos = {x=0,y=8},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
-        balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Duramon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}}}
-        end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
-        end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
-        end,
-    }
-    BM.joker_defs[slug] = {name='ZubaEagermon', stage=stage, evolves_to='Duramon', effect='Each played gold card gives $4'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
-end
-
-do
-    local slug = 'duramon'
-    local stage = 'Ultimate'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
-    SMODS.Joker {
-        key = slug,
-        loc_txt = {name='Duramon', text={
-            {
-                'Each played gold card gives {C:money}$6{}',
-            },
-            {
-                BM.care_status_text(stage),
-            }
-            
-        }},
-        config = {extra=extra},
-        rarity = BM.stage_rarity(stage),
-        cost = STAGE_COSTS[stage] or 5,
-        atlas = 'Joker', pos = {x=1,y=8},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
-        balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = 'Durandamon',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}}}
-        end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
-        end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
-        end,
-    }
-    BM.joker_defs[slug] = {name='Duramon', stage=stage, evolves_to='Durandamon', effect='Each played gold card gives $6'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
-end
-
-do
-    local slug = 'durandamon'
-    local stage = 'Mega'
-    local extra = {hunger=1, bond=0, care_mistakes=0, care_rounds=0}
-    SMODS.Joker {
-        key = slug,
-        loc_txt = {name='Durandamon', text={
-            {
-                'Each played gold card gives {C:money}$6{} and {X:mult,C:white}X1.5{} Mult',
-            },
-            {
-                BM.care_status_text(stage),
-            }
-            
-        }},
-        config = {extra=extra},
-        rarity = BM.stage_rarity(stage),
-        cost = STAGE_COSTS[stage] or 5,
-        atlas = 'Joker', pos = {x=2,y=8},
-        blueprint_compat = true, eternal_compat = true, perishable_compat = true,
-        balatromon = true,
-        balatromon_stage = stage, balatromon_evolves_to = '-',
-        loc_vars = function(self,info_queue,card)
-            local e=card and card.ability and card.ability.extra or extra
-            return {vars={e.hunger or 1,e.bond or 0,e.care_mistakes or 0,
-elements={BM.care_bars(e,stage)}}}
-        end,
-        in_pool = function(self,args)
-            return stage=='Fresh' or stage=='In-Training' or stage=='Rookie' or stage=='Champion' or stage=='Rare'
-        end,
-        add_to_deck = function(self,card,from_debuff) if not from_debuff then BM.on_add(card,slug) end end,
-        remove_from_deck = function(self,card,from_debuff) if not from_debuff then BM.on_remove(card,slug) end end,
-        can_sell = function(self,card,context) return BM.can_sell(card,slug) end,
-        calculate = function(self,card,context)
-            BM.care_tick(card,context)
-            if card.ability.extra.permanently_disabled then return end
-            return BM.run_effect(slug,card,context)
-        end,
-    }
-    BM.joker_defs[slug] = {name='Durandamon', stage=stage, evolves_to='-', effect='Each played gold card gives $6 and X1.5 Mult'}
-    local weight=BM.stage_shop_weight(stage)
-    if weight>0 then BM.shop_joker_keys[#BM.shop_joker_keys+1]={key=BM.center_key(slug),weight=weight,stage=stage} end
-end
 
 do
     local slug = 'kimeramon'
@@ -11050,3 +11131,4 @@ bm_register_new_digimon({
     },
     effect = 'Each Planet card held in consumable slots gives X1.2 Mult'
 })
+
