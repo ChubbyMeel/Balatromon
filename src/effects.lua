@@ -833,7 +833,7 @@ H.gabumon_naked = function(card, context)
         if stripped > 0 then
             e.xchips =
                 e.xchips
-                + 0.35 * stripped
+                + 0.15 * stripped
 
             return {
                 message =

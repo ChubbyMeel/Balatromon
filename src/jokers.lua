@@ -1128,7 +1128,7 @@ end
 
 bm_register_new_digimon({
     slug = 'gabumon_naked',
-    name = 'Gabumon (Naked)',
+    name = 'Gabumon',
     stage = 'Rare',
     evolves_to = '-',
     pos = {x=9,y=20},
@@ -1140,7 +1140,7 @@ bm_register_new_digimon({
         'Strip played cards of their {C:attention}Enhancement{}',
         'and replace it with the effect of the',
         'last {C:tarot}Tarot{} used',
-        'Gain {X:chips,C:white}X0.35{} Chips for each',
+        'Gain {X:chips,C:white}X0.15{} Chips for each',
         'Enhancement stripped',
         '{C:inactive}(Last Tarot Used: {C:tarot}#4#{C:inactive}){}',
         '{V:1}#5#{}',
@@ -1161,7 +1161,7 @@ bm_register_new_digimon({
             }
         }
     end,
-    effect = 'Strips played card enhancements and applies the last compatible Tarot effect; gains X0.35 Chips per enhancement stripped'
+    effect = 'Strips played card enhancements and applies the last compatible Tarot effect; gains X0.15 Chips per enhancement stripped'
 })
 
 
