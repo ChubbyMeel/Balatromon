@@ -194,6 +194,7 @@ SMODS.Sound {
 
 assert(SMODS.load_file('src/modes.lua'))()
 assert(SMODS.load_file('src/core.lua'))()
+assert(SMODS.load_file('src/attributes.lua'))()
 assert(SMODS.load_file('src/target_hints.lua'))()
 assert(SMODS.load_file('src/tired.lua'))()
 assert(SMODS.load_file('src/element_compat.lua'))()
@@ -226,6 +227,8 @@ assert(SMODS.load_file("ui.lua"))()
 assert(SMODS.load_file('src/profile_mode.lua'))()
 assert(SMODS.load_file('src/optimiser.lua'))()
 assert(SMODS.load_file('src/music.lua'))()
+
+BM.install_attribute_badges()
 
 SMODS.current_mod.process_loc_text = function()
     G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {

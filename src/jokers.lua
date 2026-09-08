@@ -68,6 +68,9 @@ local function bm_register_new_digimon(def)
         balatromon_stage =
             stage,
 
+        balatromon_attribute =
+            def.attribute or def.balatromon_attribute,
+
         balatromon_evolves_to =
             def.evolves_to,
 
