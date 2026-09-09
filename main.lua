@@ -1,13 +1,10 @@
--- Balatromon
--- Generated from the Balatromon design database.
-
 Balatromon = Balatromon or {}
 local BM = Balatromon
 BM.MOD_ID = 'Balatromon'
 BM.PREFIX = 'DigiMeel'
 BM.MOD = BM.MOD or SMODS.current_mod
 
--- Some Balatromon effects need these modern SMODS contexts.
+
 SMODS.current_mod.optional_features = function()
     return {
         retrigger_joker = true,
@@ -19,7 +16,7 @@ SMODS.current_mod.optional_features = function()
     }
 end
 
--- Keep the atlas key short: DigiMeel is already the mod prefix.
+
 SMODS.Atlas {
     key = 'Joker',
     path = 'DigiMeel_Joker.png',
@@ -30,6 +27,13 @@ SMODS.Atlas {
 SMODS.Atlas {
     key = 'Consumable',
     path = 'DigiMeel_Consumable.png',
+    px = 71,
+    py = 95,
+}
+
+SMODS.Atlas {
+    key = 'Appmon',
+    path = 'DigiMeel_Appmon.png',
     px = 71,
     py = 95,
 }
@@ -107,6 +111,139 @@ SMODS.Atlas {
     py = 95
 }
 
+Balatromon.EXPERIMENTAL_BUILD = true
+Balatromon.LATEST_RELEASE_URL = 'https://github.com/ChubbyMeel/Balatromon/releases/latest'
+
+G.FUNCS.balatromon_open_latest_release = function()
+    love.system.openURL(Balatromon.LATEST_RELEASE_URL)
+end
+
+G.FUNCS.balatromon_close_experimental_notice = function()
+    G.FUNCS.exit_overlay_menu()
+end
+
+local function balatromon_experimental_notice()
+    G.FUNCS.overlay_menu({
+        definition = create_UIBox_generic_options({
+            back_func = 'balatromon_close_experimental_notice',
+            contents = {
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.15
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = 'Experimental Balatromon Build',
+                                scale = 0.6,
+                                colour = G.C.RED
+                            }
+                        }
+                    }
+                },
+
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.1
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = 'You are playing a development branch of Balatromon.',
+                                scale = 0.4,
+                                colour = G.C.WHITE
+                            }
+                        }
+                    }
+                },
+
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.05
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = 'This version may contain experimental features,',
+                                scale = 0.35,
+                                colour = G.C.UI.TEXT_LIGHT
+                            }
+                        }
+                    }
+                },
+
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.05
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = 'unfinished content, bugs, or save incompatibilities.',
+                                scale = 0.35,
+                                colour = G.C.UI.TEXT_LIGHT
+                            }
+                        }
+                    }
+                },
+
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.1
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                text = 'For normal play, the latest stable release is recommended.',
+                                scale = 0.38,
+                                colour = G.C.YELLOW
+                            }
+                        }
+                    }
+                },
+
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = 'cm',
+                        padding = 0.15
+                    },
+                    nodes = {
+                        UIBox_button({
+                            label = {'Latest Release'},
+                            button = 'balatromon_open_latest_release',
+                            colour = G.C.GREEN,
+                            minw = 4
+                        }),
+
+                        UIBox_button({
+                            label = {'Continue Anyway'},
+                            button = 'balatromon_close_experimental_notice',
+                            colour = G.C.RED,
+                            minw = 4
+                        })
+                    }
+                }
+            }
+        })
+    })
+end
+
 SMODS.current_mod.menu_cards = function()
     return {
         remove_original = true,
@@ -132,6 +269,7 @@ SMODS.current_mod.menu_cards = function()
         end
     }
 end
+
 
 G.C.BALATROMON_SPLASH_RED = HEX('B7475D')
 G.C.BALATROMON_SPLASH_BLUE = HEX('35566C')
@@ -175,6 +313,28 @@ Game.main_menu = function(change_context)
         })
     end
 
+    if Balatromon.EXPERIMENTAL_BUILD
+        and not Balatromon._experimental_notice_shown then
+
+        Balatromon._experimental_notice_shown = true
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.5,
+            blocking = false,
+            func = function()
+
+                if G.STAGE == G.STAGES.MAIN_MENU
+                    and not G.OVERLAY_MENU then
+
+                    balatromon_experimental_notice()
+                end
+
+                return true
+            end
+        }))
+    end
+
     return ret
 end
 
@@ -205,6 +365,7 @@ assert(SMODS.load_file('src/effects.lua'))()
 assert(SMODS.load_file('src/poker_hands.lua'))()
 assert(SMODS.load_file('src/royal_knights.lua'))()
 assert(SMODS.load_file('src/jokers.lua'))()
+assert(SMODS.load_file('src/appmon.lua'))()
 assert(SMODS.load_file('src/boosters.lua'))()
 assert(SMODS.load_file('src/tarot_revisions.lua'))()
 assert(SMODS.load_file('src/shop.lua'))()
@@ -312,3 +473,4 @@ assert(SMODS.load_file('src/jokerdisplay_compat.lua'))()
 assert(SMODS.load_file('src/retrigger_hooks.lua'))()
 assert(SMODS.load_file('src/deckskins.lua'))()
 assert(SMODS.load_file('src/digivolution_tooltips.lua'))()
+

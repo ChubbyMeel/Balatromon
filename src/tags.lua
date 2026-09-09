@@ -1,8 +1,5 @@
 local BM = Balatromon
 
--- ============================================================
--- HELPERS
--- ============================================================
 
 local function get_digimon_jokers()
     local result = {}
@@ -31,10 +28,6 @@ local function get_fresh_digimon_pool()
     return result
 end
 
--- ============================================================
--- MEAL TAG
--- Immediate: fully feeds all Digimon. If there are none, it still consumes.
--- ============================================================
 
 SMODS.Tag {
     key = 'meal',

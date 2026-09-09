@@ -761,7 +761,7 @@ local function rule_allows(card, target_center, target_slug, device_key, rule)
     local source_slug = BM.get_card_slug(card)
     rule = rule ~= nil and rule or get_rule(source_slug, target_slug)
 
-    -- No explicit rule means the connected route is a normal route.
+
     if rule == nil then return true end
     if rule == false then return false end
     if rule == true then return true end
@@ -1166,8 +1166,7 @@ function BM.get_evolution_card_candidates()
 
         if BM.is_digimon(digimon) then
 
-            -- Evolution Cards ignore Bond, but all other
-            -- evolution-route rules still apply.
+
             local options = BM.get_valid_evolutions(
                 digimon,
                 'evolution_card',
@@ -1197,7 +1196,7 @@ function BM.trigger_evolution_card(source_card)
         return false
     end
 
-    -- Pick a random Digimon.
+
     local target = BM.random_element(
         candidates,
         'balatromon_evolution_card_target_'
@@ -1208,8 +1207,7 @@ function BM.trigger_evolution_card(source_card)
         return false
     end
 
-    -- Then randomly choose one of that Digimon's
-    -- currently viable branches.
+
     local option = BM.random_element(
         target.options,
         'balatromon_evolution_card_branch_'
@@ -1249,7 +1247,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         return false
     end
 
-    -- Make sure the selected branch is still valid when the player clicks it.
+
     local still_valid = false
     for _, candidate in ipairs(BM.get_valid_evolutions(card, device_key, opts)) do
         if candidate.key == option.key then
@@ -1297,9 +1295,6 @@ function BM.perform_digivolution(card, option, device_key, opts)
         history[#history + 1] = old_slug
     end
 
-    -- Gallantmon inherits one third of the previous form's accumulated
-    -- numeric value. WarGrowlmon and Knightmon store that scaling as `mult`.
-    -- Forms with no accumulated numeric value fall back to 3 (X1 Mult).
     local previous_form_value = 3
     if type(e.mult) == 'number' then
         previous_form_value = e.mult
@@ -1331,8 +1326,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         permanently_disabled = e.permanently_disabled,
     }
 
-    -- Give every form change a visible two-beat Digivolution animation, even
-    -- when there is only one possible route and no branch-selection panel.
+
     card:juice_up(0.9, 0.8)
     play_sound('generic1')
     card_eval_status_text(card, 'extra', nil, nil, nil, {
@@ -1341,8 +1335,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         instant = true,
     })
 
-    -- Card:set_ability does not represent removing/adding a Joker from the
-    -- Joker area, so manually undo/apply Balatromon's passive on_add effects.
+
     if old_slug and BM.on_remove then BM.on_remove(card, old_slug) end
 
     card:set_ability(option.center, nil, true)
@@ -1446,12 +1439,11 @@ function BM.perform_digivolution(card, option, device_key, opts)
         end
     end
 
-    -- Every form change starts the new form at 0 Bond.
+
     card.ability.extra.bond = 0
     card.ability.extra._bond_shaking = nil
 
-    -- Care Crisis is the consequence itself. Once a bad Digivolution or
-    -- forced De-Digivolution resolves it, the three mistakes are consumed.
+
     if crisis then
         card.ability.extra.care_mistakes = 0
         card.ability.extra.care_crisis = nil
@@ -1986,7 +1978,6 @@ local function make_choice_button(option)
         shadow = true,
     })
 
-    -- UIBox_button returns UI nodes; attach our target to the clickable node.
     if button and button.nodes and button.nodes[1] and button.nodes[1].config then
         button.nodes[1].config.balatromon_target_key = option.key
     end
@@ -2053,7 +2044,6 @@ function BM.create_evolution_choice_ui()
         }
     end
 
-    -- Keep large branches readable: at most three choices per row.
     local option_rows = {}
     for i = 1, #option_nodes, 3 do
         local row_nodes = {}

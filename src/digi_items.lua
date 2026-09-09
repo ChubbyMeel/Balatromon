@@ -193,8 +193,6 @@ end
 local function clear_extra_joker_highlights()
     if not G.jokers then return end
 
-    -- CardArea supplies this in vanilla Balatro. Keep a fallback so this
-    -- remains harmless if another mod replaces the CardArea implementation.
     if G.jokers.unhighlight_all then
         G.jokers:unhighlight_all()
         return
@@ -227,8 +225,6 @@ local function update_multi_joker_targeting(card, max_targets)
 
     if card_is_highlighted(card) then
         if BM._multi_joker_target_card ~= card then
-            -- If another multi-target consumable was active, restore its state
-            -- before this one takes ownership of Joker selection.
             if BM._multi_joker_target_card then
                 local old = BM._multi_joker_target_card
                 stop_multi_joker_targeting(old, true)
@@ -334,9 +330,7 @@ local function random_stage_targets(stages, amount, seed)
     return result
 end
 
--- Digivices now use the shared evolution engine in src/evolution.lua.
--- If the chosen Digimon has one viable route, it evolves immediately.
--- If it has multiple viable routes, Balatromon opens an interactive panel.
+
 local function has_stage(stages, stage)
     for _, wanted in ipairs(stages) do
         if wanted == stage then return true end
@@ -1222,7 +1216,7 @@ SMODS.Consumable {
     discovered = false,
     unlocked = true,
 
-    -- Placeholder art
+
     atlas = 'Consumable', pos = {x=3,y=2},
 
     cost = 4,
@@ -1413,10 +1407,6 @@ SMODS.Consumable {
 }
 
 
--- ============================================================
--- DIGI SENSES
--- Turn up to 2 selected playing cards into Calumon Cards
--- ============================================================
 
 SMODS.Consumable {
     set = COMMON_CARD.set,

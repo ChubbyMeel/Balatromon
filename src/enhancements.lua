@@ -70,8 +70,6 @@ SMODS.Enhancement {
 
     calculate = function(self, card, context)
 
-        -- This runs when this playing card actually scores.
-        -- Retriggers therefore also count as another score.
         if context.cardarea == G.play
         and context.main_scoring then
 
@@ -80,7 +78,7 @@ SMODS.Enhancement {
 
             local extra = card.ability.extra
 
-            -- Already waiting for the transformation event.
+
             if extra.transforming then
                 return
             end
@@ -89,7 +87,6 @@ SMODS.Enhancement {
                 (extra.scores or 0) + 1
 
 
-            -- Show progress.
             card:juice_up(0.25, 0.25)
 
             card_eval_status_text(
@@ -106,14 +103,12 @@ SMODS.Enhancement {
             )
 
 
-            -- Not ready yet.
+
             if extra.scores < 3 then
                 return
             end
 
 
-            -- Prevent a retrigger from scheduling
-            -- several transformations simultaneously.
             extra.transforming = true
 
 
@@ -180,7 +175,6 @@ SMODS.Enhancement {
 
     always_scores = true,
 
-    -- Makes the playing card visually shatter when destroyed.
     shatters = true,
 
     loc_txt = {
@@ -233,15 +227,13 @@ SMODS.Enhancement {
         local extra = card.ability.extra
 
 
-        -- A successful activation is already waiting
-        -- to resolve.
+
         if extra.evolution_triggering then
             return
         end
 
 
-        -- Don't roll the chance when there isn't even
-        -- a valid Digimon to evolve.
+
         local candidates =
             BM.get_evolution_card_candidates()
 
@@ -250,7 +242,7 @@ SMODS.Enhancement {
         end
 
 
-        -- 1 in 3, using Balatro/SMODS seeded probability.
+
         local success =
             SMODS.pseudorandom_probability(
                 card,
@@ -260,9 +252,6 @@ SMODS.Enhancement {
                 'balatromon_evolution_card'
             )
 
-
-        -- Failed roll:
-        -- card survives and can try again next score/retrigger.
         if not success then
             return
         end
@@ -301,13 +290,11 @@ SMODS.Enhancement {
                 end
 
 
-                -- Randomly evolve a valid Digimon.
                 local evolved =
                     BM.trigger_evolution_card(card)
 
 
-                -- Something changed before the event resolved
-                -- and there is no longer a valid target.
+
                 if not evolved then
 
                     if card.ability
@@ -322,8 +309,6 @@ SMODS.Enhancement {
                 end
 
 
-                -- Let the Digivolution animation happen
-                -- before the Evolution Card breaks.
                 G.E_MANAGER:add_event(Event({
                     trigger = 'after',
                     delay = 0.55,

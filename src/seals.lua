@@ -185,7 +185,6 @@ local function blind_is_beaten()
 end
 
 
--- Move a card currently held in hand into discard.
 local function discard_held_card(card)
     if not (
         card
@@ -216,10 +215,6 @@ end
 
 
 
--- ============================================================
--- FARM SEAL
--- Creates 2 Negative Food if held at end of round
--- ============================================================
 
 SMODS.Seal {
     key = 'farm',
@@ -279,12 +274,6 @@ SMODS.Seal {
 
 
 
--- ============================================================
--- DIGITAL SEAL
--- If played but NOT part of scoring hand:
--- create 1 random Digi Item
--- ============================================================
-
 SMODS.Seal {
     key = 'digital',
 
@@ -307,7 +296,6 @@ SMODS.Seal {
 
     calculate = function(self, card, context)
 
-        -- "before" gives us both full_hand and scoring_hand.
         if context.before
         and context.full_hand
         and context.scoring_hand then
@@ -354,17 +342,6 @@ SMODS.Seal {
 
 
 
--- ============================================================
--- SILVER MEDAL
---
--- When this card scores:
--- every same-rank card currently held in hand gives +13 Mult.
---
--- Example:
--- scoring 8 with Silver Medal
--- hand contains three other 8s
--- -> +39 Mult
--- ============================================================
 
 SMODS.Seal {
     key = 'silver_medal',
@@ -440,10 +417,6 @@ SMODS.Seal {
 
     calculate = function(self, card, context)
 
-        -- ====================================================
-        -- WHEN SCORED
-        -- ====================================================
-
         if context.main_scoring
         and context.cardarea == G.play then
 
@@ -474,9 +447,6 @@ SMODS.Seal {
         end
 
 
-        -- ====================================================
-        -- WHEN HELD IN HAND
-        -- ====================================================
 
         if context.after
         and card.area == G.hand then
@@ -493,7 +463,6 @@ SMODS.Seal {
                     end
 
 
-                    -- This hand defeated the Blind.
                     if SMODS.last_hand_oneshot then
 
                         card:juice_up(0.8, 0.6)

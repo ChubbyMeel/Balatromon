@@ -301,7 +301,7 @@ local function make_digital_pack(
             card,
             i
         )
-            -- The final card is always Food.
+
             if i == total_slots then
                 return food_pack_card_def(
                     args.key,
