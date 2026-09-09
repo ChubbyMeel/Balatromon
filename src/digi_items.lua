@@ -1,6 +1,53 @@
 local BM = Balatromon
 
+local function selected_appmon()
+    for _, card in ipairs(
+        G.jokers
+        and G.jokers.highlighted
+        or {}
+    ) do
+        if BM.is_appmon
+        and BM.is_appmon(card) then
+            return card
+        end
+    end
+end
 
+local function appmon_immediately_right_of(left)
+    if not left or not G.jokers then
+        return nil
+    end
+
+    for i, card in ipairs(G.jokers.cards) do
+        if card == left then
+            local right = G.jokers.cards[i + 1]
+
+            if right
+            and BM.is_appmon
+            and BM.is_appmon(right) then
+                return right
+            end
+
+            return nil
+        end
+    end
+end
+
+local function app_link_can_link()
+    local left = selected_appmon()
+    local right = appmon_immediately_right_of(left)
+
+    if not left or not right then
+        return false
+    end
+
+    if BM.can_appmon_combine(left, right) then
+        return true
+    end
+
+    return BM.get_appmon_uses(left)
+        < BM.get_appmon_max_uses(left)
+end
 
 local function can_swap_jogress(card)
     if not card
@@ -2330,4 +2377,91 @@ SMODS.Consumable {
 
         BM.try_summon_bancholeomon()
     end,
+}
+
+SMODS.Consumable {
+    set = 'DigiItem',
+    key = 'app_link',
+
+    atlas = 'Consumable',
+    pos = {x = 4, y = 4},
+
+    discovered = false,
+    unlocked = true,
+    cost = 4,
+
+    loc_txt = {
+        name = 'App Link',
+        text = {
+            'Link the Appmon immediately',
+            'to the {C:attention}right{} of the selected Appmon',
+            'or turn up to {C:attention}3{} selected cards',
+            'into {C:attention}Gold{} or {C:attention}Steel Cards{}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        if BM.add_linked_tooltip then
+            BM.add_linked_tooltip(info_queue)
+        end
+
+        return {}
+    end,
+
+    can_use = function(self, card)
+        local playing = selected_playing_cards(4)
+
+        if #playing >= 1 and #playing <= 3 then
+            return true
+        end
+
+        return BM.is_appmon
+            and app_link_can_link()
+    end,
+
+    use = function(self, card, area, copier)
+        BM.remember_digi_item(card)
+
+        local playing = selected_playing_cards(3)
+
+        if #playing > 0 then
+            for i, target in ipairs(playing) do
+                local enhancement =
+                    BM.random_element(
+                        {'m_gold', 'm_steel'},
+                        'app_link_'
+                            .. tostring(target.playing_card or i)
+                    )
+
+                target:set_ability(
+                    G.P_CENTERS[enhancement],
+                    nil,
+                    true
+                )
+
+                target:juice_up(0.5, 0.5)
+            end
+
+            return
+        end
+
+        local left = selected_appmon()
+        local right = appmon_immediately_right_of(left)
+
+        if not left or not right then
+            return
+        end
+
+        if BM.can_appmon_combine(left, right) then
+            BM.combine_appmon(left, right)
+            return
+        end
+
+        BM.refill_appmon_uses(left)
+
+        G.jokers:remove_card(right)
+        right:start_dissolve()
+
+        BM.rebalance_appmon_loader()
+    end
 }

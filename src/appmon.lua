@@ -1,5 +1,56 @@
 local BM = Balatromon
 
+local appmon_save_safe_copy
+
+local function install_appmon_tooltips()
+    if not G
+    or not G.localization
+    or not G.localization.descriptions then
+        return
+    end
+
+    G.localization.descriptions.Other =
+        G.localization.descriptions.Other or {}
+
+    SMODS.process_loc_text(
+        G.localization.descriptions.Other,
+        'balatromon_linked',
+        {
+            name = 'Linked',
+            text = {
+                'The {C:attention}Right Appmon{} is used',
+                'to restore the uses of the',
+                '{C:attention}Left Appmon{}',
+                'Compatible Appmon {C:attention}combine{} instead'
+            }
+        }
+    )
+end
+
+function BM.add_linked_tooltip(info_queue)
+    if not info_queue then
+        return
+    end
+
+    info_queue[#info_queue + 1] = {
+        set = 'Other',
+        key = 'balatromon_linked'
+    }
+end
+
+local old_appmon_process_loc_text =
+    SMODS.current_mod.process_loc_text
+
+SMODS.current_mod.process_loc_text = function(self)
+    if old_appmon_process_loc_text then
+        old_appmon_process_loc_text(self)
+    end
+
+    install_appmon_tooltips()
+end
+
+install_appmon_tooltips()
+
 BM.APPMON_LOADER_SLOTS = BM.APPMON_LOADER_SLOTS or 2
 BM.APPMON_USE_COUNT = BM.APPMON_USE_COUNT or 3
 BM.APPMON_SHOP_RATE = BM.APPMON_SHOP_RATE or 0.7
@@ -24,19 +75,26 @@ BM.APPMON_NEXT_STAGE = BM.APPMON_NEXT_STAGE or {
 BM.APPMON_SHOP_ATTRIBUTES = BM.APPMON_SHOP_ATTRIBUTES or {
     Social = true,
     Navi = true,
-    Game = false,
-    Tool = false,
+    Game = true,
+    Tool = true,
     System = false,
     Entertainment = false,
     Life = false
 }
 
-BM.APPMON_STANDARD_BY_ATTRIBUTE = BM.APPMON_STANDARD_BY_ATTRIBUTE or {
-    Social = 'gatchmon',
-    Navi = 'navimon'
+BM.APPMON_BASE_BY_ATTRIBUTE = BM.APPMON_BASE_BY_ATTRIBUTE or {
+    Social = {'gatchmon'},
+    Navi = {'navimon'},
+    Game = {'onmon'},
+    Tool = {'timemon', 'craftmon'},
+    System = {},
+    Entertainment = {},
+    Life = {}
 }
 
 BM.appmon_combinations = BM.appmon_combinations or {}
+
+BM.APPMON_SUPER_COST = BM.APPMON_SUPER_COST or 5
 
 function BM.ensure_appmon_shop_rate()
     if not G or not G.GAME then
@@ -51,7 +109,7 @@ function BM.ensure_appmon_shop_rate()
     end
 end
 
-local function appmon_save_safe_copy(value, path, active, removed)
+appmon_save_safe_copy = function(value, path, active, removed)
     local value_type = type(value)
 
     if value_type == 'nil'
@@ -171,6 +229,9 @@ if not BM._appmon_v12_game_update_save_guard_installed and Game and type(Game.up
         end
 
         local result = old_game_update(self, dt, ...)
+        if BM.update_onmon_state then
+            BM.update_onmon_state()
+        end
 
         if BM.cleanup_exhausted_appmon and not (G and G.OVERLAY_MENU) then
             BM.cleanup_exhausted_appmon()
@@ -190,6 +251,8 @@ if not BM._appmon_v12_start_run_rate_guard_installed and Game and type(Game.star
         local result = old_appmon_start_run(self, args, ...)
 
         BM.ensure_appmon_shop_rate()
+
+
 
         if G and G.appmon_loader then
             if not G.appmon_loader.REMOVED and G.appmon_loader.remove then
@@ -280,6 +343,11 @@ end
 
 function BM.get_appmon_attribute(source)
     return BM.get_attribute(source)
+end
+
+function BM.is_base_appmon(source)
+    local center = center_from_source(source)
+    return center and center.appmon_base == true or false
 end
 
 function BM.appmon_center_key(slug)
@@ -765,17 +833,122 @@ local function initialise_appmon_uses(card)
     card.ability.extra = card.ability.extra or {}
     card.ability.extra.max_uses = card.ability.extra.max_uses or BM.APPMON_USE_COUNT
     card.ability.extra.uses = card.ability.extra.uses or card.ability.extra.max_uses
+
+end
+
+
+function BM.can_timemon_undo()
+    if not BM.timemon_last_action then
+        return false
+    end
+
+    if G.STATE ~= G.STATES.SELECTING_HAND then
+        return false
+    end
+
+    if BM.timemon_last_action == 'play' then
+        return G.GAME.current_round.hands_left >= 0
+    end
+
+    if BM.timemon_last_action == 'discard' then
+        return G.GAME.current_round.discards_left >= 0
+    end
+
+    return false
+end
+
+function BM.use_timemon(card)
+    local action = BM.timemon_last_action
+
+    if action ~= 'play'
+    and action ~= 'discard' then
+        return false
+    end
+
+    initialise_appmon_uses(card)
+
+    BM.timemon_last_action = nil
+
+    card.ability.extra.uses = math.max(
+        0,
+        (card.ability.extra.uses or BM.APPMON_USE_COUNT) - 1
+    )
+
+    if card.ability.extra.uses <= 0 then
+        card._bm_appmon_remove_at =
+            (G.TIMERS.REAL or 0) + 0.6
+    end
+
+    if action == 'play' then
+        ease_hands_played(1)
+
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = '+1 Hand',
+                colour = G.C.BLUE
+            }
+        )
+
+    elseif action == 'discard' then
+        ease_discard(1)
+
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = '+1 Discard',
+                colour = G.C.RED
+            }
+        )
+    end
+
+    card:juice_up(0.8, 0.5)
+
+    return true
 end
 
 function BM.appmon_digivolve_baby(card)
-    if not card or not BM.is_appmon(card) or BM.get_appmon_stage(card) ~= 'Baby' then
+    if not card
+    or not BM.is_appmon(card)
+    or BM.get_appmon_stage(card) ~= 'Baby' then
         return false
     end
 
     local attribute = BM.get_attribute(card)
-    local target_slug = attribute and BM.APPMON_STANDARD_BY_ATTRIBUTE[attribute]
-    local target_key = target_slug and BM.appmon_center_key(target_slug)
-    local target = target_key and G.P_CENTERS[target_key]
+    local candidates = attribute and BM.APPMON_BASE_BY_ATTRIBUTE[attribute] or {}
+
+    local valid = {}
+
+    for _, slug in ipairs(candidates or {}) do
+        local key = BM.appmon_center_key(slug)
+
+        if G.P_CENTERS[key] then
+            valid[#valid + 1] = slug
+        end
+    end
+
+    if #valid == 0 then
+        return false
+    end
+
+    local target_slug = BM.random_element(
+        valid,
+        'appmon_base_'
+            .. tostring(attribute)
+            .. '_'
+            .. tostring(card.sort_id or 0)
+    )
+
+    local target_key = BM.appmon_center_key(target_slug)
+    local target = G.P_CENTERS[target_key]
 
     if not target then
         return false
@@ -783,7 +956,9 @@ function BM.appmon_digivolve_baby(card)
 
     card:juice_up(0.8, 0.5)
     card:set_ability(target, nil, true)
+
     initialise_appmon_uses(card)
+
     card:set_cost()
 
     if card_eval_status_text then
@@ -793,6 +968,7 @@ function BM.appmon_digivolve_baby(card)
     end
 
     BM.sync_loader_slots()
+
     return true
 end
 
@@ -873,12 +1049,18 @@ end
 
 local function baby_in_pool(self)
     local attribute = self.attribute
-    local target_slug = attribute and BM.APPMON_STANDARD_BY_ATTRIBUTE[attribute]
-    local target_key = target_slug and BM.appmon_center_key(target_slug)
 
-    return BM.APPMON_SHOP_ATTRIBUTES[attribute] == true
-        and target_key ~= nil
-        and G.P_CENTERS[target_key] ~= nil
+    if BM.APPMON_SHOP_ATTRIBUTES[attribute] ~= true then
+        return false
+    end
+
+    for _, slug in ipairs(BM.APPMON_BASE_BY_ATTRIBUTE[attribute] or {}) do
+        if G.P_CENTERS[BM.appmon_center_key(slug)] then
+            return true
+        end
+    end
+
+    return false
 end
 
 local function baby_loc_vars(self)
@@ -920,14 +1102,13 @@ for _, baby in ipairs(baby_names) do
             attribute = attribute,
             balatromon_appmon = true,
             appmon_stage = 'Baby',
-            appmon_next_stage = 'Standard',
             in_pool = baby_in_pool,
             set_badges = appmon_stage_badge,
             loc_txt = {
                 name = baby.name,
                 text = {
                     'When bought, digivolves into',
-                    'a {C:attention}Standard{} Appmon with',
+                    'a {C:attention}Base{} Appmon with',
                     'the {C:attention}#1#{} Attribute'
                 }
             },
@@ -951,8 +1132,43 @@ local function uses_remaining(card)
         or BM.APPMON_USE_COUNT
 end
 
+function BM.get_appmon_uses(card)
+    return uses_remaining(card)
+end
+
+function BM.get_appmon_max_uses(card)
+    initialise_appmon_uses(card)
+
+    return card
+        and card.ability
+        and card.ability.extra
+        and card.ability.extra.max_uses
+        or BM.APPMON_USE_COUNT
+end
+
+function BM.refill_appmon_uses(card)
+    if not card or not BM.is_appmon(card) then
+        return false
+    end
+
+    initialise_appmon_uses(card)
+
+    card.ability.extra.uses =
+        card.ability.extra.max_uses
+        or BM.APPMON_USE_COUNT
+
+    card:juice_up(0.5, 0.5)
+
+    return true
+end
+
 local function remove_exhausted_appmon(card)
     if not card or card.REMOVED or not BM.is_appmon(card) then
+        return false
+    end
+
+    if card._bm_appmon_remove_at
+    and (G.TIMERS.REAL or 0) < card._bm_appmon_remove_at then
         return false
     end
 
@@ -1015,10 +1231,75 @@ end
 
 local function consume_appmon_use(card)
     initialise_appmon_uses(card)
-    card.ability.extra.uses = math.max(0, (card.ability.extra.uses or BM.APPMON_USE_COUNT) - 1)
+
+    card.ability.extra.uses = math.max(
+        0,
+        (card.ability.extra.uses or BM.APPMON_USE_COUNT) - 1
+    )
+
+    if card.ability.extra.uses <= 0 then
+        card._bm_appmon_remove_at =
+            (G.TIMERS.REAL or 0) + 0.6
+    end
 end
 
 local function keep_appmon_on_use(self, card)
+    return true
+end
+
+function BM.combine_appmon(left, right)
+    if not left
+    or not right
+    or not BM.is_appmon(left)
+    or not BM.is_appmon(right) then
+        return false
+    end
+
+    local route = BM.get_appmon_combination(left, right)
+
+    if not route then
+        return false
+    end
+
+    local target_key = route.result
+
+    if not G.P_CENTERS[target_key] then
+        target_key = BM.appmon_center_key(route.result)
+    end
+
+    local target = G.P_CENTERS[target_key]
+
+    if not target then
+        return false
+    end
+
+    left:juice_up(0.8, 0.5)
+    right:juice_up(0.8, 0.5)
+
+    left:set_ability(target, nil, true)
+
+    initialise_appmon_uses(left)
+
+    left.ability.extra.uses =
+        left.ability.extra.max_uses
+        or BM.APPMON_USE_COUNT
+
+    left:set_cost()
+
+    if right.area == G.jokers then
+        G.jokers:remove_card(right)
+    end
+
+    right:start_dissolve()
+
+    BM.rebalance_appmon_loader()
+
+    if card_eval_status_text then
+        card_eval_status_text(left, 'extra', nil, nil, nil, {
+            message = target.name or 'Combined!'
+        })
+    end
+
     return true
 end
 
@@ -1554,6 +1835,466 @@ function BM.open_navimon_scan()
     )
 end
 
+BM.onmon_state = BM.onmon_state or {
+    armed = false,
+    active = false
+}
+
+function BM.arm_onmon()
+    BM.onmon_state = {
+        armed = true,
+        active = false
+    }
+
+    card_eval_status_text(
+        G.GAME.blind,
+        'extra',
+        nil,
+        nil,
+        nil,
+        {
+            message = 'Next action protected!'
+        }
+    )
+end
+
+function BM.begin_onmon_action(action)
+    local state = BM.onmon_state
+
+    if not state
+    or not state.armed
+    or not G.GAME
+    or not G.GAME.blind
+    or not G.GAME.blind.boss then
+        return
+    end
+
+    local blind = G.GAME.blind
+
+    state.armed = false
+    state.active = true
+    state.action = action
+
+    state.blind = blind
+    state.definition = blind.config.blind
+
+    state.chips = blind.chips
+    state.dollars = blind.dollars
+    state.sound_pings = blind.sound_pings
+
+    state.hands = copy_table(blind.hands)
+    state.only_hand = blind.only_hand
+    state.prepped = blind.prepped
+    state.triggered = blind.triggered
+
+    state.start_hands =
+        G.GAME.current_round.hands_played or 0
+
+    state.start_discards =
+        G.GAME.current_round.discards_used or 0
+
+    blind:disable()
+end
+
+function BM.restore_onmon_blind()
+    local state = BM.onmon_state
+
+    if not state
+    or not state.active then
+        return
+    end
+
+    local blind = state.blind
+
+    if not blind
+    or blind ~= G.GAME.blind then
+        BM.onmon_state = {
+            armed = false,
+            active = false
+        }
+
+        return
+    end
+
+    blind:set_blind(
+        state.definition,
+        false,
+        true
+    )
+
+    blind.chips = state.chips
+    blind.chip_text = number_format(state.chips)
+
+    blind.dollars = state.dollars
+    blind.sound_pings = state.sound_pings
+
+    blind.hands = state.hands
+    blind.only_hand = state.only_hand
+    blind.prepped = state.prepped
+    blind.triggered = state.triggered
+
+    blind:set_text()
+
+    for _, playing_card in ipairs(G.playing_cards or {}) do
+        blind:debuff_card(playing_card)
+    end
+
+    for _, joker in ipairs(G.jokers and G.jokers.cards or {}) do
+        blind:debuff_card(joker)
+    end
+
+    BM.onmon_state = {
+        armed = false,
+        active = false
+    }
+end
+
+function BM.update_onmon_state()
+    local state = BM.onmon_state
+
+    if not state
+    or not state.active then
+        return
+    end
+
+    if G.GAME.blind ~= state.blind then
+        BM.onmon_state = {
+            armed = false,
+            active = false
+        }
+
+        return
+    end
+
+    local round = G.GAME.current_round
+
+    local action_finished = false
+
+    if state.action == 'play' then
+        action_finished =
+            (round.hands_played or 0)
+            > state.start_hands
+    elseif state.action == 'discard' then
+        action_finished =
+            (round.discards_used or 0)
+            > state.start_discards
+    end
+
+    if action_finished then
+        state.restore_at =
+            state.restore_at
+            or ((G.TIMERS.REAL or 0) + 0.25)
+    end
+
+    if state.restore_at
+    and (G.TIMERS.REAL or 0) >= state.restore_at
+    and G.STATE == G.STATES.SELECTING_HAND then
+        BM.restore_onmon_blind()
+    end
+end
+
+function BM.capture_timemon_snapshot(action)
+    if action ~= 'play' and action ~= 'discard' then
+        return
+    end
+
+    BM.timemon_last_action = action
+end
+
+local old_appmon_play_cards =
+    G.FUNCS.play_cards_from_highlighted
+
+
+
+G.FUNCS.play_cards_from_highlighted =
+function(e, ...)
+    if BM.capture_timemon_snapshot then
+        BM.capture_timemon_snapshot('play')
+    end
+
+    if BM.begin_onmon_action then
+        BM.begin_onmon_action('play')
+    end
+
+    return old_appmon_play_cards(e, ...)
+end
+
+
+local old_appmon_discard_cards =
+    G.FUNCS.discard_cards_from_highlighted
+
+G.FUNCS.discard_cards_from_highlighted =
+function(e, hook, ...)
+    if not hook then
+        if BM.capture_timemon_snapshot then
+            BM.capture_timemon_snapshot('discard')
+        end
+
+        if BM.begin_onmon_action then
+            BM.begin_onmon_action('discard')
+        end
+    end
+
+    return old_appmon_discard_cards(
+        e,
+        hook,
+        ...
+    )
+end
+
+
+
+local function craftmon_boss_pool()
+    local pool = {}
+
+    for key, blind in pairs(G.P_BLINDS or {}) do
+        if blind
+        and blind.boss then
+            pool[#pool + 1] = {
+                key = key,
+                blind = blind
+            }
+        end
+    end
+
+    table.sort(pool, function(a, b)
+        return a.key < b.key
+    end)
+
+    return pool
+end
+
+function BM.apply_craftmon_blind()
+    if not G.GAME
+    or not G.GAME.blind then
+        return nil
+    end
+
+    local current = G.GAME.blind
+    local old_reward = current.dollars or 0
+
+    local pool = craftmon_boss_pool()
+
+    if #pool == 0 then
+        return nil
+    end
+
+    local chosen =
+        BM.random_element(
+            pool,
+            'craftmon_'
+                .. tostring(G.GAME.round_resets.ante)
+                .. '_'
+                .. tostring(G.GAME.current_round.hands_played or 0)
+        )
+
+    if not chosen then
+        return nil
+    end
+
+    current:set_blind(
+        chosen.blind,
+        false,
+        true
+    )
+
+    current.dollars = old_reward * 2
+    current.sound_pings = current.dollars + 2
+
+    current:set_text()
+
+    return chosen.blind
+end
+
+local DOGATCHMON_RANKS = {
+    '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    'Jack', 'Queen', 'King', 'Ace'
+}
+
+BM.dogatchmon_state = BM.dogatchmon_state or {
+    rank = '2',
+    result = 'Choose a rank.',
+    card = nil,
+    submitted = false
+}
+
+G.FUNCS.balatromon_dogatchmon_rank = function(args)
+    if args and args.to_val then
+        BM.dogatchmon_state.rank = args.to_val
+        BM.dogatchmon_state.result = 'Choose a rank.'
+    end
+end
+
+G.FUNCS.balatromon_dogatchmon_draw = function(e)
+    local state = BM.dogatchmon_state
+
+    if state.submitted
+    or not state.card
+    or state.card.REMOVED
+    or uses_remaining(state.card) <= 0
+    or not G.deck then
+        return
+    end
+
+    local targets = {}
+
+    for i = #G.deck.cards, 1, -1 do
+        local target = G.deck.cards[i]
+
+        if target
+        and target.base
+        and tostring(target.base.value) == tostring(state.rank) then
+            targets[#targets + 1] = target
+
+            if #targets >= 2 then
+                break
+            end
+        end
+    end
+
+    if #targets == 0 then
+        state.result = 'No ' .. tostring(state.rank) .. ' remains in your deck.'
+        return
+    end
+
+    state.submitted = true
+
+    consume_appmon_use(state.card)
+
+    G.FUNCS.exit_overlay_menu()
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.1,
+
+        func = function()
+            for i, target in ipairs(targets) do
+                draw_card(
+                    G.deck,
+                    G.hand,
+                    i * 100 / #targets,
+                    'up',
+                    true,
+                    target,
+                    0.08
+                )
+            end
+
+            return true
+        end
+    }))
+end
+
+function BM.open_dogatchmon_draw(card)
+    BM.dogatchmon_state.rank = '2'
+    BM.dogatchmon_state.result = 'Choose a rank.'
+    BM.dogatchmon_state.card = card
+    BM.dogatchmon_state.submitted = false
+
+    local rows = {
+        {
+            n = G.UIT.R,
+            config = {
+                align = 'cm',
+                padding = 0.04
+            },
+            nodes = {
+                {
+                    n = G.UIT.C,
+                    config = {
+                        align = 'cm'
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.R,
+                            config = {
+                                align = 'cm',
+                                padding = 0.015
+                            },
+                            nodes = {
+                                {
+                                    n = G.UIT.T,
+                                    config = {
+                                        text = 'Rank',
+                                        scale = 0.32,
+                                        colour = G.C.UI.TEXT_INACTIVE,
+                                        shadow = true
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            n = G.UIT.R,
+                            config = {
+                                align = 'cm'
+                            },
+                            nodes = {
+                                create_option_cycle {
+                                    label = '',
+                                    options = DOGATCHMON_RANKS,
+                                    current_option = 1,
+                                    opt_callback = 'balatromon_dogatchmon_rank',
+                                    w = 3.4,
+                                    scale = 0.72,
+                                    no_pips = true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        {
+            n = G.UIT.R,
+            config = {
+                align = 'cm',
+                padding = 0.08
+            },
+            nodes = {
+                UIBox_button {
+                    label = {'Draw'},
+                    button = 'balatromon_dogatchmon_draw',
+                    minw = 2.6,
+                    minh = 0.65,
+                    scale = 0.4,
+                    colour = G.C.BLUE
+                }
+            }
+        },
+
+        {
+            n = G.UIT.R,
+            config = {
+                align = 'cm',
+                padding = 0.06,
+                minw = 6.2,
+                minh = 0.7,
+                r = 0.08,
+                colour = G.C.UI.TRANSPARENT_DARK
+            },
+            nodes = {
+                {
+                    n = G.UIT.T,
+                    config = {
+                        ref_table = BM.dogatchmon_state,
+                        ref_value = 'result',
+                        scale = 0.3,
+                        colour = G.C.UI.TEXT_LIGHT,
+                        shadow = true
+                    }
+                }
+            }
+        }
+    }
+
+    open_text_overlay(
+        'Dogatchmon',
+        'Draw 2 cards of a selected rank',
+        rows
+    )
+end
+
 SMODS.Consumable {
     set = 'Appmon',
     key = 'gatchmon',
@@ -1568,6 +2309,7 @@ SMODS.Consumable {
     balatromon_appmon = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
+    appmon_base = true,
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
@@ -1618,6 +2360,7 @@ SMODS.Consumable {
     balatromon_appmon = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
+    appmon_base = true,
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
@@ -1651,5 +2394,308 @@ SMODS.Consumable {
         consume_appmon_use(card)
         BM.open_navimon_scan()
     end,
+    keep_on_use = keep_appmon_on_use
+}
+
+BM.register_appmon_combination(
+    BM.appmon_center_key('gatchmon'),
+    BM.appmon_center_key('navimon'),
+    BM.appmon_center_key('dogatchmon')
+)
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'onmon',
+
+    atlas = 'Appmon',
+    pos = {x = 4, y = 3},
+
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 5, y = 3},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = BM.APPMON_STANDARD_COST,
+
+    attribute = 'Game',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Standard',
+    appmon_next_stage = 'Super',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Onmon',
+        text = {
+            'Disable the current {C:attention}Boss Blind{}',
+            'for the next {C:attention}hand or discard{}',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return uses_remaining(card) > 0
+            and G.GAME
+            and G.GAME.blind
+            and G.GAME.blind.boss
+            and not G.GAME.blind.disabled
+            and not (
+                BM.onmon_state
+                and (
+                    BM.onmon_state.armed
+                    or BM.onmon_state.active
+                )
+            )
+    end,
+
+    use = function(self, card)
+        consume_appmon_use(card)
+        BM.arm_onmon()
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'timemon',
+
+    atlas = 'Appmon',
+    pos = {x = 6, y = 3},
+
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 7, y = 3},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = BM.APPMON_STANDARD_COST,
+
+    attribute = 'Tool',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Standard',
+    appmon_next_stage = 'Super',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Timemon',
+        text = {
+            'Regain {C:attention}1 Hand{} if your',
+            'last action was a {C:attention}Play{},',
+            'or regain {C:attention}1 Discard{} if',
+            'your last action was a {C:attention}Discard{}',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return uses_remaining(card) > 0
+            and BM.can_timemon_undo()
+    end,
+
+    use = function(self, card)
+        BM.use_timemon(card)
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'craftmon',
+
+    atlas = 'Appmon',
+    pos = {x = 6, y = 4},
+
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 7, y = 4},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = BM.APPMON_SUPER_COST,
+
+    attribute = 'Tool',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Super',
+    appmon_next_stage = 'Ultimate',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Craftmon',
+        text = {
+            'Apply a random {C:attention}Boss Blind{}',
+            'effect to the current Blind',
+            'and {C:money}double{} its reward',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return uses_remaining(card) > 0
+            and G.GAME
+            and G.GAME.blind
+            and G.GAME.blind.name ~= ''
+    end,
+
+    use = function(self, card)
+        consume_appmon_use(card)
+
+        local blind = BM.apply_craftmon_blind()
+
+        if blind and card_eval_status_text then
+            card_eval_status_text(
+                card,
+                'extra',
+                nil,
+                nil,
+                nil,
+                {
+                    message = blind.name or 'Boss Effect!'
+                }
+            )
+        end
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'dogatchmon',
+
+    atlas = 'Appmon',
+    pos = {x = 0, y = 4},
+
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 1, y = 4},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = BM.APPMON_SUPER_COST,
+
+    attribute = 'Social',
+
+    balatromon_appmon = true,
+    appmon_base = false,
+    appmon_stage = 'Super',
+    appmon_next_stage = 'Ultimate',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Dogatchmon',
+        text = {
+            'Choose a {C:attention}rank{} and draw',
+            'up to {C:attention}2{} cards of that rank',
+            'from your deck into your hand',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                uses_remaining(card),
+                card
+                    and card.ability
+                    and card.ability.extra
+                    and card.ability.extra.max_uses
+                    or BM.APPMON_USE_COUNT
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return uses_remaining(card) > 0
+            and G.deck
+            and #G.deck.cards > 0
+    end,
+
+    use = function(self, card)
+        BM.open_dogatchmon_draw(card)
+    end,
+
     keep_on_use = keep_appmon_on_use
 }
