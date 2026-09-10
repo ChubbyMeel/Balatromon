@@ -1714,8 +1714,14 @@ function BM.open_bootmon_selector(card)
         }
     }
 
+    local title = card
+        and card.config
+        and card.config.center
+        and card.config.center.name
+        or 'Bootmon'
+
     open_text_overlay(
-        'Bootmon',
+        title,
         'Choose the upcoming Boss Blind',
         rows
     )
@@ -1770,3 +1776,391 @@ if not BM._bootmon_blind_reward_hook then
     BM._bootmon_blind_reward_hook = true
 end
 
+
+
+function BM.can_use_scoring_appmon()
+    return G
+        and G.STATE == G.STATES.SELECTING_HAND
+        and G.GAME
+        and G.GAME.blind
+        and G.GAME.blind.name ~= ''
+        and G.GAME.blind.chips
+end
+
+local function appmon_finish_blind_if_won()
+    if not G
+    or not G.GAME
+    or not G.GAME.blind
+    or not G.GAME.blind.chips then
+        return
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.65,
+        blockable = false,
+        func = function()
+            if G.GAME
+            and G.GAME.blind
+            and G.GAME.blind.chips
+            and G.GAME.chips >= G.GAME.blind.chips
+            and G.STATE ~= G.STATES.NEW_ROUND then
+                G.STATE = G.STATES.NEW_ROUND
+                G.STATE_COMPLETE = false
+                end_round()
+            end
+            return true
+        end
+    }))
+end
+
+function BM.appmon_gain_blind_score(card, numerator, denominator)
+    if not G
+    or not G.GAME
+    or not G.GAME.blind
+    or not G.GAME.blind.chips then
+        return 0
+    end
+
+    numerator = tonumber(numerator) or 0
+    denominator = tonumber(denominator) or 1
+
+    if denominator == 0 then
+        return 0
+    end
+
+    local gain = math.max(
+        0,
+        math.floor((tonumber(G.GAME.blind.chips) or 0) * numerator / denominator)
+    )
+
+    if gain <= 0 then
+        return 0
+    end
+
+    if type(ease_chips) == 'function' then
+        ease_chips(gain)
+    else
+        G.GAME.chips = (tonumber(G.GAME.chips) or 0) + gain
+    end
+
+    if card and card_eval_status_text then
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = '+' .. number_format(gain) .. ' Chips',
+                colour = G.C.CHIPS
+            }
+        )
+    end
+
+    appmon_finish_blind_if_won()
+
+    return gain
+end
+
+function BM.can_use_offmon()
+    return BM.can_use_scoring_appmon()
+        and G.GAME.current_round
+        and (G.GAME.current_round.discards_left or 0) > 0
+end
+
+function BM.use_offmon(card)
+    BM.consume_appmon_use(card)
+    ease_discard(-1)
+    BM.appmon_gain_blind_score(card, 2, 15)
+    return true
+end
+
+local function appmon_left_digimon(card)
+    if not card
+    or not G
+    or not G.jokers
+    or not G.jokers.cards then
+        return nil
+    end
+
+    local card_x = card.T and card.T.x
+    local nearest = nil
+    local nearest_x = nil
+
+    if card_x then
+        for _, candidate in ipairs(G.jokers.cards) do
+            local candidate_x = candidate
+                and candidate.T
+                and candidate.T.x
+
+            if candidate ~= card
+            and BM.is_digimon(candidate)
+            and candidate_x
+            and candidate_x < card_x
+            and (not nearest_x or candidate_x > nearest_x) then
+                nearest = candidate
+                nearest_x = candidate_x
+            end
+        end
+
+        if nearest then
+            return nearest
+        end
+    end
+
+    for i, candidate in ipairs(G.jokers.cards) do
+        if candidate == card then
+            for j = i - 1, 1, -1 do
+                local target = G.jokers.cards[j]
+                if target and BM.is_digimon(target) then
+                    return target
+                end
+            end
+            break
+        end
+    end
+
+    return nil
+end
+
+function BM.appmon_increase_digimon_hunger(card, amount)
+    if not card
+    or card.REMOVED
+    or not BM.is_digimon(card)
+    or not card.ability
+    or not card.ability.extra then
+        return false
+    end
+
+    local extra = card.ability.extra
+
+    if extra.permanently_disabled then
+        return false
+    end
+
+    local hunger_max = BM.get_hunger_max
+        and BM.get_hunger_max()
+        or 5
+
+    local old_hunger = tonumber(extra.hunger) or 1
+    local new_hunger = math.min(
+        hunger_max,
+        old_hunger + math.max(0, tonumber(amount) or 1)
+    )
+
+    if new_hunger <= old_hunger then
+        return false
+    end
+
+    extra.hunger = new_hunger
+
+    if BM.care_animation then
+        BM.care_animation(
+            card,
+            '+Hunger',
+            G.C.RED
+        )
+    end
+
+    if new_hunger >= hunger_max then
+        local slug = BM.get_card_slug
+            and BM.get_card_slug(card)
+
+        if slug
+        and BM.is_leomon_slug
+        and BM.is_leomon_slug(slug)
+        and BM.kill_starved_leomon then
+            BM.kill_starved_leomon(card)
+            return true
+        end
+
+        extra.permanently_disabled = true
+
+        if slug
+        and BM.has_passive_deck_effect
+        and BM.has_passive_deck_effect(slug)
+        and BM.on_remove then
+            BM.on_remove(card, slug)
+        end
+
+        if SMODS.debuff_card then
+            SMODS.debuff_card(
+                card,
+                true,
+                'balatromon_hunger'
+            )
+        end
+    end
+
+    return true
+end
+
+function BM.can_use_virusmon(card)
+    if not G then
+        return false
+    end
+
+    local target = appmon_left_digimon(card)
+
+    if not target then
+        return false
+    end
+
+    local extra = target.ability
+        and target.ability.extra
+
+    if not extra
+    or extra.permanently_disabled then
+        return false
+    end
+
+    local hunger_max = BM.get_hunger_max
+        and BM.get_hunger_max()
+        or 5
+
+    return (tonumber(extra.hunger) or 1) < hunger_max
+end
+
+function BM.use_virusmon(card)
+    local target = appmon_left_digimon(card)
+
+    if not target then
+        return false
+    end
+
+    if not BM.appmon_increase_digimon_hunger(target, 1) then
+        return false
+    end
+
+    BM.consume_appmon_use(card)
+
+    if card_eval_status_text then
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = 'Hunger +1',
+                colour = G.C.RED
+            }
+        )
+    end
+
+    return true
+end
+
+function BM.use_rebootmon(card)
+    local extra = card
+        and card.ability
+        and card.ability.extra
+    local mode = extra and extra.rebootmon_mode
+
+    if extra then
+        extra.rebootmon_mode = nil
+    end
+
+    if mode == 'boss_select' then
+        BM.open_bootmon_selector(card)
+        return true
+    end
+
+    if mode ~= 'blind'
+    or not G.GAME
+    or not G.GAME.blind
+    or G.GAME.blind.name == '' then
+        return false
+    end
+
+    BM.consume_appmon_use(card)
+    BM.appmon_gain_blind_score(card, 1, 4)
+
+    if G.GAME.blind.boss
+    and not G.GAME.blind.disabled
+    and G.GAME.blind.disable then
+        G.GAME.blind:disable()
+
+        if card_eval_status_text then
+            card_eval_status_text(
+                card,
+                'extra',
+                nil,
+                nil,
+                nil,
+                {
+                    message = 'Boss Disabled!',
+                    colour = G.C.RED
+                }
+            )
+        end
+    end
+
+    return true
+end
+
+function BM.appmon_gain_full_blind_requirement(card)
+    if not G
+    or not G.GAME
+    or not G.GAME.blind
+    or not G.GAME.blind.chips then
+        return false
+    end
+
+    local gain = math.max(0, tonumber(G.GAME.blind.chips) or 0)
+
+    if gain <= 0 then
+        return false
+    end
+
+    if type(ease_chips) == 'function' then
+        ease_chips(gain)
+    else
+        G.GAME.chips = (tonumber(G.GAME.chips) or 0) + gain
+    end
+
+    if card and card_eval_status_text then
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = '+' .. number_format(gain) .. ' Chips',
+                colour = G.C.CHIPS
+            }
+        )
+    end
+
+    return true
+end
+
+function BM.use_rebootmon_virus(card)
+    if not G
+    or not G.GAME
+    or not G.GAME.blind
+    or G.GAME.blind.name == '' then
+        return false
+    end
+
+    BM.consume_appmon_use(card)
+
+    local targets = {}
+    for _, candidate in ipairs(
+        G.jokers
+        and G.jokers.cards
+        or {}
+    ) do
+        if BM.is_digimon(candidate) then
+            targets[#targets + 1] = candidate
+        end
+    end
+
+    for _, target in ipairs(targets) do
+        BM.appmon_increase_digimon_hunger(target, 1)
+    end
+
+    return BM.appmon_gain_full_blind_requirement(card)
+end
