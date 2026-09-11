@@ -26,6 +26,9 @@ local STAGE_LABEL = {
     'BEYOND',
 }
 
+local APPMON_EDGE_COLOUR = HEX('27C7E6')
+local APPMON_LABEL_H = 70
+
 local VIEW_W = 13.4
 local VIEW_H = 7.15
 local CANVAS_W = 1500
@@ -53,7 +56,11 @@ local function split_targets(text)
     return out
 end
 
-local function edge_colour(rule)
+local function edge_colour(rule, edge)
+    if edge and edge.appmon_route then
+        return APPMON_EDGE_COLOUR
+    end
+
     if rule and rule.device then
         return G.C.PURPLE
     end
@@ -291,6 +298,9 @@ end
 
 local function layout_page(page, nodes, all_edges)
     local primary_child = {}
+    local stage_labels = page.stage_labels or STAGE_LABEL
+    local stage_x = page.stage_x or STAGE_X
+    local node_step = page.node_step or NODE_STEP
 
     for slug in pairs(page.node_set) do
         primary_child[slug] = choose_standard_child(slug, page, nodes)
@@ -299,7 +309,7 @@ local function layout_page(page, nodes, all_edges)
     local occupied = {}
     local lanes = {}
 
-    for col = 1, #STAGE_LABEL do
+    for col = 1, #stage_labels do
         occupied[col] = {}
     end
 
@@ -399,17 +409,20 @@ local function layout_page(page, nodes, all_edges)
         visiting[slug] = nil
     end
 
-    table.sort(page.roots, function(a, b)
-        return (nodes[a] and nodes[a].name or a) < (nodes[b] and nodes[b].name or b)
-    end)
+    if not page.preserve_root_order then
+        table.sort(page.roots, function(a, b)
+            return (nodes[a] and nodes[a].name or a) < (nodes[b] and nodes[b].name or b)
+        end)
+    end
 
     local root_count = #page.roots
+    local root_lane_step = page.root_lane_step or 2
 
     for index, root in ipairs(page.roots) do
         local root_lane = 0
 
         if root_count > 1 then
-            root_lane = (index - (root_count + 1) / 2) * 2
+            root_lane = (index - (root_count + 1) / 2) * root_lane_step
         end
 
         assign_branch(root, root_lane)
@@ -470,15 +483,15 @@ local function layout_page(page, nodes, all_edges)
         max_lane = math.max(max_lane, lane)
     end
 
-    local content_h = CARD_H + (max_lane - min_lane) * NODE_STEP
+    local content_h = CARD_H + (page.label_h or LABEL_H) + (max_lane - min_lane) * node_step
     local fixed_space = CANVAS_H - WORLD_TOP - WORLD_BOTTOM
 
     if content_h <= fixed_space then
         page.world_h = CANVAS_H
-        page.base_y = WORLD_TOP + (fixed_space - content_h) / 2 - min_lane * NODE_STEP
+        page.base_y = WORLD_TOP + (fixed_space - content_h) / 2 - min_lane * node_step
     else
         page.world_h = WORLD_TOP + WORLD_BOTTOM + content_h
-        page.base_y = WORLD_TOP - min_lane * NODE_STEP
+        page.base_y = WORLD_TOP - min_lane * node_step
     end
 
     page.positions = {}
@@ -490,8 +503,8 @@ local function layout_page(page, nodes, all_edges)
         local lane = lanes[slug] or 0
 
         page.positions[slug] = {
-            x = STAGE_X[node.col],
-            y = page.base_y + lane * NODE_STEP,
+            x = stage_x[node.col] or STAGE_X[node.col] or 58,
+            y = page.base_y + lane * node_step,
         }
     end
 
@@ -544,6 +557,277 @@ local function make_x_map_node(slug)
         parents = {},
         children = {},
     }
+end
+
+local function appmon_slug_from_key(key)
+    key = tostring(key or '')
+    local prefix = 'c_' .. tostring(BM.PREFIX or '') .. '_'
+
+    if key:sub(1, #prefix) == prefix then
+        return key:sub(#prefix + 1)
+    end
+
+    return key
+end
+
+local function evolution_map_object_name(center, fallback)
+    if BM.localized_object_name then
+        return BM.localized_object_name(
+            center,
+            center and center.set or nil,
+            center and center.key or nil,
+            fallback
+        )
+    end
+
+    if type(localize) == 'function'
+    and center
+    and center.set
+    and center.key then
+        local ok, name = pcall(localize, {
+            type = 'name_text',
+            set = center.set,
+            key = center.key,
+        })
+
+        if ok
+        and type(name) == 'string'
+        and name ~= ''
+        and name ~= 'ERROR' then
+            return name
+        end
+    end
+
+    if center
+    and center.loc_txt
+    and type(center.loc_txt.name) == 'string'
+    and center.loc_txt.name ~= '' then
+        return center.loc_txt.name
+    end
+
+    return center and center.name or fallback or 'Unknown'
+end
+
+local function appmon_page_node_id(slug)
+    return 'appmon::' .. tostring(slug or '')
+end
+
+local function insert_unique(list, value)
+    for _, existing in ipairs(list or {}) do
+        if existing == value then
+            return false
+        end
+    end
+
+    list[#list + 1] = value
+    return true
+end
+
+local function build_appmon_evolution_page(nodes, edges)
+    local appmon_ids = {}
+    local appmon_by_slug = {}
+
+    for key, center in pairs(G.P_CENTERS or {}) do
+        if center
+        and center.balatromon_appmon == true
+        and center.appmon_stage ~= 'Baby' then
+            local slug = appmon_slug_from_key(center.key or key)
+            local id = appmon_page_node_id(slug)
+
+            nodes[id] = {
+                slug = id,
+                appmon_slug = slug,
+                name = evolution_map_object_name(center, slug),
+                stage = center.appmon_stage or 'Appmon',
+                attribute = center.attribute,
+                col = 1,
+                center = center,
+                appmon_node = true,
+                parents = {},
+                children = {},
+            }
+
+            appmon_ids[#appmon_ids + 1] = id
+            appmon_by_slug[slug] = id
+        end
+    end
+
+    if #appmon_ids == 0 then
+        return nil
+    end
+
+    for _, route in pairs(BM.appmon_combinations or {}) do
+        local left_slug = appmon_slug_from_key(route.left)
+        local right_slug = appmon_slug_from_key(route.right)
+        local result_slug = appmon_slug_from_key(route.result)
+
+        local left_id = appmon_by_slug[left_slug]
+        local right_id = appmon_by_slug[right_slug]
+        local result_id = appmon_by_slug[result_slug]
+
+        if left_id and right_id and result_id then
+            local result = nodes[result_id]
+            result.combo_parents = {left_id, right_id}
+
+            insert_unique(result.parents, left_id)
+            insert_unique(result.parents, right_id)
+            insert_unique(nodes[left_id].children, result_id)
+            insert_unique(nodes[right_id].children, result_id)
+
+            edges[#edges + 1] = {
+                from = left_id,
+                to = result_id,
+                appmon_route = true,
+            }
+
+            if right_id ~= left_id then
+                edges[#edges + 1] = {
+                    from = right_id,
+                    to = result_id,
+                    appmon_route = true,
+                }
+            end
+        end
+    end
+
+    local visiting = {}
+
+    local function depth_for(id)
+        local node = nodes[id]
+
+        if not node then
+            return 1
+        end
+
+        if node.appmon_depth then
+            return node.appmon_depth
+        end
+
+        if visiting[id] then
+            return 1
+        end
+
+        visiting[id] = true
+        local depth = 1
+
+        for _, parent_id in ipairs(node.combo_parents or {}) do
+            if parent_id ~= id and nodes[parent_id] then
+                depth = math.max(depth, depth_for(parent_id) + 1)
+            end
+        end
+
+        visiting[id] = nil
+        node.appmon_depth = depth
+        node.col = depth
+        return depth
+    end
+
+    local max_depth = 1
+
+    for _, id in ipairs(appmon_ids) do
+        max_depth = math.max(max_depth, depth_for(id))
+    end
+
+    for _, id in ipairs(appmon_ids) do
+        table.sort(nodes[id].children, function(a, b)
+            return (nodes[a] and nodes[a].name or a) < (nodes[b] and nodes[b].name or b)
+        end)
+
+        table.sort(nodes[id].parents, function(a, b)
+            return (nodes[a] and nodes[a].name or a) < (nodes[b] and nodes[b].name or b)
+        end)
+    end
+
+    local stage_labels = {'BASE APPMON'}
+
+    for col = 2, max_depth do
+        stage_labels[col] = 'APP LINK ' .. tostring(col - 1)
+    end
+
+    local stage_x = {}
+    local left_x = 58
+    local right_x = 1540
+
+    if max_depth <= 1 then
+        stage_x[1] = math.floor((left_x + right_x) / 2)
+    else
+        local step = (right_x - left_x) / (max_depth - 1)
+
+        for col = 1, max_depth do
+            stage_x[col] = math.floor(left_x + (col - 1) * step + 0.5)
+        end
+    end
+
+    local page = {
+        name = 'APPMON - APP LINK MAP',
+        roots = {},
+        node_set = {},
+        appmon_page = true,
+        x_page = false,
+        stage_labels = stage_labels,
+        stage_x = stage_x,
+        label_h = APPMON_LABEL_H,
+        node_step = 270,
+        root_lane_step = 1,
+        preserve_root_order = true,
+        world_w = WORLD_W,
+    }
+
+    for _, id in ipairs(appmon_ids) do
+        page.node_set[id] = true
+    end
+
+    local preferred_roots = {
+        'navimon',
+        'gatchmon',
+        'onmon',
+        'timemon',
+        'craftmon',
+        'offmon',
+        'hackmon',
+        'virusmon',
+        'perorimon',
+    }
+
+    local root_seen = {}
+
+    for _, slug in ipairs(preferred_roots) do
+        local id = appmon_by_slug[slug]
+
+        if id
+        and nodes[id]
+        and not nodes[id].combo_parents then
+            page.roots[#page.roots + 1] = id
+            root_seen[id] = true
+        end
+    end
+
+    local other_roots = {}
+
+    for _, id in ipairs(appmon_ids) do
+        if not nodes[id].combo_parents and not root_seen[id] then
+            other_roots[#other_roots + 1] = id
+        end
+    end
+
+    table.sort(other_roots, function(a, b)
+        return (nodes[a] and nodes[a].name or a) < (nodes[b] and nodes[b].name or b)
+    end)
+
+    for _, id in ipairs(other_roots) do
+        page.roots[#page.roots + 1] = id
+    end
+
+    local appmon_edges = {}
+
+    for _, edge in ipairs(edges) do
+        if edge.appmon_route then
+            appmon_edges[#appmon_edges + 1] = edge
+        end
+    end
+
+    layout_page(page, nodes, appmon_edges)
+    return page
 end
 
 function BM.build_evolution_map_layout()
@@ -855,6 +1139,8 @@ function BM.build_evolution_map_layout()
         return a.name < b.name
     end)
 
+    local appmon_page = build_appmon_evolution_page(nodes, edges)
+
     local x_slugs = {}
 
     for slug in pairs(BM.joker_defs or {}) do
@@ -1048,6 +1334,10 @@ function BM.build_evolution_map_layout()
         pages[#pages + 1] = page
     end
 
+    if appmon_page then
+        pages[#pages + 1] = appmon_page
+    end
+
     for _, page in ipairs(x_pages) do
         pages[#pages + 1] = page
     end
@@ -1173,6 +1463,11 @@ local function prepare_node_sprite(node)
         return true
     end
 
+    node.soul_atlas = nil
+    node.soul_quad = nil
+    node.soul_source_w = nil
+    node.soul_source_h = nil
+
     local atlas
     local pos
 
@@ -1230,6 +1525,44 @@ local function prepare_node_sprite(node)
 
     node.source_w = px
     node.source_h = py
+
+    if discovered
+    and node.appmon_node
+    and node.center
+    and node.center.soul_pos then
+        local soul_atlas =
+            resolve_atlas_key(
+                node.center.soul_atlas
+                or node.center.atlas
+            )
+
+        if soul_atlas
+        and soul_atlas.image then
+            local soul_w, soul_h =
+                soul_atlas.image:getDimensions()
+
+            local soul_px =
+                soul_atlas.px or px
+
+            local soul_py =
+                soul_atlas.py or py
+
+            node.soul_atlas = soul_atlas
+            node.soul_quad =
+                love.graphics.newQuad(
+                    node.center.soul_pos.x * soul_px,
+                    node.center.soul_pos.y * soul_py,
+                    soul_px,
+                    soul_py,
+                    soul_w,
+                    soul_h
+                )
+
+            node.soul_source_w = soul_px
+            node.soul_source_h = soul_py
+        end
+    end
+
     node.sprite_discovered =
         discovered
 
@@ -1257,6 +1590,18 @@ local function draw_text_centered(text, x, y, width, size, colour)
 end
 
 local function stage_colour(stage)
+    if stage == 'Standard' then
+        return APPMON_EDGE_COLOUR
+    end
+
+    if stage == 'Super' then
+        return G.C.ORANGE
+    end
+
+    if stage == 'God' then
+        return G.C.GOLD
+    end
+
     if stage == 'In-Training' then
         return G.C.BLUE
     end
@@ -1375,7 +1720,7 @@ local function draw_edge(page, edge, nodes, pan_x, pan_y)
         curve:render(5)
 
     local colour =
-        edge_colour(edge.rule)
+        edge_colour(edge.rule, edge)
 
     love.graphics.setLineWidth(10)
     love.graphics.setColor(
@@ -1438,6 +1783,8 @@ local function draw_map_canvas(sprite)
             draw_edge(page, edge, layout.nodes, pan_x, pan_y)
         end
 
+        local page_label_h = page.label_h or LABEL_H
+
         for slug in pairs(page.node_set) do
             local node = layout.nodes[slug]
             local pos = page.positions[slug]
@@ -1446,14 +1793,14 @@ local function draw_map_canvas(sprite)
                 local x = pos.x - pan_x
                 local y = pos.y - pan_y
 
-                if y + CARD_H + LABEL_H >= -40 and y <= CANVAS_H + 40 and x + CARD_W + 60 >= -40 and x <= CANVAS_W + 40 then
+                if y + CARD_H + page_label_h >= -40 and y <= CANVAS_H + 40 and x + CARD_W + 60 >= -40 and x <= CANVAS_W + 40 then
                     love.graphics.setColor(0, 0, 0, 0.5)
-                    love.graphics.rectangle('fill', x - 7, y - 7, CARD_W + 14, CARD_H + LABEL_H + 14, 12, 12)
+                    love.graphics.rectangle('fill', x - 7, y - 7, CARD_W + 14, CARD_H + page_label_h + 14, 12, 12)
 
                     local border = stage_colour(node.stage)
                     love.graphics.setLineWidth(4)
                     love.graphics.setColor(colour_with_alpha(border, 0.72))
-                    love.graphics.rectangle('line', x - 5, y - 5, CARD_W + 10, CARD_H + LABEL_H + 10, 11, 11)
+                    love.graphics.rectangle('line', x - 5, y - 5, CARD_W + 10, CARD_H + page_label_h + 10, 11, 11)
 
                     if prepare_node_sprite(node) then
                         love.graphics.setColor(1, 1, 1, 1)
@@ -1466,6 +1813,19 @@ local function draw_map_canvas(sprite)
                             CARD_W / node.source_w,
                             CARD_H / node.source_h
                         )
+
+                        if node.soul_atlas
+                        and node.soul_quad then
+                            love.graphics.draw(
+                                node.soul_atlas.image,
+                                node.soul_quad,
+                                x,
+                                y,
+                                0,
+                                CARD_W / node.soul_source_w,
+                                CARD_H / node.soul_source_h
+                            )
+                        end
                     else
                         love.graphics.setColor(0.18, 0.2, 0.24, 1)
                         love.graphics.rectangle('fill', x, y, CARD_W, CARD_H, 8, 8)
@@ -1488,6 +1848,48 @@ local function draw_map_canvas(sprite)
                         sprite.font_small,
                         G.C.UI.TEXT_LIGHT
                     )
+
+                    if page.appmon_page then
+                        draw_text_centered(
+                            string.upper(tostring(node.stage or 'APPMON')),
+                            x - 38,
+                            y + CARD_H + 31,
+                            CARD_W + 76,
+                            sprite.font_meta,
+                            border
+                        )
+
+                        local origin_text = 'Base Appmon'
+
+                        if node.combo_parents and #node.combo_parents > 0 then
+                            local parent_names = {}
+
+                            for _, parent_id in ipairs(node.combo_parents) do
+                                local parent = layout.nodes[parent_id]
+
+                                if parent and evolution_map_node_discovered(parent) then
+                                    parent_names[#parent_names + 1] = parent.name
+                                else
+                                    parent_names[#parent_names + 1] = '???'
+                                end
+                            end
+
+                            origin_text = table.concat(parent_names, ' + ')
+                        end
+
+                        if #origin_text > 29 then
+                            origin_text = origin_text:sub(1, 27) .. '..'
+                        end
+
+                        draw_text_centered(
+                            origin_text,
+                            x - 48,
+                            y + CARD_H + 49,
+                            CARD_W + 96,
+                            sprite.font_combo,
+                            G.C.UI.TEXT_INACTIVE
+                        )
+                    end
                 end
             end
         end
@@ -1500,8 +1902,11 @@ local function draw_map_canvas(sprite)
         draw_text_centered(page.name, 24, 12, CANVAS_W - 48, sprite.font_title, G.C.UI.TEXT_LIGHT)
         draw_text_centered('Page ' .. tostring(page_index) .. ' / ' .. tostring(page_count), 24, 51, CANVAS_W - 48, sprite.font_page, G.C.UI.TEXT_INACTIVE)
 
-        for col, label in ipairs(STAGE_LABEL) do
-            draw_text_centered(label, STAGE_X[col] - 58 - pan_x, 76, CARD_W + 116, sprite.font_header, G.C.ATTENTION)
+        local page_stage_labels = page.stage_labels or STAGE_LABEL
+        local page_stage_x = page.stage_x or STAGE_X
+
+        for col, label in ipairs(page_stage_labels) do
+            draw_text_centered(label, (page_stage_x[col] or 58) - 58 - pan_x, 76, CARD_W + 116, sprite.font_header, G.C.ATTENTION)
         end
 
         local max_pan_y = math.max(0, page.world_h - CANVAS_H)
@@ -1520,7 +1925,7 @@ local function draw_map_canvas(sprite)
         local max_pan_x =
             math.max(
                 0,
-                WORLD_W - CANVAS_W
+                (page.world_w or WORLD_W) - CANVAS_W
             )
 
         if max_pan_x > 0 then
@@ -1533,7 +1938,7 @@ local function draw_map_canvas(sprite)
                     90,
                     track_w
                     * CANVAS_W
-                    / WORLD_W
+                    / (page.world_w or WORLD_W)
                 )
 
             local thumb_x =
@@ -1604,6 +2009,8 @@ local function create_map_canvas(layout)
     sprite.last_cursor_x = nil
     sprite.last_cursor_y = nil
     sprite.font_small = 22
+    sprite.font_meta = 15
+    sprite.font_combo = 15
     sprite.font_page = 20
     sprite.font_header = 20
     sprite.font_large = 48
@@ -1632,10 +2039,11 @@ local function create_map_canvas(layout)
     end
 
     sprite.scroll_x_pixels = function(self, amount)
+        local page = self.layout.pages[self.page_index or 1]
         local max_pan_x =
             math.max(
                 0,
-                WORLD_W - CANVAS_W
+                ((page and page.world_w) or WORLD_W) - CANVAS_W
             )
 
         local old_pan =
@@ -1804,7 +2212,7 @@ local function change_page(delta)
     BM.evolution_map_page = next_page
     canvas.page_index = next_page
     local page = layout.pages[next_page]
-    canvas.pan_x = 0
+    canvas.pan_x = page and page.initial_pan_x or 0
     canvas.pan_y = page and page.initial_pan_y or 0
     canvas.dragging_map = false
     canvas.last_cursor_x = nil
@@ -1931,6 +2339,7 @@ function BM.create_evolution_map_ui()
                     legend_chip('Care', G.C.YELLOW),
                     legend_chip('Crisis', G.C.RED),
                     legend_chip('Device', G.C.PURPLE),
+                    legend_chip('App Link', APPMON_EDGE_COLOUR),
                 }
             }
         }
