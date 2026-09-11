@@ -128,22 +128,41 @@ function BM.use_timemon(card)
 end
 
 
+local function perorimon_copyable_consumable(key)
+    if not key or not G or not G.P_CENTERS then
+        return false
+    end
+
+    local center = G.P_CENTERS[key]
+    if not center or center.set == 'Appmon' then
+        return false
+    end
+
+    local lowered = string.lower(tostring(key))
+    if lowered == 'c_soul'
+    or lowered:match('_golden_digivice$') then
+        return false
+    end
+
+    return true
+end
+
 local function appmon_valid_last_consumable_key()
     if not G or not G.GAME or not G.P_CENTERS then
         return nil
     end
 
-    local key = G.GAME.balatromon_last_consumable
-        or G.GAME.last_tarot_planet
-
-    local center = key and G.P_CENTERS[key]
-
-    if not center
-    or center.set == 'Appmon' then
-        return nil
+    local remembered = G.GAME.balatromon_last_consumable
+    if perorimon_copyable_consumable(remembered) then
+        return remembered
     end
 
-    return key
+    local fallback = G.GAME.last_tarot_planet
+    if perorimon_copyable_consumable(fallback) then
+        return fallback
+    end
+
+    return nil
 end
 
 function BM.get_perorimon_last_consumable_name()
@@ -153,22 +172,7 @@ function BM.get_perorimon_last_consumable_name()
     end
 
     local center = G.P_CENTERS[key]
-
-    if type(localize) == 'function'
-    and center
-    and center.set then
-        local ok, name = pcall(localize, {
-            type = 'name_text',
-            set = center.set,
-            key = key
-        })
-
-        if ok and type(name) == 'string' and name ~= '' then
-            return name
-        end
-    end
-
-    return center and center.name or key
+    return BM.localized_object_name(center, nil, key, key)
 end
 
 if not BM._perorimon_last_consumable_hook
@@ -185,7 +189,7 @@ and Card.use_consumeable then
         and G.GAME
         and center
         and center.key
-        and center.set ~= 'Appmon' then
+        and perorimon_copyable_consumable(center.key) then
             G.GAME.balatromon_last_consumable = center.key
         end
 
@@ -374,7 +378,8 @@ local function appmon_card_name(card)
     local rank = card.base and card.base.value or '?'
     local suit = card.base and card.base.suit or '?'
     local center = card.config and card.config.center
-    local enhancement = center and center.name
+    local enhancement = center
+        and BM.localized_object_name(center, nil, center.key, center.name)
 
     if center and G.P_CENTERS and center ~= G.P_CENTERS.c_base
     and enhancement and enhancement ~= 'Base' and enhancement ~= 'Default Base' then
@@ -666,6 +671,43 @@ function BM.open_gatchmon_peek()
     open_text_overlay('Gatchmon', 'Top 2 cards of your deck', rows)
 end
 
+local function appmon_option_cycle(args)
+    args = args or {}
+
+    local scale = args.scale or 1
+    local width = (args.w or 2.5) * scale
+    local height = (args.h or 0.8) * scale
+    local text_scale = (args.text_scale or 0.5) * scale
+    local colour = args.colour or G.C.RED
+
+    args.mid = {
+        n = G.UIT.C,
+        config = {
+            align = 'cm',
+            minw = width,
+            minh = height,
+            r = 0.1,
+            padding = 0.05,
+            colour = colour,
+            emboss = 0.1
+        },
+        nodes = {
+            {
+                n = G.UIT.T,
+                config = {
+                    ref_table = args,
+                    ref_value = 'current_option_val',
+                    scale = text_scale,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true
+                }
+            }
+        }
+    }
+
+    return create_option_cycle(args)
+end
+
 local NAVIMON_RANKS = {
     'Any', '2', '3', '4', '5', '6', '7', '8', '9', '10',
     'Jack', 'Queen', 'King', 'Ace'
@@ -795,7 +837,7 @@ function BM.open_navimon_scan()
                             n = G.UIT.R,
                             config = {align = 'cm'},
                             nodes = {
-                                create_option_cycle {
+                                appmon_option_cycle {
                                     label = '',
                                     options = NAVIMON_RANKS,
                                     current_option = 1,
@@ -837,7 +879,7 @@ function BM.open_navimon_scan()
                             n = G.UIT.R,
                             config = {align = 'cm'},
                             nodes = {
-                                create_option_cycle {
+                                appmon_option_cycle {
                                     label = '',
                                     options = NAVIMON_SUITS,
                                     current_option = 1,
@@ -1251,8 +1293,8 @@ function BM.appmon_valid_boss_pool(exclude_current)
     end
 
     table.sort(pool, function(a, b)
-        return tostring(a.blind.name or a.key)
-            < tostring(b.blind.name or b.key)
+        return BM.localized_blind_name(a.blind, a.key)
+            < BM.localized_blind_name(b.blind, b.key)
     end)
 
     return pool
@@ -1447,12 +1489,12 @@ function BM.apply_craftmon_blind()
 end
 
 local DOGATCHMON_RANKS = {
-    '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    'Any', '2', '3', '4', '5', '6', '7', '8', '9', '10',
     'Jack', 'Queen', 'King', 'Ace'
 }
 
 BM.dogatchmon_state = BM.dogatchmon_state or {
-    rank = '2',
+    rank = 'Any',
     result = 'Choose a rank.',
     card = nil,
     submitted = false
@@ -1467,6 +1509,11 @@ end
 
 G.FUNCS.balatromon_dogatchmon_draw = function(e)
     local state = BM.dogatchmon_state
+
+    if state.rank == 'Any' then
+        state.result = 'Choose a rank.'
+        return
+    end
 
     if state.submitted
     or not state.card
@@ -1526,7 +1573,7 @@ G.FUNCS.balatromon_dogatchmon_draw = function(e)
 end
 
 function BM.open_dogatchmon_draw(card)
-    BM.dogatchmon_state.rank = '2'
+    BM.dogatchmon_state.rank = 'Any'
     BM.dogatchmon_state.result = 'Choose a rank.'
     BM.dogatchmon_state.card = card
     BM.dogatchmon_state.submitted = false
@@ -1569,7 +1616,7 @@ function BM.open_dogatchmon_draw(card)
                                 align = 'cm'
                             },
                             nodes = {
-                                create_option_cycle {
+                                appmon_option_cycle {
                                     label = '',
                                     options = DOGATCHMON_RANKS,
                                     current_option = 1,
@@ -1636,7 +1683,7 @@ function BM.open_dogatchmon_draw(card)
 end
 
 BM.globemon_state = BM.globemon_state or {
-    rank = '2',
+    rank = 'Any',
     result = 'Choose a rank.',
     card = nil,
     submitted = false
@@ -1652,6 +1699,11 @@ end
 
 G.FUNCS.balatromon_globemon_draw = function(e)
     local state = BM.globemon_state
+
+    if state.rank == 'Any' then
+        state.result = 'Choose a rank.'
+        return
+    end
 
     if state.submitted
     or not state.card
@@ -1753,7 +1805,7 @@ G.FUNCS.balatromon_globemon_draw = function(e)
 end
 
 function BM.open_globemon_draw(card)
-    BM.globemon_state.rank = '2'
+    BM.globemon_state.rank = 'Any'
     BM.globemon_state.result =
         'Choose a rank.'
     BM.globemon_state.card = card
@@ -1798,7 +1850,7 @@ function BM.open_globemon_draw(card)
                                 align = 'cm'
                             },
                             nodes = {
-                                create_option_cycle {
+                                appmon_option_cycle {
                                     label = '',
                                     options = DOGATCHMON_RANKS,
                                     current_option = 1,
@@ -1926,23 +1978,23 @@ function BM.open_bootmon_selector(card)
     local current =
         G.GAME.round_resets.blind_choices.Boss
 
-    local options = {}
+    local options = {'Any'}
     local key_by_name = {}
 
     for _, entry in ipairs(pool) do
         if entry.key ~= current then
             local name =
-                entry.blind.name
-                or entry.key
+                BM.localized_blind_name(
+                    entry.blind,
+                    entry.key
+                )
 
             local display = name
+            local duplicate = 2
 
-            if key_by_name[display] then
-                display =
-                    name
-                    .. ' ['
-                    .. entry.key
-                    .. ']'
+            while key_by_name[display] do
+                display = name .. ' (' .. tostring(duplicate) .. ')'
+                duplicate = duplicate + 1
             end
 
             options[#options + 1] =
@@ -1953,12 +2005,12 @@ function BM.open_bootmon_selector(card)
         end
     end
 
-    if #options == 0 then
+    if #options <= 1 then
         return
     end
 
     BM.bootmon_state.selected =
-        options[1]
+        'Any'
 
     BM.bootmon_state.key_by_name =
         key_by_name
@@ -1974,7 +2026,7 @@ function BM.open_bootmon_selector(card)
                 padding = 0.06
             },
             nodes = {
-                create_option_cycle {
+                appmon_option_cycle {
                     label = 'Boss Blind',
                     options = options,
                     current_option = 1,
@@ -2007,11 +2059,12 @@ function BM.open_bootmon_selector(card)
         }
     }
 
-    local title = card
-        and card.config
-        and card.config.center
-        and card.config.center.name
-        or 'Bootmon'
+    local title = BM.localized_object_name(
+        card,
+        nil,
+        card and card.config and card.config.center and card.config.center.key or nil,
+        'Bootmon'
+    )
 
     open_text_overlay(
         title,
@@ -2084,24 +2137,62 @@ local function appmon_finish_blind_if_won()
     if not G
     or not G.GAME
     or not G.GAME.blind
-    or not G.GAME.blind.chips then
+    or not G.GAME.blind.chips
+    or G.GAME.chips < G.GAME.blind.chips
+    or BM._appmon_blind_win_pending then
         return
     end
 
+    BM._appmon_blind_win_pending = true
+
     G.E_MANAGER:add_event(Event({
-        trigger = 'after',
-        delay = 0.65,
+        trigger = 'condition',
+        blocking = false,
         blockable = false,
         func = function()
-            if G.GAME
-            and G.GAME.blind
-            and G.GAME.blind.chips
-            and G.GAME.chips >= G.GAME.blind.chips
-            and G.STATE ~= G.STATES.NEW_ROUND then
-                G.STATE = G.STATES.NEW_ROUND
-                G.STATE_COMPLETE = false
-                end_round()
+            if not G
+            or not G.GAME
+            or not G.GAME.blind
+            or not G.GAME.blind.chips
+            or G.GAME.blind.name == '' then
+                BM._appmon_blind_win_pending = nil
+                return true
             end
+
+            if G.GAME.chips < G.GAME.blind.chips then
+                BM._appmon_blind_win_pending = nil
+                return true
+            end
+
+            local use_locked = G.CONTROLLER
+                and G.CONTROLLER.locks
+                and G.CONTROLLER.locks.use
+
+            -- use_card() temporarily switches to PLAY_TAROT, then restores
+            -- SELECTING_HAND and clears both TAROT_INTERRUPT and locks.use.
+            -- Do not begin round cleanup until that entire use flow is done.
+            if G.STATE ~= G.STATES.SELECTING_HAND
+            or use_locked
+            or G.TAROT_INTERRUPT ~= nil then
+                return false
+            end
+
+            BM._appmon_blind_win_pending = nil
+
+            if type(stop_use) == 'function' then
+                stop_use()
+            end
+            if G.hand and G.hand.unhighlight_all then
+                G.hand:unhighlight_all()
+            end
+
+            -- Call end_round only after the Appmon use has fully returned to
+            -- SELECTING_HAND. Mark NEW_ROUND complete so Game:update_new_round
+            -- cannot call end_round a second time on the next frame.
+            G.STATE = G.STATES.NEW_ROUND
+            G.STATE_COMPLETE = true
+            end_round()
+
             return true
         end
     }))
@@ -2131,10 +2222,12 @@ function BM.appmon_gain_blind_score(card, numerator, denominator)
         return 0
     end
 
+    local current_chips = tonumber(G.GAME.chips) or 0
+
     if type(ease_chips) == 'function' then
-        ease_chips(gain)
+        ease_chips(current_chips + gain)
     else
-        G.GAME.chips = (tonumber(G.GAME.chips) or 0) + gain
+        G.GAME.chips = current_chips + gain
     end
 
     if card and card_eval_status_text then
@@ -2407,10 +2500,12 @@ function BM.appmon_gain_full_blind_requirement(card)
         return false
     end
 
+    local current_chips = tonumber(G.GAME.chips) or 0
+
     if type(ease_chips) == 'function' then
-        ease_chips(gain)
+        ease_chips(current_chips + gain)
     else
-        G.GAME.chips = (tonumber(G.GAME.chips) or 0) + gain
+        G.GAME.chips = current_chips + gain
     end
 
     if card and card_eval_status_text then

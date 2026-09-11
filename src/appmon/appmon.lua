@@ -309,6 +309,49 @@ function BM.appmon_center_key(slug)
     return 'c_' .. BM.PREFIX .. '_' .. tostring(slug)
 end
 
+function BM.localized_object_name(source, set_override, key_override, fallback)
+    local object = source
+
+    if object and object.config and object.config.center then
+        object = object.config.center
+    end
+
+    local key = key_override or (object and object.key)
+    local set = set_override or (object and object.set)
+
+    if type(localize) == 'function' and key and set then
+        local ok, name = pcall(localize, {
+            type = 'name_text',
+            set = set,
+            key = key
+        })
+
+        if ok and type(name) == 'string' and name ~= '' and name ~= 'ERROR' then
+            return name
+        end
+    end
+
+    if object and object.loc_txt and type(object.loc_txt.name) == 'string'
+    and object.loc_txt.name ~= '' then
+        return object.loc_txt.name
+    end
+
+    if object and type(object.name) == 'string' and object.name ~= '' then
+        return object.name
+    end
+
+    return fallback or key or 'Unknown'
+end
+
+function BM.localized_blind_name(blind, fallback)
+    return BM.localized_object_name(
+        blind,
+        'Blind',
+        (blind and blind.key) or fallback,
+        fallback
+    )
+end
+
 local function combination_key(left, right)
     local a = type(left) == 'table' and center_from_source(left) and center_from_source(left).key or tostring(left or '')
     local b = type(right) == 'table' and center_from_source(right) and center_from_source(right).key or tostring(right or '')
@@ -887,7 +930,7 @@ function BM.appmon_digivolve_baby(card)
 
     if card_eval_status_text then
         card_eval_status_text(card, 'extra', nil, nil, nil, {
-            message = target.name or target_slug
+            message = BM.localized_object_name(target, nil, target_key, target_slug)
         })
     end
 
@@ -1045,7 +1088,9 @@ for _, baby in ipairs(baby_names) do
                 text = {
                     'When bought, digivolves into',
                     'a {C:attention}Base{} Appmon with',
-                    'the {C:attention}#1#{} Attribute'
+                    'the {C:attention}#1#{} Attribute',
+                    '{C:inactive}Uses a {C:attention}Loader Slot{C:inactive} while available,{}',
+                    '{C:inactive}then occupies a {C:attention}Joker Slot{C:inactive} when full{}'
                 }
             },
             loc_vars = baby_loc_vars,
@@ -1232,7 +1277,7 @@ function BM.combine_appmon(left, right)
 
     if card_eval_status_text then
         card_eval_status_text(left, 'extra', nil, nil, nil, {
-            message = target.name or 'Combined!'
+            message = BM.localized_object_name(target, nil, target_key, 'Combined!')
         })
     end
 
@@ -1661,7 +1706,7 @@ SMODS.Consumable {
             'Pay {C:money}$7{} to create a copy',
             'of the last {C:attention}Consumable{} used',
             '{C:inactive}(Last: {C:attention}#3#{C:inactive}){}',
-            '{C:inactive}(Appmon excluded){}',
+            '{C:inactive}(Appmon, The Soul, and Golden Digivice excluded){}',
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
@@ -1827,7 +1872,7 @@ SMODS.Consumable {
                 nil,
                 nil,
                 {
-                    message = blind.name or 'Boss Effect!'
+                    message = BM.localized_blind_name(blind, 'Boss Effect!')
                 }
             )
         end
