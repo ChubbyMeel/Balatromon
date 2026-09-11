@@ -28,8 +28,8 @@ BM.APPMON_SHOP_ATTRIBUTES = BM.APPMON_SHOP_ATTRIBUTES or {
     Navi = true,
     Game = true,
     Tool = true,
-    System = false,
-    Entertainment = false,
+    System = true,
+    Entertainment = true,
     Life = true
 }
 
@@ -38,8 +38,8 @@ BM.APPMON_BASE_BY_ATTRIBUTE = BM.APPMON_BASE_BY_ATTRIBUTE or {
     Navi = {'navimon'},
     Game = {'onmon', 'offmon'},
     Tool = {'timemon', 'craftmon'},
-    System = {},
-    Entertainment = {},
+    System = {'hackmon'},
+    Entertainment = {'perorimon'},
     Life = {'virusmon'}
 }
 
@@ -364,8 +364,30 @@ function BM.count_appmon_in_jokers()
     return count_appmon_in_area(G and G.jokers)
 end
 
+function BM.has_appmon_voucher(slug)
+    if not G or not G.GAME then
+        return false
+    end
+
+    local key = 'v_' .. BM.PREFIX .. '_' .. tostring(slug)
+    local flag = 'balatromon_' .. tostring(slug)
+
+    return G.GAME[flag] == true
+        or (
+            G.GAME.used_vouchers
+            and G.GAME.used_vouchers[key]
+            == true
+        )
+end
+
 function BM.get_loader_limit()
-    return BM.APPMON_LOADER_SLOTS
+    local bonus = 0
+
+    if BM.has_appmon_voucher('appli_driver') then
+        bonus = bonus + 1
+    end
+
+    return BM.APPMON_LOADER_SLOTS + bonus
 end
 
 function BM.get_loader_slots_used()
@@ -804,18 +826,42 @@ function BM.appmon_digivolve_baby(card)
     local candidates = attribute and BM.APPMON_BASE_BY_ATTRIBUTE[attribute] or {}
 
     local valid = {}
+    local seen = {}
+
+    local function add_candidate(slug)
+        if not slug or seen[slug] then
+            return
+        end
+
+        local key = BM.appmon_center_key(slug)
+        if G.P_CENTERS[key] then
+            seen[slug] = true
+            valid[#valid + 1] = slug
+        end
+    end
 
     for _, slug in ipairs(candidates or {}) do
-        local key = BM.appmon_center_key(slug)
+        add_candidate(slug)
+    end
 
-        if G.P_CENTERS[key] then
-            valid[#valid + 1] = slug
+    if BM.has_appmon_voucher('ultimate_app_realise') then
+        for key, center in pairs(G.P_CENTERS or {}) do
+            if center
+            and center.balatromon_appmon == true
+            and center.appmon_stage == 'Super'
+            and center.appmon_base ~= true
+            and center.attribute == attribute then
+                local slug = tostring(key):gsub('^c_' .. BM.PREFIX .. '_', '')
+                add_candidate(slug)
+            end
         end
     end
 
     if #valid == 0 then
         return false
     end
+
+    table.sort(valid)
 
     local target_slug = BM.random_element(
         valid,
@@ -1380,6 +1426,69 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = 'Appmon',
+    key = 'offmon',
+
+    atlas = 'Appmon',
+    pos = {x = 2, y = 4},
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 3, y = 4},
+
+    discovered = false,
+    unlocked = true,
+    cost = BM.APPMON_STANDARD_COST,
+    attribute = 'Game',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Standard',
+    appmon_next_stage = 'Super',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Offmon',
+        text = {
+            'Gain {C:chips}2/15{} of the',
+            'current Blind requirement',
+            'and use {C:red}1 Discard{}',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                BM.appmon_uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return BM.appmon_uses_remaining(card) > 0
+            and BM.can_use_offmon()
+    end,
+
+    use = function(self, card)
+        BM.use_offmon(card)
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
     key = 'timemon',
 
     atlas = 'Appmon',
@@ -1444,6 +1553,205 @@ SMODS.Consumable {
 
     keep_on_use = keep_appmon_on_use
 }
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'hackmon',
+
+    atlas = 'Appmon',
+    pos = {x = 8, y = 3},
+
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 9, y = 3},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = BM.APPMON_STANDARD_COST,
+
+    attribute = 'System',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Standard',
+    appmon_next_stage = 'Super',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Hackmon',
+        text = {
+            'Your next {C:red}discard{}',
+            'scores like a {C:attention}played hand{},',
+            'but its final Chips are {C:attention}halved{}',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                BM.appmon_uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return BM.appmon_uses_remaining(card) > 0
+            and BM.can_use_hackmon(card)
+    end,
+
+    use = function(self, card)
+        BM.use_hackmon(card)
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'perorimon',
+
+    atlas = 'Appmon',
+    pos = {x = 10, y = 3},
+
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 11, y = 3},
+
+    discovered = false,
+    unlocked = true,
+
+    cost = BM.APPMON_STANDARD_COST,
+
+    attribute = 'Entertainment',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Standard',
+    appmon_next_stage = 'Super',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Perorimon',
+        text = {
+            'Pay {C:money}$7{} to create a copy',
+            'of the last {C:attention}Consumable{} used',
+            '{C:inactive}(Last: {C:attention}#3#{C:inactive}){}',
+            '{C:inactive}(Appmon excluded){}',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                BM.appmon_uses_remaining(card),
+                BM.get_appmon_max_uses(card),
+                BM.get_perorimon_last_consumable_name
+                    and BM.get_perorimon_last_consumable_name()
+                    or 'None'
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return BM.appmon_uses_remaining(card) > 0
+            and BM.can_use_perorimon(card)
+    end,
+
+    use = function(self, card)
+        BM.use_perorimon(card)
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
+    key = 'virusmon',
+
+    atlas = 'Appmon',
+    pos = {x = 12, y = 3},
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 13, y = 3},
+
+    discovered = false,
+    unlocked = true,
+    cost = BM.APPMON_STANDARD_COST,
+    attribute = 'Life',
+
+    balatromon_appmon = true,
+    appmon_base = true,
+    appmon_stage = 'Standard',
+    appmon_next_stage = 'Super',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Virusmon',
+        text = {
+            'Increase the {C:red}Hunger{} of',
+            'the {C:attention}Digimon directly to its left{} by {C:attention}1{}',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                BM.appmon_uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return BM.appmon_uses_remaining(card) > 0
+            and BM.can_use_virusmon(card)
+    end,
+
+    use = function(self, card)
+        BM.use_virusmon(card)
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
 
 SMODS.Consumable {
     set = 'Appmon',
@@ -1681,6 +1989,69 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = 'Appmon',
+    key = 'logamon',
+
+    atlas = 'Appmon',
+    pos = {x = 2, y = 5},
+    soul_atlas = 'Appmon',
+    soul_pos = {x = 3, y = 5},
+
+    discovered = false,
+    unlocked = true,
+    cost = BM.APPMON_SUPER_COST,
+    attribute = 'Social',
+
+    balatromon_appmon = true,
+    appmon_base = false,
+    appmon_stage = 'Super',
+    appmon_next_stage = 'Ultimate',
+
+    config = {
+        extra = {
+            uses = BM.APPMON_USE_COUNT,
+            max_uses = BM.APPMON_USE_COUNT
+        }
+    },
+
+    in_pool = function()
+        return false
+    end,
+
+    set_badges = appmon_stage_badge,
+
+    loc_txt = {
+        name = 'Logamon',
+        text = {
+            'Gain {C:chips}1/10{} of the',
+            'current Blind requirement',
+            '{C:inactive}(#1#/#2# uses remaining){}'
+        }
+    },
+
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                BM.appmon_uses_remaining(card),
+                BM.get_appmon_max_uses(card)
+            }
+        }
+    end,
+
+    can_use = function(self, card)
+        return BM.appmon_uses_remaining(card) > 0
+            and BM.can_use_scoring_appmon()
+    end,
+
+    use = function(self, card)
+        BM.consume_appmon_use(card)
+        BM.appmon_gain_blind_score(card, 1, 10)
+    end,
+
+    keep_on_use = keep_appmon_on_use
+}
+
+SMODS.Consumable {
+    set = 'Appmon',
     key = 'globemon',
 
     atlas = 'Appmon',
@@ -1815,132 +2186,6 @@ SMODS.Consumable {
     keep_on_use = keep_appmon_on_use
 }
 
-
-SMODS.Consumable {
-    set = 'Appmon',
-    key = 'offmon',
-
-    atlas = 'Appmon',
-    pos = {x = 2, y = 4},
-    soul_atlas = 'Appmon',
-    soul_pos = {x = 3, y = 4},
-
-    discovered = false,
-    unlocked = true,
-    cost = BM.APPMON_STANDARD_COST,
-    attribute = 'Game',
-
-    balatromon_appmon = true,
-    appmon_base = true,
-    appmon_stage = 'Standard',
-    appmon_next_stage = 'Super',
-
-    config = {
-        extra = {
-            uses = BM.APPMON_USE_COUNT,
-            max_uses = BM.APPMON_USE_COUNT
-        }
-    },
-
-    in_pool = function()
-        return false
-    end,
-
-    set_badges = appmon_stage_badge,
-
-    loc_txt = {
-        name = 'Offmon',
-        text = {
-            'Gain {C:chips}2/15{} of the',
-            'current Blind requirement',
-            'and use {C:red}1 Discard{}',
-            '{C:inactive}(#1#/#2# uses remaining){}'
-        }
-    },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
-    can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_offmon()
-    end,
-
-    use = function(self, card)
-        BM.use_offmon(card)
-    end,
-
-    keep_on_use = keep_appmon_on_use
-}
-
-SMODS.Consumable {
-    set = 'Appmon',
-    key = 'logamon',
-
-    atlas = 'Appmon',
-    pos = {x = 2, y = 5},
-    soul_atlas = 'Appmon',
-    soul_pos = {x = 3, y = 5},
-
-    discovered = false,
-    unlocked = true,
-    cost = BM.APPMON_SUPER_COST,
-    attribute = 'Social',
-
-    balatromon_appmon = true,
-    appmon_base = false,
-    appmon_stage = 'Super',
-    appmon_next_stage = 'Ultimate',
-
-    config = {
-        extra = {
-            uses = BM.APPMON_USE_COUNT,
-            max_uses = BM.APPMON_USE_COUNT
-        }
-    },
-
-    in_pool = function()
-        return false
-    end,
-
-    set_badges = appmon_stage_badge,
-
-    loc_txt = {
-        name = 'Logamon',
-        text = {
-            'Gain {C:chips}1/10{} of the',
-            'current Blind requirement',
-            '{C:inactive}(#1#/#2# uses remaining){}'
-        }
-    },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
-    can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_scoring_appmon()
-    end,
-
-    use = function(self, card)
-        BM.consume_appmon_use(card)
-        BM.appmon_gain_blind_score(card, 1, 10)
-    end,
-
-    keep_on_use = keep_appmon_on_use
-}
 
 SMODS.Consumable {
     set = 'Appmon',
@@ -2090,68 +2335,6 @@ SMODS.Consumable {
 
 SMODS.Consumable {
     set = 'Appmon',
-    key = 'virusmon',
-
-    atlas = 'Appmon',
-    pos = {x = 12, y = 3},
-    soul_atlas = 'Appmon',
-    soul_pos = {x = 13, y = 3},
-
-    discovered = false,
-    unlocked = true,
-    cost = BM.APPMON_STANDARD_COST,
-    attribute = 'Life',
-
-    balatromon_appmon = true,
-    appmon_base = true,
-    appmon_stage = 'Standard',
-    appmon_next_stage = 'Super',
-
-    config = {
-        extra = {
-            uses = BM.APPMON_USE_COUNT,
-            max_uses = BM.APPMON_USE_COUNT
-        }
-    },
-
-    in_pool = function()
-        return false
-    end,
-
-    set_badges = appmon_stage_badge,
-
-    loc_txt = {
-        name = 'Virusmon',
-        text = {
-            'Increase the {C:red}Hunger{} of',
-            'the {C:attention}Digimon directly to its left{} by {C:attention}1{}',
-            '{C:inactive}(#1#/#2# uses remaining){}'
-        }
-    },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
-    can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_virusmon(card)
-    end,
-
-    use = function(self, card)
-        BM.use_virusmon(card)
-    end,
-
-    keep_on_use = keep_appmon_on_use
-}
-
-SMODS.Consumable {
-    set = 'Appmon',
     key = 'rebootmon_virus',
 
     atlas = 'Appmon',
@@ -2239,7 +2422,7 @@ BM.register_appmon_combination(
 )
 
 BM.register_appmon_combination(
-    BM.appmon_center_key('logimon'),
+    BM.appmon_center_key('hackmon'),
     BM.appmon_center_key('logamon'),
     BM.appmon_center_key('shutmon')
 )

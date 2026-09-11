@@ -128,6 +128,221 @@ function BM.use_timemon(card)
 end
 
 
+local function appmon_valid_last_consumable_key()
+    if not G or not G.GAME or not G.P_CENTERS then
+        return nil
+    end
+
+    local key = G.GAME.balatromon_last_consumable
+        or G.GAME.last_tarot_planet
+
+    local center = key and G.P_CENTERS[key]
+
+    if not center
+    or center.set == 'Appmon' then
+        return nil
+    end
+
+    return key
+end
+
+function BM.get_perorimon_last_consumable_name()
+    local key = appmon_valid_last_consumable_key()
+    if not key then
+        return 'None'
+    end
+
+    local center = G.P_CENTERS[key]
+
+    if type(localize) == 'function'
+    and center
+    and center.set then
+        local ok, name = pcall(localize, {
+            type = 'name_text',
+            set = center.set,
+            key = key
+        })
+
+        if ok and type(name) == 'string' and name ~= '' then
+            return name
+        end
+    end
+
+    return center and center.name or key
+end
+
+if not BM._perorimon_last_consumable_hook
+and Card
+and Card.use_consumeable then
+    local old_appmon_use_consumeable = Card.use_consumeable
+
+    Card.use_consumeable = function(self, ...)
+        local center = self
+            and self.config
+            and self.config.center
+
+        if G
+        and G.GAME
+        and center
+        and center.key
+        and center.set ~= 'Appmon' then
+            G.GAME.balatromon_last_consumable = center.key
+        end
+
+        return old_appmon_use_consumeable(self, ...)
+    end
+
+    BM._perorimon_last_consumable_hook = true
+end
+
+function BM.can_use_perorimon(card)
+    if not G
+    or not G.GAME
+    or not G.consumeables
+    or not BM.has_room(G.consumeables)
+    or (tonumber(G.GAME.dollars) or 0) < 7 then
+        return false
+    end
+
+    return appmon_valid_last_consumable_key() ~= nil
+end
+
+function BM.use_perorimon(card)
+    local key = appmon_valid_last_consumable_key()
+
+    if not key
+    or not BM.can_use_perorimon(card) then
+        return false
+    end
+
+    BM.consume_appmon_use(card)
+
+    if type(ease_dollars) == 'function' then
+        ease_dollars(-7)
+    else
+        G.GAME.dollars = math.max(0, (tonumber(G.GAME.dollars) or 0) - 7)
+    end
+
+    local center = G.P_CENTERS[key]
+    local created = SMODS.add_card {
+        set = center and center.set,
+        area = G.consumeables,
+        key = key,
+        key_append = 'balatromon_perorimon_' .. tostring(card and card.sort_id or 0)
+    }
+
+    if created and card_eval_status_text then
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = 'Copied!',
+                colour = G.C.SECONDARY_SET
+                    and G.C.SECONDARY_SET.Spectral
+                    or G.C.PURPLE
+            }
+        )
+    end
+
+    return created ~= nil
+end
+
+BM.hackmon_state = BM.hackmon_state or {
+    halve_next_score = false
+}
+
+function BM.can_use_hackmon(card)
+    return G
+        and G.STATE == G.STATES.SELECTING_HAND
+        and G.GAME
+        and G.GAME.current_round
+        and (G.GAME.current_round.discards_left or 0) > 0
+        and G.GAME.balatromon_hackmon_armed ~= true
+        and not BM.hackmon_state.halve_next_score
+end
+
+function BM.use_hackmon(card)
+    if not card
+    or BM.appmon_uses_remaining(card) <= 0
+    or not G
+    or not G.GAME
+    or not G.GAME.current_round
+    or (G.GAME.current_round.discards_left or 0) <= 0
+    or G.GAME.balatromon_hackmon_armed == true
+    or (BM.hackmon_state and BM.hackmon_state.halve_next_score) then
+        return false
+    end
+
+    BM.consume_appmon_use(card)
+    G.GAME.balatromon_hackmon_armed = true
+
+    if card_eval_status_text then
+        card_eval_status_text(
+            card,
+            'extra',
+            nil,
+            nil,
+            nil,
+            {
+                message = 'Discard Armed!',
+                colour = G.C.RED
+            }
+        )
+    end
+
+    return true
+end
+
+local old_hackmon_mod_calculate = SMODS.current_mod.calculate
+
+SMODS.current_mod.calculate = function(self, context)
+    local ret
+
+    if old_hackmon_mod_calculate then
+        ret = old_hackmon_mod_calculate(self, context)
+    end
+
+    if context.final_scoring_step
+    and G
+    and G.GAME
+    and G.GAME.balatromon_hackmon_scoring == true then
+        G.GAME.balatromon_hackmon_scoring = false
+        BM.hackmon_state.halve_next_score = false
+
+        return {
+            xmult = 0.5,
+            message = 'Hackmon!',
+            colour = G.C.RED
+        }
+    end
+
+    return ret
+end
+
+if not BM._hackmon_start_run_hook
+and Game
+and Game.start_run then
+    local old_hackmon_start_run = Game.start_run
+
+    Game.start_run = function(self, args, ...)
+        BM.hackmon_state.halve_next_score = false
+        BM._hackmon_action_prepared = false
+        BM._hackmon_scoring_discard = false
+
+        if G and G.GAME then
+            G.GAME.balatromon_hackmon_armed = false
+            G.GAME.balatromon_hackmon_scoring = false
+        end
+
+        return old_hackmon_start_run(self, args, ...)
+    end
+
+    BM._hackmon_start_run_hook = true
+end
+
 G.FUNCS.balatromon_can_use_blind_appmon = function(e)
     local card =
         e
@@ -856,12 +1071,18 @@ local old_appmon_play_cards =
 
 G.FUNCS.play_cards_from_highlighted =
 function(e, ...)
-    if BM.capture_timemon_snapshot then
-        BM.capture_timemon_snapshot('play')
-    end
+    local action = BM._hackmon_scoring_discard
+        and 'discard'
+        or 'play'
 
-    if BM.begin_onmon_action then
-        BM.begin_onmon_action('play')
+    if not BM._hackmon_action_prepared then
+        if BM.capture_timemon_snapshot then
+            BM.capture_timemon_snapshot(action)
+        end
+
+        if BM.begin_onmon_action then
+            BM.begin_onmon_action(action)
+        end
     end
 
     return old_appmon_play_cards(e, ...)
@@ -873,6 +1094,78 @@ local old_appmon_discard_cards =
 
 G.FUNCS.discard_cards_from_highlighted =
 function(e, hook, ...)
+    if not hook
+    and BM.hackmon_state
+    and G
+    and G.GAME
+    and G.GAME.balatromon_hackmon_armed == true then
+        local round = G
+            and G.GAME
+            and G.GAME.current_round
+
+        if not round
+        or (round.discards_left or 0) <= 0 then
+            return old_appmon_discard_cards(e, hook, ...)
+        end
+
+        G.GAME.balatromon_hackmon_armed = false
+        G.GAME.balatromon_hackmon_scoring = true
+        BM.hackmon_state.halve_next_score = true
+        BM._hackmon_scoring_discard = true
+        BM._hackmon_action_prepared = true
+
+        if BM.capture_timemon_snapshot then
+            BM.capture_timemon_snapshot('discard')
+        end
+
+        if BM.begin_onmon_action then
+            BM.begin_onmon_action('discard')
+        end
+
+        round.discards_used = (round.discards_used or 0) + 1
+
+        if type(ease_discard) == 'function' then
+            ease_discard(-1)
+        else
+            round.discards_left = math.max(0, (round.discards_left or 0) - 1)
+        end
+
+        local normal_ease_hands_played = ease_hands_played
+
+        if type(normal_ease_hands_played) == 'function' then
+            ease_hands_played = function(mod, ...)
+                if BM._hackmon_scoring_discard
+                and tonumber(mod)
+                and tonumber(mod) < 0 then
+                    return
+                end
+
+                return normal_ease_hands_played(mod, ...)
+            end
+        end
+
+        local ok, result = pcall(
+            G.FUNCS.play_cards_from_highlighted,
+            e,
+            ...
+        )
+
+        if type(normal_ease_hands_played) == 'function' then
+            ease_hands_played = normal_ease_hands_played
+        end
+
+        BM._hackmon_action_prepared = false
+        BM._hackmon_scoring_discard = false
+
+        if not ok then
+            G.GAME.balatromon_hackmon_scoring = false
+            BM.hackmon_state.halve_next_score = false
+            error(result)
+        end
+
+        return result
+    end
+
     if not hook then
         if BM.capture_timemon_snapshot then
             BM.capture_timemon_snapshot('discard')

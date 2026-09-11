@@ -544,12 +544,82 @@ local COMMON_CARD = {
     unlocked = true,
 }
 
+local function record_food_spoil()
+    if not G
+    or not G.GAME
+    or G.GAME.seeded
+    or G.GAME.challenge then
+        return
+    end
+
+    local profile = G.PROFILES
+        and G.SETTINGS
+        and G.PROFILES[G.SETTINGS.profile]
+
+    if not profile then
+        return
+    end
+
+    profile.career_stats = profile.career_stats or {}
+    profile.career_stats.balatromon_foods_spoiled =
+        (profile.career_stats.balatromon_foods_spoiled or 0) + 1
+
+    if G.save_progress then
+        G:save_progress()
+    end
+
+    if check_for_unlock then
+        check_for_unlock({
+            type = 'balatromon_food_spoiled'
+        })
+    end
+end
+
+local function food_warranty_active()
+    return G
+        and G.GAME
+        and (
+            G.GAME.balatromon_food_warranty == true
+            or (
+                G.GAME.used_vouchers
+                and G.GAME.used_vouchers[
+                    'v_' .. BM.PREFIX .. '_food_warranty'
+                ] == true
+            )
+        )
+end
+
+local function create_food_warranty_replacement(card)
+    if not food_warranty_active()
+    or not G.consumeables
+    or not BM.has_room(G.consumeables) then
+        return nil
+    end
+
+    local seed = 'balatromon_food_warranty_'
+        .. tostring(card and card.sort_id or 0)
+
+    local set = BM.random_element(
+        {'Tarot', 'DigiItem'},
+        seed .. '_set'
+    ) or 'Tarot'
+
+    return SMODS.add_card {
+        set = set,
+        area = G.consumeables,
+        key_append = seed
+    }
+end
+
 local function spoil_food(card)
     if not card or card.REMOVED or card._bm_spoiling then
         return
     end
 
     card._bm_spoiling = true
+
+    record_food_spoil()
+    create_food_warranty_replacement(card)
 
     G.E_MANAGER:add_event(Event({
         trigger = 'after',
