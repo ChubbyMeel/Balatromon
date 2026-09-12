@@ -850,32 +850,6 @@ end
 
 
 
-function BM.get_card_slug(card)
-    if not card then
-        return nil
-    end
-
-    local center =
-        card.config
-        and card.config.center
-
-    if not center or not center.key then
-        return nil
-    end
-
-    local key = center.key
-
-
-
-    local prefix =
-        '^j_' .. BM.PREFIX .. '_'
-
-    key = key:gsub(prefix, '')
-
-    return key
-end
-
-
 
 function BM.is_digimon_display_card(card)
 
@@ -2635,14 +2609,12 @@ function BM.feed(card, amount)
             'balatromon_hunger'
         )
 
-        if SMODS.recalc_debuff then
-            SMODS.recalc_debuff(card)
-        end
+
+        SMODS.recalc_debuff(card)
+
 
         local slug = BM.get_card_slug(card)
-        if slug
-        and BM.has_passive_deck_effect(slug)
-        and BM.on_add then
+        if slug and BM.has_passive_deck_effect(slug) then
             BM.on_add(card, slug)
         end
 

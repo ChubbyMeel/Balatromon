@@ -382,10 +382,7 @@ and not BM._sleeve_boss_wrapped then
             and G.P_BLINDS[key] then
 
                 if SMODS.add_boss_to_used_table then
-                    SMODS.add_boss_to_used_table(
-                        key,
-                        'boss'
-                    )
+                SMODS.add_boss_to_used_table(key, 'boss')
 
                 elseif G.GAME.bosses_used then
                     if type(

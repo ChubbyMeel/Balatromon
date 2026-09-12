@@ -17,13 +17,10 @@ local function bm_enhancements(card)
         return SMODS.get_enhancements(card) or {}
     end
 
-    local center =
-        card.config
-        and card.config.center
 
-    if center
-    and center.key
-    and center.key ~= 'c_base' then
+    local center = card.config and card.config.center
+
+    if center and center.key and center.key ~= 'c_base' then
         return {
             [center.key] = true
         }
@@ -3020,8 +3017,7 @@ H.bearmon = function(card, context)
         return
     end
 
-    if SMODS.has_no_rank
-    and SMODS.has_no_rank(context.other_card) then
+    if SMODS.has_no_rank(context.other_card) then
         return
     end
 
@@ -4068,43 +4064,23 @@ function(card, context)
         local spectral =
             false
 
-        if SMODS.pseudorandom_probability(
-            card,
-            'lopmon_planet',
-            1,
-            3
-        ) then
-            local created =
-                BM.add_consumable(
-                    'Planet'
-                )
+        if SMODS.pseudorandom_probability(card, 'lopmon_planet', 1, 3) then
+            local created = BM.add_consumable('Planet')
 
             if created then
                 planet = true
 
-                e._lopmon_successes =
-                    e._lopmon_successes
-                    + 1
+                e._lopmon_successes = e._lopmon_successes + 1
             end
         end
 
-        if SMODS.pseudorandom_probability(
-            card,
-            'lopmon_spectral',
-            1,
-            5
-        ) then
-            local created =
-                BM.add_consumable(
-                    'Spectral'
-                )
+        if SMODS.pseudorandom_probability(card, 'lopmon_spectral', 1, 5) then
+            local created = BM.add_consumable('Spectral')
 
             if created then
                 spectral = true
 
-                e._lopmon_successes =
-                    e._lopmon_successes
-                    + 1
+                e._lopmon_successes = e._lopmon_successes + 1
             end
         end
 
@@ -4148,17 +4124,11 @@ function(card, context)
     e.mult =
         e.mult or 0
 
-    if context.before
-    and context.main_eval
-    and not context.blueprint then
-        local qualifies =
-            BM.is_most_played_hand_before_play(
-                context.scoring_name
-            )
+    if context.before and context.main_eval and not context.blueprint then
+        local qualifies = BM.is_most_played_hand_before_play(context.scoring_name)
 
         if qualifies then
-            e.mult =
-                e.mult + 10
+            e.mult = e.mult + 10
 
             return {
                 message =
@@ -4184,11 +4154,9 @@ function(card, context)
         end
     end
 
-    if context.joker_main
-    and e.mult > 0 then
+    if context.joker_main and e.mult > 0 then
         return {
-            mult =
-                e.mult
+            mult = e.mult
         }
     end
 end

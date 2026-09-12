@@ -144,14 +144,14 @@ SMODS.ConsumableType {
     shop_rate = 1.0,
 }
 
-if SMODS.UndiscoveredSprite then
-    SMODS.UndiscoveredSprite {
-        key = 'DigiItem',
-        atlas = 'Undiscovered',
-        pos = {x = 0, y = 0},
-        no_overlay = true
-    }
-end
+
+SMODS.UndiscoveredSprite {
+    key = 'DigiItem',
+    atlas = 'Undiscovered',
+    pos = {x = 0, y = 0},
+    no_overlay = true
+}
+
 
 local function selected_digimon(max_count)
     local selected = {}
@@ -674,15 +674,8 @@ local function food_in_pool(
 end
 
 
-local function maybe_make_tired(
-    source,
-    target,
-    numerator,
-    denominator,
-    seed
-)
-    if not target
-    or target.REMOVED then
+local function maybe_make_tired(source, target, numerator, denominator, seed)
+    if not target or target.REMOVED then
         return false
     end
 
@@ -2375,14 +2368,8 @@ SMODS.Consumable {
     use = function()
     end,
 
-    add_to_deck = function(
-        self,
-        card
-    )
-        if not (
-            card.edition
-            and card.edition.negative
-        ) then
+    add_to_deck = function(self, card)
+        if not (card.edition and card.edition.negative) then
             card:set_edition(
                 {
                     negative = true
@@ -2395,27 +2382,14 @@ SMODS.Consumable {
         BM.try_summon_bancholeomon()
     end,
 
-    update = function(
-        self,
-        card,
-        dt
-    )
-        if not card
-        or card.REMOVED
-        or not G.consumeables
-        or card.area ~= G.consumeables then
+    update = function(self, card, dt)
+        if not card or card.REMOVED or not G.consumeables or card.area ~= G.consumeables then
             return
         end
 
-        if not (
-            card.edition
-            and card.edition.negative
-        )
-        and not card
-            ._bm_restoring_negative then
+        if not (card.edition and card.edition.negative) and not card._bm_restoring_negative then
 
-            card._bm_restoring_negative =
-                true
+            card._bm_restoring_negative = true
 
             G.E_MANAGER:add_event(
                 Event({

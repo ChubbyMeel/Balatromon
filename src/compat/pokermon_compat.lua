@@ -296,9 +296,9 @@ function PC.sync_hunger_debuff(card)
         PC.hunger_source
     )
 
-    if SMODS.recalc_debuff then
-        SMODS.recalc_debuff(card)
-    end
+
+    SMODS.recalc_debuff(card)
+
 
     if starving
     and not was_starving
@@ -705,10 +705,7 @@ local function pokemon_center_available(center)
         for _, playing_card in ipairs(
             G.playing_cards or {}
         ) do
-            if SMODS.has_enhancement(
-                playing_card,
-                center.enhancement_gate
-            ) then
+            if SMODS.has_enhancement(playing_card, center.enhancement_gate) then
                 found = true
                 break
             end

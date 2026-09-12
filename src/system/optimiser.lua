@@ -357,35 +357,18 @@ and not BM._optimiser_on_remove_wrapped then
     end
 end
 
-if SMODS
-and type(SMODS.find_card) == 'function'
-and not BM._optimiser_find_card_wrapped then
-    BM._optimiser_find_card_wrapped =
-        true
+if type(SMODS.find_card) == 'function' and not BM._optimiser_find_card_wrapped then
+    BM._optimiser_find_card_wrapped = true
 
-    local old_find_card =
-        SMODS.find_card
+    local old_find_card = SMODS.find_card
 
     local hot_keys = {
-        [
-            BM.center_key(
-                'machmon'
-            )
-        ] = true,
+        [BM.center_key('machmon')] = true,
 
-        [
-            BM.center_key(
-                'andromon'
-            )
-        ] = true
+        [BM.center_key('andromon')] = true
     }
 
-    SMODS.find_card =
-    function(
-        key,
-        include_debuffed,
-        ...
-    )
+    SMODS.find_card = function(key, include_debuffed, ...)
         if not OPT.enabled
         or not OPT.frame_cache
         or not hot_keys[key]

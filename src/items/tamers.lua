@@ -56,14 +56,14 @@ SMODS.ConsumableType {
     shop_rate = 0
 }
 
-if SMODS.UndiscoveredSprite then
-    SMODS.UndiscoveredSprite {
-        key = 'Tamer',
-        atlas = 'Undiscovered',
-        pos = {x = 1, y = 0},
-        no_overlay = true
-    }
-end
+
+SMODS.UndiscoveredSprite {
+    key = 'Tamer',
+    atlas = 'Undiscovered',
+    pos = {x = 1, y = 0},
+    no_overlay = true
+}
+
 
 
 

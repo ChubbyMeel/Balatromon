@@ -111,8 +111,7 @@ local function rank_of(card)
         return nil
     end
 
-    if SMODS.has_no_rank
-    and SMODS.has_no_rank(card) then
+    if SMODS.has_no_rank(card) then
         return nil
     end
 

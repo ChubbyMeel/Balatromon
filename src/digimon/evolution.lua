@@ -1392,15 +1392,9 @@ function BM.perform_digivolution(card, option, device_key, opts)
         carry.permanently_disabled
 
     if carry.permanently_disabled then
-        SMODS.debuff_card(
-            card,
-            true,
-            'balatromon_hunger'
-        )
+        SMODS.debuff_card(card, true, 'balatromon_hunger')
 
-        if SMODS.recalc_debuff then
-            SMODS.recalc_debuff(card)
-        end
+        SMODS.recalc_debuff(card)
     end
 
     card.ability.extra.care_rounds =
@@ -1594,9 +1588,9 @@ function BM.make_recovery_digitama(card)
     card.ability.extra.recover_extra =
         saved_extra
 
-    if SMODS.recalc_debuff then
-        SMODS.recalc_debuff(card)
-    end
+
+    SMODS.recalc_debuff(card)
+
 
     if card.set_cost then
         card:set_cost()
@@ -1684,24 +1678,16 @@ function BM.restore_recovery_digitama(card)
     card.ability.extra._bm_passive_removed = nil
     card.ability.extra._bm_passive_slug = nil
 
-    SMODS.debuff_card(
-        card,
-        false,
-        'balatromon_hunger'
-    )
+    SMODS.debuff_card(card, false, 'balatromon_hunger')
 
-    if SMODS.recalc_debuff then
-        SMODS.recalc_debuff(card)
-    end
+
+    SMODS.recalc_debuff(card)
+
 
     card._bm_suppress_on_add = nil
 
-    if BM.on_add then
-        BM.on_add(
-            card,
-            recover_slug
-        )
-    end
+    
+    BM.on_add(card, recover_slug)
 
     if card.set_cost then
         card:set_cost()

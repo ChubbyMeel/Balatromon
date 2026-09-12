@@ -52,9 +52,7 @@ local function has_native_element_support()
     return false
 end
 
-if SMODS
-and type(SMODS.localize_box) == 'function'
-and not has_native_element_support() then
+if type(SMODS.localize_box) == 'function' and not has_native_element_support() then
     local old_localize_box = SMODS.localize_box
 
     SMODS.localize_box = function(lines, args)

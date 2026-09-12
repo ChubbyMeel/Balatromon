@@ -1,14 +1,11 @@
 local BM = Balatromon
 
 local function install_appmon_tooltips()
-    if not G
-    or not G.localization
-    or not G.localization.descriptions then
+    if not G or not G.localization or not G.localization.descriptions then
         return
     end
 
-    G.localization.descriptions.Other =
-        G.localization.descriptions.Other or {}
+    G.localization.descriptions.Other = G.localization.descriptions.Other or {}
 
     SMODS.process_loc_text(
         G.localization.descriptions.Other,
@@ -81,10 +78,7 @@ function BM.use_timemon(card)
 
     BM.timemon_last_action = nil
 
-    card.ability.extra.uses = math.max(
-        0,
-        (card.ability.extra.uses or BM.APPMON_USE_COUNT) - 1
-    )
+    card.ability.extra.uses = math.max(0,(card.ability.extra.uses or BM.APPMON_USE_COUNT) - 1)
 
     if card.ability.extra.uses <= 0 then
         card._bm_appmon_remove_at =
@@ -2370,13 +2364,9 @@ function BM.appmon_increase_digimon_hunger(card, amount)
             BM.on_remove(card, slug)
         end
 
-        if SMODS.debuff_card then
-            SMODS.debuff_card(
-                card,
-                true,
-                'balatromon_hunger'
-            )
-        end
+
+        SMODS.debuff_card(card, true, 'balatromon_hunger')
+
     end
 
     return true

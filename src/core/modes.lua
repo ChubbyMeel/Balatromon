@@ -67,9 +67,9 @@ function BM.set_configured_mode(mode)
         MOD.config = MOD.config or {}
         MOD.config.mode = index
 
-        if SMODS and SMODS.save_mod_config then
-            pcall(SMODS.save_mod_config, MOD)
-        end
+
+        pcall(SMODS.save_mod_config, MOD)
+
     end
 
     return index == 2 and BM.MODE_CASUAL or BM.MODE_STANDARD
