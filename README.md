@@ -14,7 +14,7 @@ We have a discord community server you can join [here](https://discord.gg/jCSX9Q
 
 ## Features
 
-<img width="1012" height="857" alt="image" src="https://github.com/user-attachments/assets/3b6515cd-f45e-4325-bcfb-0e5530b733d6" />
+<img width="1077" height="901" alt="image" src="https://github.com/user-attachments/assets/c4fec804-3e01-4636-ad74-f715219e89fc" />
 
 
 - **200+ Digimon Jokers**
