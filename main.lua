@@ -4,7 +4,6 @@ BM.MOD_ID = 'Balatromon'
 BM.PREFIX = 'DigiMeel'
 BM.MOD = BM.MOD or SMODS.current_mod
 
-
 SMODS.current_mod.optional_features = function()
     return {
         retrigger_joker = true,
@@ -15,7 +14,6 @@ SMODS.current_mod.optional_features = function()
         },
     }
 end
-
 
 SMODS.Atlas {
     key = 'Joker',
@@ -270,7 +268,6 @@ SMODS.current_mod.menu_cards = function()
     }
 end
 
-
 G.C.BALATROMON_SPLASH_RED = HEX('B7475D')
 G.C.BALATROMON_SPLASH_BLUE = HEX('35566C')
 
@@ -351,6 +348,16 @@ SMODS.Sound {
     end
 }
 
+local function load_lua_folder(folder)
+    local files = NFS.getDirectoryItems(BM.MOD.path .. folder)
+    table.sort(files)
+
+    for _, file in ipairs(files) do
+        if file:sub(-4) == '.lua' then
+            assert(SMODS.load_file(folder .. '/' .. file))()
+        end
+    end
+end
 
 assert(SMODS.load_file('src/core/modes.lua'))()
 assert(SMODS.load_file('src/core/core.lua'))()
@@ -365,6 +372,7 @@ assert(SMODS.load_file('src/digimon/effects.lua'))()
 assert(SMODS.load_file('src/gameplay/poker_hands.lua'))()
 assert(SMODS.load_file('src/digimon/royal_knights.lua'))()
 assert(SMODS.load_file('src/digimon/jokers.lua'))()
+load_lua_folder('src/digimon/generation_one')
 assert(SMODS.load_file('src/appmon/appmon.lua'))()
 assert(SMODS.load_file('src/appmon/appmon_effect.lua'))()
 assert(SMODS.load_file('src/items/boosters.lua'))()
@@ -402,7 +410,6 @@ SMODS.current_mod.process_loc_text = function()
         }
     }
 end
-
 
 local function wrap_digimon_tooltip_text(text, max_length)
     max_length = max_length or 34
@@ -465,7 +472,6 @@ SMODS.current_mod.process_loc_text = function(self)
         )
     end
 end
-
 
 assert(SMODS.load_file('src/compat/pokermon_compat.lua'))()
 assert(SMODS.load_file('src/compat/multiplayer_compat.lua'))()
