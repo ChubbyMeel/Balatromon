@@ -292,10 +292,7 @@ do
                 and card.ability.extra
                 or extra
 
-            BM.add_digimon_tooltip(
-                info_queue,
-                'tanemon'
-            )
+            BM.add_digimon_tooltip(info_queue, 'tanemon', card)
 
             return {
                 vars = {
@@ -419,10 +416,7 @@ do
                 and card.ability.extra
                 or extra
 
-            BM.add_digimon_tooltip(
-                info_queue,
-                'tanemon'
-            )
+            BM.add_digimon_tooltip(info_queue, 'tanemon', card)
 
             return {
                 vars = {
@@ -546,10 +540,7 @@ do
                 and card.ability.extra
                 or extra
 
-            BM.add_digimon_tooltip(
-                info_queue,
-                'tanemon'
-            )
+            BM.add_digimon_tooltip(info_queue, 'tanemon', card)
 
             return {
                 vars = {
@@ -662,7 +653,7 @@ do
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
 
-            BM.add_digimon_tooltip(info_queue,'tanemon')
+            BM.add_digimon_tooltip(info_queue, 'tanemon', card)
 
             return {
                 vars={
@@ -769,7 +760,7 @@ do
 
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            BM.add_digimon_tooltip(info_queue,'lalamon')
+            BM.add_digimon_tooltip(info_queue, 'lalamon', card)
             return {
                 vars={
                     e.hunger or 1,
@@ -1085,7 +1076,7 @@ do
 
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            BM.add_digimon_tooltip(info_queue,'togemon')
+            BM.add_digimon_tooltip(info_queue, 'togemon', card)
             return {
                 vars={
                     e.hunger or 1,
@@ -1194,7 +1185,7 @@ do
 
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            BM.add_digimon_tooltip(info_queue,'sunflowmon')
+            BM.add_digimon_tooltip(info_queue, 'sunflowmon', card)
             return {
                 vars={
                     e.hunger or 1,
@@ -1514,7 +1505,7 @@ do
 
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            BM.add_digimon_tooltip(info_queue,'lillymon')
+            BM.add_digimon_tooltip(info_queue, 'lillymon', card)
             return {
                 vars={
                     e.hunger or 1,

@@ -1,9 +1,7 @@
 local BM = Balatromon
 
 local function x_profile()
-    return G.PROFILES
-        and G.SETTINGS
-        and G.PROFILES[G.SETTINGS.profile]
+    return G.PROFILES and G.SETTINGS and G.PROFILES[G.SETTINGS.profile]
 end
 
 local function x_discovery_table()
@@ -13,9 +11,7 @@ local function x_discovery_table()
         return {}
     end
 
-    profile.balatromon_x_antibody_discovered =
-        profile.balatromon_x_antibody_discovered
-        or {}
+    profile.balatromon_x_antibody_discovered = profile.balatromon_x_antibody_discovered or {}
 
     return profile.balatromon_x_antibody_discovered
 end
@@ -27,8 +23,7 @@ function BM.is_x_antibody_discovered(slug)
 
     local profile = x_profile()
 
-    if profile
-    and profile.all_unlocked then
+    if profile and profile.all_unlocked then
         return true
     end
 
@@ -40,8 +35,7 @@ function BM.discover_x_antibody(slug)
         return
     end
 
-    if BM.x_antibody_viable
-    and BM.x_antibody_viable[slug] ~= true then
+    if BM.x_antibody_viable and BM.x_antibody_viable[slug] ~= true then
         return
     end
 
@@ -70,9 +64,7 @@ local function get_x_collection_entries()
                 BM.center_key(slug)
             ]
 
-        if center
-        and form
-        and form.pos then
+        if center and form and form.pos then
             entries[#entries + 1] = {
                 slug = slug,
                 form = form,
@@ -84,21 +76,17 @@ local function get_x_collection_entries()
     table.sort(
         entries,
         function(a, b)
-            local ay =
-                a.form.pos.y or 0
+            local ay = a.form.pos.y or 0
 
-            local by =
-                b.form.pos.y or 0
+            local by = b.form.pos.y or 0
 
             if ay ~= by then
                 return ay < by
             end
 
-            local ax =
-                a.form.pos.x or 0
+            local ax = a.form.pos.x or 0
 
-            local bx =
-                b.form.pos.x or 0
+            local bx = b.form.pos.x or 0
 
             if ax ~= bx then
                 return ax < bx
@@ -112,8 +100,7 @@ local function get_x_collection_entries()
 end
 
 local function get_x_collection_tally()
-    local entries =
-        get_x_collection_entries()
+    local entries = get_x_collection_entries()
 
     local tally = 0
 
@@ -174,27 +161,19 @@ local function make_undiscovered_x_center()
     return undiscovered_x_center
 end
 
-local function make_x_collection_card(
-    area,
-    entry
-)
-    local discovered =
-        BM.is_x_antibody_discovered(
-            entry.slug
-        )
+local function make_x_collection_card(area, entry)
+
+    local discovered = BM.is_x_antibody_discovered(entry.slug)
 
     local center
     local params = {}
 
     if discovered then
-        center =
-            entry.center
+        center = entry.center
 
-        params.bypass_discovery_center =
-            true
+        params.bypass_discovery_center = true
     else
-        center =
-            make_undiscovered_x_center()
+        center = make_undiscovered_x_center()
     end
 
     local card =
@@ -215,48 +194,28 @@ local function make_x_collection_card(
     if discovered then
         card.bypass_lock = true
         card.bypass_discovery_ui = true
-
-        card.config.center_key =
-            entry.center.key
-
-        card.ability.extra =
-            card.ability.extra
-            or {}
-
-        card.ability.extra.x_antibody_rounds =
-            1
-
-        BM.set_x_antibody_sprite(
-            card
-        )
+        card.config.center_key = entry.center.key
+        card.ability.extra = card.ability.extra or {}
+        card.ability.extra.x_antibody_rounds = 1
+        BM.set_x_antibody_sprite(card)
     end
 
     return card
 end
 
 local function populate_x_collection(page)
-    local entries =
-        get_x_collection_entries()
+    local entries = get_x_collection_entries()
 
-    local offset =
-        15 * (page - 1)
+    local offset = 15 * (page - 1)
 
     for i = 1, 5 do
         for j = 1, 3 do
-            local index =
-                i
-                + (j - 1) * 5
-                + offset
+            local index = i + (j - 1) * 5 + offset
 
-            local entry =
-                entries[index]
+            local entry = entries[index]
 
             if entry then
-                local card =
-                    make_x_collection_card(
-                        G.your_collection[j],
-                        entry
-                    )
+                local card = make_x_collection_card(G.your_collection[j], entry)
 
                 G.your_collection[j]:
                     emplace(card)
@@ -310,16 +269,9 @@ function create_UIBox_your_collection_balatromon_x_antibodies()
         }
     end
 
-    local entries =
-        get_x_collection_entries()
+    local entries = get_x_collection_entries()
 
-    local page_count =
-        math.max(
-            1,
-            math.ceil(
-                #entries / 15
-            )
-        )
+    local page_count = math.max(1, math.ceil(#entries / 15))
 
     local page_options = {}
 
@@ -360,22 +312,13 @@ function create_UIBox_your_collection_balatromon_x_antibodies()
 
                 nodes = {
                     create_option_cycle({
-                        options =
-                            page_options,
-
+                        options = page_options,
                         w = 4.5,
-
-                        cycle_shoulders =
-                            true,
-
-                        opt_callback =
-                            'your_collection_balatromon_x_antibody_page',
-
+                        cycle_shoulders = true,
+                        opt_callback = 'your_collection_balatromon_x_antibody_page',
                         current_option = 1,
 
-                        colour =
-                            G.C.PURPLE,
-
+                        colour = G.C.PURPLE,
                         no_pips = true,
 
                         focus_args = {
@@ -391,22 +334,14 @@ end
 
 G.FUNCS.your_collection_balatromon_x_antibody_page =
 function(args)
-    if not args
-    or not args.cycle_config then
+    if not args or not args.cycle_config then
         return
     end
 
     for j = 1, #G.your_collection do
-        for i =
-            #G.your_collection[j].cards,
-            1,
-            -1
-        do
-            local card =
-                G.your_collection[j]:
-                    remove_card(
-                        G.your_collection[j].cards[i]
-                    )
+        for i = #G.your_collection[j].cards, 1, -1 do
+            local card = G.your_collection[j]:
+                remove_card(G.your_collection[j].cards[i])
 
             if card then
                 card:remove()
@@ -414,10 +349,7 @@ function(args)
         end
     end
 
-    populate_x_collection(
-        args.cycle_config.current_option
-        or 1
-    )
+    populate_x_collection(args.cycle_config.current_option or 1)
 end
 
 G.FUNCS.your_collection_balatromon_x_antibodies =
@@ -437,24 +369,17 @@ function BM.add_x_antibody_collection_tab(tabs)
 
     tabs[#tabs + 1] =
         UIBox_button({
-            button =
-                'your_collection_balatromon_x_antibodies',
+            button = 'your_collection_balatromon_x_antibodies',
 
-            id =
-                'your_collection_balatromon_x_antibodies',
+            id = 'your_collection_balatromon_x_antibodies',
 
-            label = {
-                'X-Antibody'
-            },
+            label = {'X-Antibody'},
 
-            count =
-                get_x_collection_tally(),
+            count = get_x_collection_tally(),
 
             minw = 5,
             minh = 1.2,
 
-            focus_args = {
-                snap_to = true
-            }
+            focus_args = {snap_to = true}
         })
 end

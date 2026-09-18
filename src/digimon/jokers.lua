@@ -51,7 +51,7 @@ function BM.register_digimon(def)
                 BM.add_seal_tooltip(info_queue, seal)
             end
             for _, digimon in ipairs(def.digimon_tooltips or {}) do
-                BM.add_digimon_tooltip(info_queue, digimon)
+                BM.add_digimon_tooltip(info_queue, digimon, card)
             end
             for _, center_key in ipairs(def.joker_tooltips or {}) do
                 if G.P_CENTERS and G.P_CENTERS[center_key] then

@@ -284,13 +284,7 @@ do
                     )
                 )
 
-            info_queue[#info_queue + 1] = {
-                set = 'Other',
-                key = 'DigiMeel_sakuyamon_renamon_effect',
-                vars = {
-                    BM.rank_name(target_rank)
-                }
-            }
+            BM.add_digimon_tooltip(info_queue, 'renamon', card)
 
             return {
                 vars = {

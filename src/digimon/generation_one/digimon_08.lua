@@ -91,6 +91,7 @@ do
             {
                 'If the played hand is a single card,',
                 'turn it into a glass card',
+                'Also applies the effects of Nyaromon and YukimiBotamon',
             },
             {BM.care_status_text(stage)}
         }},
@@ -103,6 +104,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Gatomon, Nefertimon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'nyaromon', card)
+            BM.add_digimon_tooltip(info_queue, 'yukimibotamon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -117,7 +120,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Salamon', stage = stage, evolves_to = 'Gatomon, Nefertimon', effect = 'If the first played card is a single card, turn it into a glass card'}
+    BM.joker_defs[slug] = {name = 'Salamon', stage = stage, evolves_to = 'Gatomon, Nefertimon', effect = 'If the first played card is a single card, turn it into a glass card. Also applies the effects of Nyaromon and YukimiBotamon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -144,6 +147,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Angewomon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'salamon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -260,6 +264,7 @@ do
                 {
                     'Glass cards have a {C:green}#4# in #5#{} chance to',
                     '{X:mult,C:white}X3{} Mult additionally',
+                    'Also applies Angewomon’s effect',
                 },
                 {
                     BM.care_status_text(stage),
@@ -284,6 +289,7 @@ do
 
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'angewomon', card)
 
             local numerator, denominator =
                 SMODS.get_probability_vars(
@@ -344,7 +350,7 @@ elements = {BM.care_bars(e, stage)},
         name = 'Magnadramon',
         stage = stage,
         evolves_to = '-',
-        effect = 'Glass cards have a 1 in 2 chance to X3 Mult additionally'
+        effect = 'Glass cards have a 1 in 2 chance to X3 Mult additionally. Also applies Angewomon’s effect'
     }
 
     local weight = BM.stage_shop_weight(stage)
@@ -449,6 +455,7 @@ do
         loc_txt = {name = 'Devimon', text = {
             {
                 'Ace and 2 held in hand turn into steel cards',
+                'Also applies the effects of Pagumon and DemiDevimon',
             },
             {BM.care_status_text(stage)}
         }},
@@ -461,6 +468,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Myotismon, LadyDevimon, Kimeramon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'pagumon', card)
+            BM.add_digimon_tooltip(info_queue, 'demidevimon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -475,7 +484,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Devimon', stage = stage, evolves_to = 'Myotismon, LadyDevimon, Kimeramon', effect = 'Ace and 2 held in hand turn into steel cards'}
+    BM.joker_defs[slug] = {name = 'Devimon', stage = stage, evolves_to = 'Myotismon, LadyDevimon, Kimeramon', effect = 'Ace and 2 held in hand turn into steel cards. Also applies the effects of Pagumon and DemiDevimon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -572,6 +581,7 @@ do
         loc_txt = {name = 'MaloMyotismon', text = {
             {
                 'Each King held in hand gives {X:mult,C:white}X1.5{} Mult',
+                'Also applies Myotismon’s effect',
             },
             {BM.care_status_text(stage)}
         }},
@@ -584,6 +594,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'myotismon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -598,7 +609,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'MaloMyotismon', stage = stage, evolves_to = '-', effect = 'Each King held in hand gives X1.5 Mult'}
+    BM.joker_defs[slug] = {name = 'MaloMyotismon', stage = stage, evolves_to = '-', effect = 'Each King held in hand gives X1.5 Mult. Also applies Myotismon’s effect'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -613,6 +624,7 @@ do
             {
                 'Gain {X:mult,C:white}X1{} Mult for every face card destroyed',
                 '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
+                'Also applies Myotismon’s effect',
             },
             {BM.care_status_text(stage)}
         }},
@@ -625,6 +637,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'myotismon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},e.xmult or 1}}
         end,
@@ -640,7 +653,7 @@ elements = {BM.care_bars(e, stage)},e.xmult or 1}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Piedmon', stage = stage, evolves_to = '-', effect = 'Gain X1 Mult for every face card destroyed'}
+    BM.joker_defs[slug] = {name = 'Piedmon', stage = stage, evolves_to = '-', effect = 'Gain X1 Mult for every face card destroyed. Also applies Myotismon’s effect'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end

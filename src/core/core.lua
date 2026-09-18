@@ -2573,21 +2573,31 @@ function BM.add_random_food(seed)
     }
 end
 
-function BM.add_digimon_tooltip(info_queue, slug)
-    if not info_queue then return end
-
+function BM.add_digimon_tooltip(info_queue, slug, card, x_antibody)
     slug = BM.slug(slug)
 
-    local def = BM.joker_defs
-        and BM.joker_defs[slug]
+    local center = G.P_CENTERS[BM.center_key(slug)]
+    local loc_vars = x_antibody and center.loc_vars or center.balatromon_normal_loc_vars or center.loc_vars
+    local tooltip = setmetatable({
+        key = x_antibody and center.key .. '_x_antibody' or center.key,
+        balatromon_digimon_ref = true,
+        create_fake_card = function()
+            return card or {ability = copy_table(center.config), fake_card = center.key}
+        end,
+        loc_vars = function(self, queue, tooltip_card)
+            local result = loc_vars and loc_vars(center, queue, tooltip_card) or {}
+            self.balatromon_ref_main_end = result.main_end and true or false
+            return result
+        end,
+        generate_ui = function(self, queue, tooltip_card, desc_nodes, specific_vars, full_UI_table)
+            local first = #desc_nodes
+            center.generate_ui(self, queue, tooltip_card, desc_nodes, specific_vars, full_UI_table)
+            local care_row = #desc_nodes - (self.balatromon_ref_main_end and 1 or 0)
+            if care_row > first then table.remove(desc_nodes, care_row) end
+        end
+    }, {__index = center})
 
-    if not def then return end
-
-    info_queue[#info_queue + 1] = {
-        set = 'Other',
-        key = BM.PREFIX .. '_digimon_ref_' .. slug,
-        vars = {}
-    }
+    info_queue[#info_queue + 1] = tooltip
 end
 
 function BM.add_seal_tooltip(info_queue, key)

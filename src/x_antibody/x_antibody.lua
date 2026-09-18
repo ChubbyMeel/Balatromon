@@ -1,8 +1,5 @@
 local BM = Balatromon
-
 BM.X_ANTIBODY_ATLAS = 'XDigimon'
-
-
 SMODS.Sticker {
     key = 'x_antibody',
     atlas = 'Seal',
@@ -1802,6 +1799,19 @@ function BM.install_x_antibody_localization()
     end
 end
 
+local x_normal_effect_tooltips = {
+    pegasusmon = {'pegasusmon'},
+    nefertimon = {'nefertimon'},
+    palmon = {'tanemon'},
+    togemon = {'tanemon'}
+}
+
+local x_effect_tooltips = {
+    lillymon = {'togemon'},
+    rosemon = {'lillymon'},
+    herculeskabuterimon = {'kuwagamon', 'okuwamon'}
+}
+
 function BM.install_x_antibody_tooltips()
     for slug, def in pairs(BM.x_antibody_tooltips) do
         local center_key = BM.center_key(slug)
@@ -1810,6 +1820,7 @@ function BM.install_x_antibody_tooltips()
 
         if center and not center._bm_x_loc_wrapped then
             local old_loc_vars = center.loc_vars
+            center.balatromon_normal_loc_vars = old_loc_vars
 
             center.loc_vars = function(self, info_queue, card)
                 local info_queue_start = info_queue and #info_queue or 0
@@ -1825,6 +1836,21 @@ function BM.install_x_antibody_tooltips()
                 result.vars = result.vars or {}
 
                 if card and BM.has_x_antibody(card) then
+                    if info_queue then
+                        for i = #info_queue, info_queue_start + 1, -1 do
+                            if info_queue[i].balatromon_digimon_ref then
+                                table.remove(info_queue, i)
+                            end
+                        end
+                    end
+
+                    for _, ref in ipairs(x_normal_effect_tooltips[slug] or {}) do
+                        BM.add_digimon_tooltip(info_queue, ref, card)
+                    end
+                    for _, ref in ipairs(x_effect_tooltips[slug] or {}) do
+                        BM.add_digimon_tooltip(info_queue, ref, card, true)
+                    end
+
                     result.key = self.key .. '_x_antibody'
 
                     local e = card.ability and card.ability.extra or {}
@@ -1868,12 +1894,6 @@ function BM.install_x_antibody_tooltips()
                         result.vars.colours = { (G.C.SUITS and G.C.SUITS[target_suit]) or G.C.FILTER }
 
                     elseif slug == 'sakuyamon' then
-                        if info_queue then
-                            while #info_queue > info_queue_start do
-                                table.remove(info_queue)
-                            end
-                        end
-
                         local target_suit =
                             BM.ensure_shared_target('x_renamon_family_suit', BM.deck_suits(), 'x_renamon_suit')
 

@@ -91,6 +91,7 @@ do
             {
                 'If the played hand is a single card,',
                 'turn it into a lucky card',
+                'Also applies the effects of Tokomon and Poyomon',
             },
             {BM.care_status_text(stage)}
         }},
@@ -103,6 +104,8 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Angemon, Pegasusmon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'tokomon', card)
+            BM.add_digimon_tooltip(info_queue, 'poyomon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -117,7 +120,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Patamon', stage = stage, evolves_to = 'Angemon, Pegasusmon', effect = 'If the first played card is a single card, turn it into a lucky card'}
+    BM.joker_defs[slug] = {name = 'Patamon', stage = stage, evolves_to = 'Angemon, Pegasusmon', effect = 'If the first played card is a single card, turn it into a lucky card. Also applies the effects of Tokomon and Poyomon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -144,6 +147,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'MagnaAngemon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'patamon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -256,6 +260,7 @@ do
         loc_txt = {name = 'Seraphimon', text = {
             {
                 'Lucky cards can give {X:mult,C:white}X2{} Mult on money hit',
+                'Also applies MagnaAngemon’s effect',
             },
             {BM.care_status_text(stage)}
         }},
@@ -268,6 +273,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'magnaangemon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -282,7 +288,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Seraphimon', stage = stage, evolves_to = '-', effect = 'Lucky cards can give X2 Mult on money hit'}
+    BM.joker_defs[slug] = {name = 'Seraphimon', stage = stage, evolves_to = '-', effect = 'Lucky cards can give X2 Mult on money hit. Also applies MagnaAngemon’s effect'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end

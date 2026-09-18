@@ -931,7 +931,14 @@ H.hydramon = function(card,context) if context.individual and context.cardarea==
 H.metalseadramon = function(card,context) if context.individual and context.cardarea==G.play and not context.blueprint then context.other_card.ability.perma_bonus=(context.other_card.ability.perma_bonus or 0)+50; return {chips=50,message='+50 Permanent Chips'} end end
 H.poyomon = function(card,context) if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_lucky') then return {mult=2} end end
 H.tokomon = boss_negative_tarot('c_magician',1)
-H.patamon = single_to('m_lucky')
+local patamon_effect = single_to('m_lucky')
+H.patamon = function(card, context)
+    local inherited = H.poyomon(card, context)
+    if inherited then return inherited end
+    inherited = H.tokomon(card, context)
+    if inherited then return inherited end
+    return patamon_effect(card, context)
+end
 H.angemon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then
         if #context.full_hand==1 then BM.set_enhancement(context.full_hand[1],'m_lucky') end
@@ -960,16 +967,28 @@ H.magnaangemon = function(card,context)
     if context.joker_main then return {xmult=e.xmult} end
 end
 H.seraphimon = function(card,context)
+    local inherited = H.magnaangemon(card, context)
     local e=card.ability.extra
     if context.before and context.main_eval and not context.blueprint then e.lucky_money_hit=false end
     if context.pseudorandom_result and context.result and context.trigger_obj and SMODS.is_playing_card(context.trigger_obj) and BM.has_enhancement(context.trigger_obj,'m_lucky') then
         local id=string.lower(tostring(context.identifier or '')); if id:find('money') or id:find('dollar') then e.lucky_money_hit=true end
     end
-    if context.joker_main and e.lucky_money_hit then return {xmult=2} end
+    if context.joker_main and e.lucky_money_hit then
+        local xmult = inherited and inherited.xmult or 1
+        return {xmult=xmult*2}
+    end
+    return inherited
 end
 H.yukimibotamon = function(card,context) if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_glass') then return {chips=30} end end
 H.nyaromon = boss_negative_tarot('c_justice',2)
-H.salamon = single_to('m_glass')
+local salamon_effect = single_to('m_glass')
+H.salamon = function(card, context)
+    local inherited = H.yukimibotamon(card, context)
+    if inherited then return inherited end
+    inherited = H.nyaromon(card, context)
+    if inherited then return inherited end
+    return salamon_effect(card, context)
+end
 H.gatomon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then
         local single=#context.full_hand==1
@@ -984,10 +1003,18 @@ H.angewomon = function(card,context)
     if context.remove_playing_cards and not context.blueprint then local n=0; for _,c in ipairs(context.removed or {}) do if BM.has_enhancement(c,'m_glass') then n=n+1 end end; if n>0 then e.xmult=e.xmult+0.69*n; return {message='XMult Up!'} end end
     if context.joker_main then return {xmult=e.xmult} end
 end
-H.magnadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_glass') and SMODS.pseudorandom_probability(card,'magnadramon',1,2) then return {xmult=3} end end
+H.magnadramon = function(card,context)
+    local inherited = H.angewomon(card, context)
+    if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_glass') and SMODS.pseudorandom_probability(card,'magnadramon',1,2) then return {xmult=3} end
+    return inherited
+end
 H.pagumon = boss_negative_tarot('c_chariot',2)
 H.demidevimon = single_to('m_steel')
 H.devimon = function(card,context)
+    local inherited = H.pagumon(card, context)
+    if inherited then return inherited end
+    inherited = H.demidevimon(card, context)
+    if inherited then return inherited end
     if (context.hand_drawn or context.first_hand_drawn) and context.main_eval and not context.blueprint then
         local changed=false; for _,c in ipairs(G.hand.cards or {}) do if BM.card_has_rank(c,14) or BM.card_has_rank(c,2) then changed=BM.set_enhancement(c,'m_steel') or changed end end
         if changed then return {message='Steel!'} end
@@ -996,21 +1023,28 @@ end
 H.ladydevimon = function(card,context) if context.discard and BM.has_enhancement(context.other_card,'m_steel') then return {dollars=2} end end
 H.myotismon = function(card,context) if context.joker_main then local n=BM.count_deck_enhancement('m_steel'); if n>0 then return {xmult=1+0.25*n} end end end
 H.malomyotismon = function(card, context)
+    local inherited = H.myotismon(card, context)
     if context.individual
     and context.cardarea == G.hand
     and not context.end_of_round
     and not context.playing_card_end_of_round
     and BM.card_has_rank(context.other_card, 13) then
-
         return {
             xmult = 1.5
         }
     end
+
+    return inherited
 end
 H.piedmon = function(card,context)
+    local inherited = H.myotismon(card, context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
     if context.remove_playing_cards and not context.blueprint then local n=0; for _,c in ipairs(context.removed or {}) do if BM.is_face(c) then n=n+1 end end; if n>0 then e.xmult=e.xmult+n; return {message='XMult Up!'} end end
-    if context.joker_main then return {xmult=e.xmult} end
+    if context.joker_main then
+        local xmult = inherited and inherited.xmult or 1
+        return {xmult=e.xmult*xmult}
+    end
+    return inherited
 end
 H.sakumon = single_to('m_gold')
 H.sakuttomon = boss_negative_tarot('c_devil',1)
