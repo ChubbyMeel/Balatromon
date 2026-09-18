@@ -1,5 +1,6 @@
 local BM = Balatromon
 local MOD = BM.MOD or SMODS.current_mod
+MOD.config = MOD.config or {}
 
 BM.MODE_STANDARD = 'standard'
 BM.MODE_CASUAL = 'casual'
@@ -49,39 +50,30 @@ BM.MODE_RULES = {
 }
 
 local function configured_mode_index()
-    local config = (MOD and MOD.config) or {}
-    local index = tonumber(config.mode) or 1
+    local index = tonumber(MOD.config.mode) or 1
     return index == 2 and 2 or 1
 end
 
 function BM.get_configured_mode()
-    return configured_mode_index() == 2
-        and BM.MODE_CASUAL
-        or BM.MODE_STANDARD
+    return configured_mode_index() == 2 and BM.MODE_CASUAL or BM.MODE_STANDARD
 end
 
 function BM.set_configured_mode(mode)
-    local index = (mode == BM.MODE_CASUAL or tonumber(mode) == 2) and 2 or 1
+    local casual = mode == BM.MODE_CASUAL or tonumber(mode) == 2
+    MOD.config.mode = casual and 2 or 1
+    SMODS.save_mod_config(MOD)
 
-    if MOD then
-        MOD.config = MOD.config or {}
-        MOD.config.mode = index
-
-
-        pcall(SMODS.save_mod_config, MOD)
-
+    local multiplayer = BM.multiplayer_compat
+    if multiplayer and multiplayer.refresh_mode_hash then
+        multiplayer.refresh_mode_hash()
     end
 
-    return index == 2 and BM.MODE_CASUAL or BM.MODE_STANDARD
+    return casual and BM.MODE_CASUAL or BM.MODE_STANDARD
 end
 
 function BM.get_mode()
-    local run_mode = G
-        and G.GAME
-        and G.GAME.balatromon_mode
-
-    if run_mode == BM.MODE_STANDARD
-    or run_mode == BM.MODE_CASUAL then
+    local run_mode = G.GAME and G.GAME.balatromon_mode
+    if run_mode == BM.MODE_STANDARD or run_mode == BM.MODE_CASUAL then
         return run_mode
     end
 
@@ -89,14 +81,11 @@ function BM.get_mode()
 end
 
 function BM.get_mode_name()
-    local rules = BM.MODE_RULES[BM.get_mode()]
-        or BM.MODE_RULES.standard
-    return rules.name
+    return BM.MODE_RULES[BM.get_mode()].name
 end
 
 function BM.get_mode_rules()
     return BM.MODE_RULES[BM.get_mode()]
-        or BM.MODE_RULES.standard
 end
 
 function BM.is_casual_mode()
@@ -104,11 +93,11 @@ function BM.is_casual_mode()
 end
 
 function BM.get_hunger_max()
-    return BM.get_mode_rules().hunger_max or 5
+    return BM.get_mode_rules().hunger_max
 end
 
 function BM.get_bond_gain_max_hunger()
-    return BM.get_mode_rules().bond_gain_max_hunger or 3
+    return BM.get_mode_rules().bond_gain_max_hunger
 end
 
 function BM.can_revive_starved()
@@ -120,8 +109,7 @@ function BM.manual_evolution_enabled()
 end
 
 function BM.get_mode_bond_max(stage)
-    local caps = BM.get_mode_rules().bond_caps or {}
-    return caps[stage] or 5
+    return BM.get_mode_rules().bond_caps[stage] or 5
 end
 
 local DIGIVICE_KEYS = {
@@ -133,18 +121,10 @@ local DIGIVICE_KEYS = {
 }
 
 function BM.get_digivolution_bond_requirement(card, device_key)
-    local max_bond = BM.get_bond_max
-        and BM.get_bond_max(card)
-        or 5
-
-    if BM.is_casual_mode()
-    and DIGIVICE_KEYS[device_key] then
-        return math.min(
-            tonumber(BM.get_mode_rules().digivice_bond) or 3,
-            max_bond
-        )
+    local max_bond = BM.get_bond_max(card)
+    if BM.is_casual_mode() and DIGIVICE_KEYS[device_key] then
+        return math.min(BM.get_mode_rules().digivice_bond, max_bond)
     end
-
     return max_bond
 end
 
@@ -152,22 +132,17 @@ function BM.get_care_crisis_revert_stages()
     return BM.get_mode_rules().care_crisis_revert_stages
 end
 
-local old_start_run = Game.start_run
-
-Game.start_run = function(self, args)
-    local loading_save = args and args.savetext ~= nil
-    local ret = old_start_run(self, args)
-
-    if G and G.GAME then
-        if loading_save then
-            if G.GAME.balatromon_mode ~= BM.MODE_STANDARD
-            and G.GAME.balatromon_mode ~= BM.MODE_CASUAL then
-                G.GAME.balatromon_mode = BM.MODE_STANDARD
-            end
-        else
-            G.GAME.balatromon_mode = BM.get_configured_mode()
-        end
+function BM.apply_run_mode(loading_save)
+    if not (G and G.GAME) then
+        return
     end
 
-    return ret
+    if loading_save then
+        if G.GAME.balatromon_mode ~= BM.MODE_STANDARD
+        and G.GAME.balatromon_mode ~= BM.MODE_CASUAL then
+            G.GAME.balatromon_mode = BM.MODE_STANDARD
+        end
+    else
+        G.GAME.balatromon_mode = BM.get_configured_mode()
+    end
 end

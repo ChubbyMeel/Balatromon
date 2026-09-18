@@ -717,20 +717,6 @@ local function split_evolution_names(raw)
     return out
 end
 
-function BM.get_card_slug(card)
-    if not (card and card.config and card.config.center) then return nil end
-
-    local key = card.config.center.key or card.config.center_key
-    local prefix = 'j_' .. BM.PREFIX .. '_'
-    if type(key) == 'string' and key:sub(1, #prefix) == prefix then
-        return key:sub(#prefix + 1)
-    end
-
-    local name = card.config.center.loc_txt and card.config.center.loc_txt.name
-        or card.config.center.name
-    return name and BM.slug(name) or nil
-end
-
 function BM.parse_evolution_names(card)
     local center = card and card.config and card.config.center
     return split_evolution_names(center and center.balatromon_evolves_to)

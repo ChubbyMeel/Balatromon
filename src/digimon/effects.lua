@@ -17,7 +17,6 @@ local function bm_enhancements(card)
         return SMODS.get_enhancements(card) or {}
     end
 
-
     local center = card.config and card.config.center
 
     if center and center.key and center.key ~= 'c_base' then
@@ -29,13 +28,11 @@ local function bm_enhancements(card)
     return {}
 end
 
-
 local function bm_is_enhanced(card)
     return next(
         bm_enhancements(card)
     ) ~= nil
 end
-
 
 local function bm_same_enhancement(a, b)
     local first =
@@ -52,7 +49,6 @@ local function bm_same_enhancement(a, b)
 
     return false
 end
-
 
 local function bm_card_effects_have_retrigger(effects)
     for _, effect in ipairs(
@@ -85,10 +81,11 @@ function BM.unique_planets_used()
     return count
 end
 
+BM.planet_hand_aliases = BM.planet_hand_aliases or {}
+
 function BM.planet_key_for_hand(hand_name)
-    if not hand_name then
-        return nil
-    end
+    hand_name = BM.planet_hand_aliases[hand_name] or hand_name
+    if not hand_name then return nil end
 
     for key, center in pairs(G.P_CENTERS or {}) do
         if center.set == 'Planet'
@@ -398,33 +395,18 @@ local GABUMON_NAKED_NEXT_RANK = {
     Ace = '2',
 }
 
-if not BM._last_tarot_used_hooked
-and Card
-and Card.use_consumeable then
-    BM._last_tarot_used_hooked = true
+function BM.track_last_tarot(card)
+    local center =
+        card
+        and card.config
+        and card.config.center
 
-    local old_use_consumeable =
-        Card.use_consumeable
-
-    Card.use_consumeable =
-    function(self, ...)
-        local center =
-            self
-            and self.config
-            and self.config.center
-
-        if G
-        and G.GAME
-        and center
-        and center.set == 'Tarot' then
-            G.GAME.balatromon_last_tarot =
-                center.key
-        end
-
-        return old_use_consumeable(
-            self,
-            ...
-        )
+    if G
+    and G.GAME
+    and center
+    and center.set == 'Tarot' then
+        G.GAME.balatromon_last_tarot =
+            center.key
     end
 end
 
@@ -1502,9 +1484,6 @@ H.puppetmon = function(card, context)
     end
 end
 
-
-
-------------------------------------------------------------------------------------------------------
 if not BM._shortcut_patched then
     BM._shortcut_patched=true
     local old_shortcut=SMODS.shortcut
@@ -1693,50 +1672,40 @@ end
 BM.refresh_polarbearmon_shop_costs =
     BM.refresh_planet_shop_costs
 
-if not BM._polarbearmon_cost_patched then
-    BM._polarbearmon_cost_patched = true
+function BM.apply_polarbearmon_shop_cost(card)
+    if not BM.is_polarbearmon_discount_target(card) then
+        return
+    end
 
-    local old_set_cost = Card.set_cost
+    local changed = false
 
-    Card.set_cost = function(self, ...)
-        local result = old_set_cost(self, ...)
+    if BM.has_active_skadimon() then
+        card.cost = 0
+        changed = true
+    elseif BM.has_active_polarbearmon() then
+        card.cost = math.max(
+            0,
+            (card.cost or 0) - 2
+        )
+        changed = true
+    end
 
-        if BM.is_polarbearmon_discount_target(self) then
-            local changed = false
+    if changed then
+        card.sell_cost =
+            math.max(
+                1,
+                math.floor(card.cost / 2)
+            )
+            + (
+                card.ability
+                and card.ability.extra_value
+                or 0
+            )
 
-            if BM.has_active_skadimon() then
-                self.cost = 0
-                changed = true
-
-            elseif BM.has_active_polarbearmon() then
-                self.cost = math.max(
-                    0,
-                    (self.cost or 0) - 2
-                )
-
-                changed = true
-            end
-
-            if changed then
-                self.sell_cost =
-                    math.max(
-                        1,
-                        math.floor(self.cost / 2)
-                    )
-                    + (
-                        self.ability
-                        and self.ability.extra_value
-                        or 0
-                    )
-
-                self.sell_cost_label =
-                    self.facing == 'back'
-                    and '?'
-                    or self.sell_cost
-            end
-        end
-
-        return result
+        card.sell_cost_label =
+            card.facing == 'back'
+            and '?'
+            or card.sell_cost
     end
 end
 
@@ -1848,7 +1817,6 @@ local function bm_hand_has_rank(
     return false
 end
 
-
 local function bm_lopmon_hand(
     cards
 )
@@ -1865,7 +1833,6 @@ local function bm_lopmon_hand(
         10
     )
 end
-
 
 local function bm_cherubimon_effect(
     card,
@@ -1912,7 +1879,6 @@ local function bm_cherubimon_effect(
     end
 end
 
-
 BM.cherubimon_good_effect =
 function(
     card,
@@ -1926,7 +1892,6 @@ function(
         gain
     )
 end
-
 
 BM.cherubimon_evil_effect =
 function(
@@ -2359,28 +2324,13 @@ function BM.on_food_used()
     end
 end
 
-if not BM._redvegiemon_cost_patched then
-    BM._redvegiemon_cost_patched = true
-
-    local old_set_cost_redvegiemon = Card.set_cost
-
-    Card.set_cost = function(self, ...)
-        local result = old_set_cost_redvegiemon(
-            self,
-            ...
-        )
-
-        if BM.has_active_digimon('redvegiemon')
-        and self.area == G.shop_jokers
-        and BM.is_food_card(self) then
-            self.cost = 0
-        end
-
-        return result
+function BM.apply_redvegiemon_shop_cost(card)
+    if BM.has_active_digimon('redvegiemon')
+    and card.area == G.shop_jokers
+    and BM.is_food_card(card) then
+        card.cost = 0
     end
 end
-
-
 
 function BM.has_sunflowmon_effect()
     return BM.has_active_digimon('sunflowmon')
@@ -3300,7 +3250,6 @@ H.elecmon = function(card, context)
     end
 end
 
-
 H.grapleomon = function(card, context)
     local e =
         card.ability.extra
@@ -3366,7 +3315,6 @@ H.grapleomon = function(card, context)
             nil
     end
 end
-
 
 H.saberleomon = function(card, context)
     local e =
@@ -3684,7 +3632,6 @@ H.omegamon = function(card, context)
     end
 end
 
-
 H.magnamon = function(card, context)
     if not context.repetition then
         return
@@ -3758,7 +3705,6 @@ H.raidramon = function(card, context)
     end
 end
 
-
 H.veedramon = function(card, context)
     if not (
         context.repetition
@@ -3790,7 +3736,6 @@ H.veedramon = function(card, context)
     end
 end
 
-
 H.aeroveedramon = function(card, context)
     if not (
         context.repetition
@@ -3815,7 +3760,6 @@ H.aeroveedramon = function(card, context)
         }
     end
 end
-
 
 H.ultraforceveedramon = function(card, context)
     if context.repetition
@@ -3886,7 +3830,6 @@ H.ultraforceveedramon = function(card, context)
     end
 end
 
-
 H.imperialdramon_paladin_mode =
 function(card, context)
     if context.repetition
@@ -3937,7 +3880,6 @@ function(card, context)
         )
     end
 end
-
 
 H.bancholeomon_burst_mode =
 function(card, context)
@@ -4003,7 +3945,6 @@ function(card, context)
     end
 end
 
-
 H.kokomon =
 function(card, context)
     local conomon =
@@ -4039,7 +3980,6 @@ function(card, context)
         }
     end
 end
-
 
 H.lopmon =
 function(card, context)
@@ -4115,7 +4055,6 @@ function(card, context)
     end
 end
 
-
 H.turuiemon =
 function(card, context)
     local e =
@@ -4160,7 +4099,6 @@ function(card, context)
         }
     end
 end
-
 
 H.wendigomon =
 function(card, context)
@@ -4214,7 +4152,6 @@ function(card, context)
         }
     end
 end
-
 
 H.antylamon =
 function(card, context)
@@ -4289,7 +4226,6 @@ function(card, context)
     end
 end
 
-
 H.cherubimon_good =
 function(card, context)
     return BM.cherubimon_good_effect(
@@ -4298,7 +4234,6 @@ function(card, context)
         0.01
     )
 end
-
 
 H.cherubimon_evil =
 function(card, context)

@@ -245,11 +245,7 @@ G.FUNCS.load_profile = function(arg)
 end
 
 
-local old_main_menu = Game.main_menu
-
-function Game:main_menu(change_context)
-    local ret = old_main_menu(self, change_context)
-
+function BM.open_pending_profile_mode_picker()
     local pending =
         BM._pending_profile_mode_picker
 
@@ -276,6 +272,4 @@ function Game:main_menu(change_context)
             end,
         }))
     end
-
-    return ret
 end

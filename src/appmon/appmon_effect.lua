@@ -1,6 +1,6 @@
 local BM = Balatromon
 
-local function install_appmon_tooltips()
+function BM.install_appmon_localization()
     if not G or not G.localization or not G.localization.descriptions then
         return
     end
@@ -33,18 +33,7 @@ function BM.add_linked_tooltip(info_queue)
     }
 end
 
-local old_appmon_process_loc_text =
-    SMODS.current_mod.process_loc_text
-
-SMODS.current_mod.process_loc_text = function(self)
-    if old_appmon_process_loc_text then
-        old_appmon_process_loc_text(self)
-    end
-
-    install_appmon_tooltips()
-end
-
-install_appmon_tooltips()
+BM.install_appmon_localization()
 
 function BM.can_timemon_undo()
     if not BM.timemon_last_action then
@@ -169,28 +158,18 @@ function BM.get_perorimon_last_consumable_name()
     return BM.localized_object_name(center, nil, key, key)
 end
 
-if not BM._perorimon_last_consumable_hook
-and Card
-and Card.use_consumeable then
-    local old_appmon_use_consumeable = Card.use_consumeable
+function BM.track_perorimon_consumable(card)
+    local center = card
+        and card.config
+        and card.config.center
 
-    Card.use_consumeable = function(self, ...)
-        local center = self
-            and self.config
-            and self.config.center
-
-        if G
-        and G.GAME
-        and center
-        and center.key
-        and perorimon_copyable_consumable(center.key) then
-            G.GAME.balatromon_last_consumable = center.key
-        end
-
-        return old_appmon_use_consumeable(self, ...)
+    if G
+    and G.GAME
+    and center
+    and center.key
+    and perorimon_copyable_consumable(center.key) then
+        G.GAME.balatromon_last_consumable = center.key
     end
-
-    BM._perorimon_last_consumable_hook = true
 end
 
 function BM.can_use_perorimon(card)
@@ -294,15 +273,7 @@ function BM.use_hackmon(card)
     return true
 end
 
-local old_hackmon_mod_calculate = SMODS.current_mod.calculate
-
-SMODS.current_mod.calculate = function(self, context)
-    local ret
-
-    if old_hackmon_mod_calculate then
-        ret = old_hackmon_mod_calculate(self, context)
-    end
-
+function BM.calculate_hackmon(context)
     if context.final_scoring_step
     and G
     and G.GAME
@@ -316,29 +287,17 @@ SMODS.current_mod.calculate = function(self, context)
             colour = G.C.RED
         }
     end
-
-    return ret
 end
 
-if not BM._hackmon_start_run_hook
-and Game
-and Game.start_run then
-    local old_hackmon_start_run = Game.start_run
+function BM.reset_hackmon_run_state()
+    BM.hackmon_state.halve_next_score = false
+    BM._hackmon_action_prepared = false
+    BM._hackmon_scoring_discard = false
 
-    Game.start_run = function(self, args, ...)
-        BM.hackmon_state.halve_next_score = false
-        BM._hackmon_action_prepared = false
-        BM._hackmon_scoring_discard = false
-
-        if G and G.GAME then
-            G.GAME.balatromon_hackmon_armed = false
-            G.GAME.balatromon_hackmon_scoring = false
-        end
-
-        return old_hackmon_start_run(self, args, ...)
+    if G and G.GAME then
+        G.GAME.balatromon_hackmon_armed = false
+        G.GAME.balatromon_hackmon_scoring = false
     end
-
-    BM._hackmon_start_run_hook = true
 end
 
 G.FUNCS.balatromon_can_use_blind_appmon = function(e)

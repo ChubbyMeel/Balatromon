@@ -396,16 +396,7 @@ function PC.sync_all_hunger()
     end
 end
 
-local old_mod_calculate =
-    SMODS.current_mod.calculate
-
-SMODS.current_mod.calculate = function(self, context)
-    local ret
-
-    if old_mod_calculate then
-        ret = old_mod_calculate(self, context)
-    end
-
+function PC.calculate(context)
     if context.setting_blind then
         PC.sync_all_hunger()
     end
@@ -415,8 +406,6 @@ SMODS.current_mod.calculate = function(self, context)
     and not context.blueprint then
         PC.tick_all_hunger()
     end
-
-    return ret
 end
 
 if poke_backend_evolve
@@ -1144,14 +1133,7 @@ and not PC._type_tooltip_wrapped then
     end
 end
 
-local old_process_loc_text =
-    SMODS.current_mod.process_loc_text
-
-SMODS.current_mod.process_loc_text = function(self)
-    if old_process_loc_text then
-        old_process_loc_text(self)
-    end
-
+function PC.install_localization()
     install_hunger_localization()
 
     local function refresh_center_loc(key)
@@ -1190,6 +1172,5 @@ SMODS.current_mod.process_loc_text = function(self)
 
     refresh_center_loc('c_judgement')
 end
-
 
 install_hunger_localization()

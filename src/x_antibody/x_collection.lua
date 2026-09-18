@@ -430,48 +430,31 @@ function()
     })
 end
 
-local previous_custom_collection_tabs =
-    SMODS.current_mod.custom_collection_tabs
-
-SMODS.current_mod.custom_collection_tabs =
-function(...)
-    local tabs = {}
-
-    if previous_custom_collection_tabs then
-        local existing =
-            previous_custom_collection_tabs(...)
-
-        for _, tab in ipairs(
-            existing or {}
-        ) do
-            tabs[#tabs + 1] = tab
-        end
+function BM.add_x_antibody_collection_tab(tabs)
+    if G.ACTIVE_MOD_UI then
+        return
     end
 
-    if not G.ACTIVE_MOD_UI then
-        tabs[#tabs + 1] =
-            UIBox_button({
-                button =
-                    'your_collection_balatromon_x_antibodies',
+    tabs[#tabs + 1] =
+        UIBox_button({
+            button =
+                'your_collection_balatromon_x_antibodies',
 
-                id =
-                    'your_collection_balatromon_x_antibodies',
+            id =
+                'your_collection_balatromon_x_antibodies',
 
-                label = {
-                    'X-Antibody'
-                },
+            label = {
+                'X-Antibody'
+            },
 
-                count =
-                    get_x_collection_tally(),
+            count =
+                get_x_collection_tally(),
 
-                minw = 5,
-                minh = 1.2,
+            minw = 5,
+            minh = 1.2,
 
-                focus_args = {
-                    snap_to = true
-                }
-            })
-    end
-
-    return tabs
+            focus_args = {
+                snap_to = true
+            }
+        })
 end

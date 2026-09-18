@@ -1,12 +1,13 @@
 local BM = Balatromon
 
-local appmon_save_safe_copy
-
 BM.APPMON_LOADER_SLOTS = BM.APPMON_LOADER_SLOTS or 2
 BM.APPMON_USE_COUNT = BM.APPMON_USE_COUNT or 3
 BM.APPMON_SHOP_RATE = BM.APPMON_SHOP_RATE or 0.7
 BM.APPMON_BABY_COST = BM.APPMON_BABY_COST or 3
 BM.APPMON_STANDARD_COST = BM.APPMON_STANDARD_COST or 4
+BM.APPMON_SUPER_COST = BM.APPMON_SUPER_COST or 5
+BM.APPMON_ULTIMATE_COST = BM.APPMON_ULTIMATE_COST or 6
+BM.APPMON_GOD_COST = BM.APPMON_GOD_COST or 7
 
 BM.APPMON_STAGES = BM.APPMON_STAGES or {
     'Baby',
@@ -45,199 +46,55 @@ BM.APPMON_BASE_BY_ATTRIBUTE = BM.APPMON_BASE_BY_ATTRIBUTE or {
 
 BM.appmon_combinations = BM.appmon_combinations or {}
 
-BM.APPMON_SUPER_COST = BM.APPMON_SUPER_COST or 5
-
-BM.APPMON_ULTIMATE_COST = BM.APPMON_ULTIMATE_COST or 6
-BM.APPMON_GOD_COST = BM.APPMON_GOD_COST or 7
-
-function BM.ensure_appmon_shop_rate()
-    if not G or not G.GAME then
-        return
-    end
-
-    local rate = tonumber(G.GAME.appmon_rate)
-    if rate == nil then
-        G.GAME.appmon_rate = BM.APPMON_SHOP_RATE
-    else
-        G.GAME.appmon_rate = rate
-    end
-end
-
-appmon_save_safe_copy = function(value, path, active, removed)
-    local value_type = type(value)
-
-    if value_type == 'nil'
-    or value_type == 'boolean'
-    or value_type == 'number'
-    or value_type == 'string' then
-        return value, true
-    end
-
-    if value_type ~= 'table' then
-        removed[#removed + 1] = tostring(path) .. ' [' .. value_type .. ']'
-        return nil, false
-    end
-
-    active = active or {}
-    if active[value] then
-        removed[#removed + 1] = tostring(path) .. ' [cycle]'
-        return nil, false
-    end
-
-    active[value] = true
-    local clean = {}
-
-    for key, child in pairs(value) do
-        local key_type = type(key)
-        if key_type == 'string' or key_type == 'number' or key_type == 'boolean' then
-            local child_path = tostring(path) .. '[' .. tostring(key) .. ']'
-            local clean_child, keep = appmon_save_safe_copy(child, child_path, active, removed)
-            if keep then
-                clean[key] = clean_child
-            end
-        else
-            removed[#removed + 1] = tostring(path) .. '[<key:' .. key_type .. '>]'
-        end
-    end
-
-    active[value] = nil
-    return clean, true
-end
-
-function BM.sanitize_pending_run_save()
-    if not G
-    or not G.ARGS
-    or type(G.ARGS.save_run) ~= 'table' then
-        return 0
-    end
-
-    local removed = {}
-    local clean = appmon_save_safe_copy(G.ARGS.save_run, '$', {}, removed)
-
-    G.ARGS.save_run = clean
-    G.culled_table = clean
-    BM.last_save_sanitized_paths = removed
-
-    if #removed > 0 then
-        print('[Balatromon/Appmon] Removed ' .. tostring(#removed) .. ' unsupported value(s) from the run save payload:')
-        for i = 1, math.min(#removed, 20) do
-            print('[Balatromon/Appmon]   ' .. tostring(removed[i]))
-        end
-        if #removed > 20 then
-            print('[Balatromon/Appmon]   ... and ' .. tostring(#removed - 20) .. ' more')
-        end
-    end
-
-    return #removed
-end
-
 local function merge_legacy_appmon_loader_save(args)
-    if not args or not args.savetext or not args.savetext.cardAreas then
-        return
-    end
+    local card_areas = args and args.savetext and args.savetext.cardAreas
+    local loader = card_areas and card_areas.appmon_loader
+    if not loader then return end
 
-    local card_areas = args.savetext.cardAreas
-    local legacy_loader = card_areas.appmon_loader
-    if not legacy_loader then
-        return
-    end
-
-    local joker_save = card_areas.jokers
-    if joker_save and type(legacy_loader.cards) == 'table' then
-        joker_save.cards = joker_save.cards or {}
-        for _, saved_card in ipairs(legacy_loader.cards) do
-            joker_save.cards[#joker_save.cards + 1] = saved_card
+    local jokers = card_areas.jokers
+    if jokers and loader.cards then
+        jokers.cards = jokers.cards or {}
+        for _, card in ipairs(loader.cards) do
+            jokers.cards[#jokers.cards + 1] = card
         end
     end
 
     card_areas.appmon_loader = nil
 end
 
-if not BM._appmon_v12_save_run_guard_installed and type(save_run) == 'function' then
-    local old_save_run = save_run
-    save_run = function(...)
-        local result = old_save_run(...)
-
-        if G and G.ARGS and type(G.ARGS.save_run) == 'table' and G.ARGS.save_run.cardAreas then
-            G.ARGS.save_run.cardAreas.appmon_loader = nil
-        end
-
-        if G and G.FILE_HANDLER and G.FILE_HANDLER.run then
-            BM.sanitize_pending_run_save()
-        end
-        return result
-    end
-    BM._appmon_v12_save_run_guard_installed = true
+local function remove_legacy_loader_area()
+    if not G.appmon_loader then return end
+    if not G.appmon_loader.REMOVED then G.appmon_loader:remove() end
+    G.appmon_loader = nil
 end
 
-if not BM._appmon_v12_game_update_save_guard_installed and Game and type(Game.update) == 'function' then
-    local old_game_update = Game.update
-    Game.update = function(self, dt, ...)
-        BM.ensure_appmon_shop_rate()
-
-        if G and G.FILE_HANDLER and G.FILE_HANDLER.run then
-            if G.ARGS and type(G.ARGS.save_run) == 'table' and G.ARGS.save_run.cardAreas then
-                G.ARGS.save_run.cardAreas.appmon_loader = nil
-            end
-            BM.sanitize_pending_run_save()
-        end
-
-        local result = old_game_update(self, dt, ...)
-        if BM.update_onmon_state then
-            BM.update_onmon_state()
-        end
-
-        if BM.cleanup_exhausted_appmon and not (G and G.OVERLAY_MENU) then
-            BM.cleanup_exhausted_appmon()
-        end
-
-        return result
-    end
-    BM._appmon_v12_game_update_save_guard_installed = true
+local game_update = Game.update
+function Game:update(dt, ...)
+    local result = game_update(self, dt, ...)
+    BM.update_onmon_state()
+    if not G.OVERLAY_MENU then BM.cleanup_exhausted_appmon() end
+    return result
 end
 
-if not BM._appmon_v12_start_run_rate_guard_installed and Game and type(Game.start_run) == 'function' then
-    local old_appmon_start_run = Game.start_run
-    Game.start_run = function(self, args, ...)
-        args = args or {}
-        merge_legacy_appmon_loader_save(args)
+function BM.prepare_appmon_run(args)
+    merge_legacy_appmon_loader_save(args)
+    return args
+end
 
-        local result = old_appmon_start_run(self, args, ...)
+function BM.finish_appmon_run()
+    G.GAME.appmon_rate = G.GAME.appmon_rate or BM.APPMON_SHOP_RATE
+    remove_legacy_loader_area()
+    BM.rebalance_appmon_loader()
 
-        BM.ensure_appmon_shop_rate()
-
-
-
-        if G and G.appmon_loader then
-            if not G.appmon_loader.REMOVED and G.appmon_loader.remove then
-                G.appmon_loader:remove()
-            end
-            G.appmon_loader = nil
-        end
-
-        if BM.rebalance_appmon_loader then
+    G.E_MANAGER:add_event(Event {
+        trigger = 'after',
+        delay = 0.05,
+        func = function()
             BM.rebalance_appmon_loader()
+            if not G.OVERLAY_MENU then BM.cleanup_exhausted_appmon() end
+            return true
         end
-
-        if G and G.E_MANAGER and Event then
-            G.E_MANAGER:add_event(Event {
-                trigger = 'after',
-                delay = 0.05,
-                func = function()
-                    if BM.rebalance_appmon_loader then
-                        BM.rebalance_appmon_loader()
-                    end
-                    if BM.cleanup_exhausted_appmon and not (G and G.OVERLAY_MENU) then
-                        BM.cleanup_exhausted_appmon()
-                    end
-                    return true
-                end
-            })
-        end
-
-        return result
-    end
-    BM._appmon_v12_start_run_rate_guard_installed = true
+    })
 end
 
 local ATTRIBUTE_DEFS = {
@@ -275,14 +132,9 @@ SMODS.ConsumableType {
 }
 
 local function center_from_source(source)
-    if not source then
-        return nil
-    end
-
-    if source.config and source.config.center then
+    if source and source.config and source.config.center then
         return source.config.center
     end
-
     return source
 end
 
@@ -293,7 +145,7 @@ end
 
 function BM.get_appmon_stage(source)
     local center = center_from_source(source)
-    return center and center.appmon_stage or nil
+    return center and center.appmon_stage
 end
 
 function BM.get_appmon_attribute(source)
@@ -306,75 +158,40 @@ function BM.is_base_appmon(source)
 end
 
 function BM.appmon_center_key(slug)
-    return 'c_' .. BM.PREFIX .. '_' .. tostring(slug)
+    return 'c_' .. BM.PREFIX .. '_' .. slug
 end
 
 function BM.localized_object_name(source, set_override, key_override, fallback)
-    local object = source
-
-    if object and object.config and object.config.center then
-        object = object.config.center
-    end
-
+    local object = center_from_source(source)
     local key = key_override or (object and object.key)
     local set = set_override or (object and object.set)
 
-    if type(localize) == 'function' and key and set then
-        local ok, name = pcall(localize, {
-            type = 'name_text',
-            set = set,
-            key = key
-        })
-
-        if ok and type(name) == 'string' and name ~= '' and name ~= 'ERROR' then
-            return name
-        end
+    if key and set then
+        local name = localize {type = 'name_text', set = set, key = key}
+        if name and name ~= 'ERROR' then return name end
     end
 
-    if object and object.loc_txt and type(object.loc_txt.name) == 'string'
-    and object.loc_txt.name ~= '' then
-        return object.loc_txt.name
-    end
-
-    if object and type(object.name) == 'string' and object.name ~= '' then
-        return object.name
-    end
-
+    if object and object.loc_txt and object.loc_txt.name then return object.loc_txt.name end
+    if object and object.name then return object.name end
     return fallback or key or 'Unknown'
 end
 
 function BM.localized_blind_name(blind, fallback)
-    return BM.localized_object_name(
-        blind,
-        'Blind',
-        (blind and blind.key) or fallback,
-        fallback
-    )
+    return BM.localized_object_name(blind, 'Blind', blind and blind.key or fallback, fallback)
 end
 
 local function combination_key(left, right)
-    local a = type(left) == 'table' and center_from_source(left) and center_from_source(left).key or tostring(left or '')
-    local b = type(right) == 'table' and center_from_source(right) and center_from_source(right).key or tostring(right or '')
+    local left_center = type(left) == 'table' and center_from_source(left)
+    local right_center = type(right) == 'table' and center_from_source(right)
+    local a = tostring(left_center and left_center.key or left or '')
+    local b = tostring(right_center and right_center.key or right or '')
 
-    if a > b then
-        a, b = b, a
-    end
-
+    if a > b then a, b = b, a end
     return a .. '|' .. b
 end
 
 function BM.register_appmon_combination(left, right, result, args)
-    if not left or not right or not result then
-        return nil
-    end
-
-    local route = {
-        left = left,
-        right = right,
-        result = result,
-        args = args or {}
-    }
-
+    local route = {left = left, right = right, result = result, args = args or {}}
     BM.appmon_combinations[combination_key(left, right)] = route
     return route
 end
@@ -408,29 +225,13 @@ function BM.count_appmon_in_jokers()
 end
 
 function BM.has_appmon_voucher(slug)
-    if not G or not G.GAME then
-        return false
-    end
-
-    local key = 'v_' .. BM.PREFIX .. '_' .. tostring(slug)
-    local flag = 'balatromon_' .. tostring(slug)
-
-    return G.GAME[flag] == true
-        or (
-            G.GAME.used_vouchers
-            and G.GAME.used_vouchers[key]
-            == true
-        )
+    if not G.GAME then return false end
+    local key = 'v_' .. BM.PREFIX .. '_' .. slug
+    return G.GAME['balatromon_' .. slug] == true or G.GAME.used_vouchers and G.GAME.used_vouchers[key] == true
 end
 
 function BM.get_loader_limit()
-    local bonus = 0
-
-    if BM.has_appmon_voucher('appli_driver') then
-        bonus = bonus + 1
-    end
-
-    return BM.APPMON_LOADER_SLOTS + bonus
+    return BM.APPMON_LOADER_SLOTS + (BM.has_appmon_voucher('appli_driver') and 1 or 0)
 end
 
 function BM.get_loader_slots_used()
@@ -438,203 +239,103 @@ function BM.get_loader_slots_used()
 end
 
 local function applied_loader_bonus_total()
+    if not G.jokers then return 0 end
     local total = 0
-
-    for _, card in ipairs(G and G.jokers and G.jokers.cards or {}) do
-        if BM.is_appmon(card) and card.ability then
-            total = total + (tonumber(card.ability.balatromon_loader_bonus) or 0)
+    for _, card in ipairs(G.jokers.cards) do
+        if BM.is_appmon(card) then
+            total = total + (card.ability.balatromon_loader_bonus or 0)
         end
     end
-
     return total
 end
 
 function BM.get_regular_joker_limit()
-    if not G or not G.jokers or not G.jokers.config then
-        return 0
-    end
-
-    return math.max(
-        0,
-        (tonumber(G.jokers.config.card_limit) or 0) - applied_loader_bonus_total()
-    )
+    if not G.jokers then return 0 end
+    return math.max(0, G.jokers.config.card_limit - applied_loader_bonus_total())
 end
 
 function BM.get_regular_joker_slots_used()
-    local physical = #(G and G.jokers and G.jokers.cards or {})
-    return math.max(0, physical - BM.get_loader_slots_used())
+    if not G.jokers then return 0 end
+    return math.max(0, #G.jokers.cards - BM.get_loader_slots_used())
 end
 
 local function refresh_loader_ui()
     BM.loader_ui_state = BM.loader_ui_state or {}
-    BM.loader_ui_state.text = tostring(BM.get_loader_slots_used()) .. '/' .. tostring(BM.get_loader_limit())
+    BM.loader_ui_state.text = BM.get_loader_slots_used() .. '/' .. BM.get_loader_limit()
 end
 
 function BM.sync_loader_slots()
-    if BM.rebalance_appmon_loader then
-        BM.rebalance_appmon_loader()
-    else
-        refresh_loader_ui()
-    end
-end
-
-local function remove_legacy_loader_area()
-    if G and G.appmon_loader then
-        if not G.appmon_loader.REMOVED and G.appmon_loader.remove then
-            G.appmon_loader:remove()
-        end
-        G.appmon_loader = nil
-    end
-end
-
-function BM.position_appmon_loader()
-    remove_legacy_loader_area()
-end
-
-function BM.ensure_appmon_loader()
-    remove_legacy_loader_area()
-    return G and G.jokers or nil
-end
-
-function BM.attach_appmon_loader_to_pending_save()
-    if G
-    and G.ARGS
-    and type(G.ARGS.save_run) == 'table'
-    and G.ARGS.save_run.cardAreas then
-        G.ARGS.save_run.cardAreas.appmon_loader = nil
-    end
+    BM.rebalance_appmon_loader()
 end
 
 local function strip_loader_bonus(card)
-    if not card or not card.ability then
-        return
-    end
-
-    local old_bonus = tonumber(card.ability.balatromon_loader_bonus) or 0
-    if old_bonus ~= 0 then
-        card.ability.card_limit = (tonumber(card.ability.card_limit) or 0) - old_bonus
-    end
+    if not card.ability then return end
+    local bonus = card.ability.balatromon_loader_bonus or 0
+    if bonus ~= 0 then card.ability.card_limit = (card.ability.card_limit or 0) - bonus end
     card.ability.balatromon_loader_bonus = 0
 end
 
-local function set_loader_bonus(card, desired_bonus)
-    if not card or not card.ability then
-        return false
-    end
-
-    desired_bonus = tonumber(desired_bonus) or 0
-
-    local old_bonus = tonumber(card.ability.balatromon_loader_bonus) or 0
-    if old_bonus == desired_bonus then
-        return false
-    end
-
-    local current_limit = tonumber(card.ability.card_limit) or 0
-    card.ability.card_limit = current_limit - old_bonus + desired_bonus
-    card.ability.balatromon_loader_bonus = desired_bonus
-    return true
+local function set_loader_bonus(card, bonus)
+    if not card.ability then return end
+    local old_bonus = card.ability.balatromon_loader_bonus or 0
+    if old_bonus == bonus then return end
+    card.ability.card_limit = (card.ability.card_limit or 0) - old_bonus + bonus
+    card.ability.balatromon_loader_bonus = bonus
 end
 
 function BM.rebalance_appmon_loader()
-    if BM._appmon_loader_rebalancing
-    or not G
-    or not G.jokers
-    or not G.jokers.cards then
-        return
-    end
+    if BM._appmon_loader_rebalancing or not G.jokers then return end
 
     remove_legacy_loader_area()
     BM._appmon_loader_rebalancing = true
 
     local loader_index = 0
-    local changed = false
-
+    local loader_limit = BM.get_loader_limit()
     for _, card in ipairs(G.jokers.cards) do
         if BM.is_appmon(card) then
             loader_index = loader_index + 1
-            local desired_bonus = loader_index <= BM.get_loader_limit() and 1 or 0
-            if set_loader_bonus(card, desired_bonus) then
-                changed = true
-            end
+            set_loader_bonus(card, loader_index <= loader_limit and 1 or 0)
         end
     end
 
-    if G.jokers.handle_card_limit then
-        G.jokers:handle_card_limit()
-    elseif changed and G.jokers.config then
-        print('[Balatromon/Appmon] Steamodded CardArea:handle_card_limit is unavailable; Loader slots require a newer Steamodded build.')
-    end
-
+    G.jokers:handle_card_limit()
     BM._appmon_loader_rebalancing = false
     refresh_loader_ui()
 end
 
-local function incoming_native_card_limit(card)
-    if not card or not card.ability then
-        return 0
-    end
-
-    local value = (tonumber(card.ability.card_limit) or 0)
-        - (tonumber(card.ability.balatromon_loader_bonus) or 0)
-
-    if value == 0
-    and card.edition
-    and card.edition.negative then
-        value = 1
-    end
-
-    return value
+local function incoming_card_limit(card)
+    local limit = (card.ability.card_limit or 0) - (card.ability.balatromon_loader_bonus or 0)
+    if limit == 0 and card.edition and card.edition.negative then return 1 end
+    return limit
 end
 
 function BM.can_add_appmon(card)
-    if not G or not G.jokers or not G.jokers.config then
-        return false
-    end
-
+    if not G.jokers then return false end
     BM.rebalance_appmon_loader()
 
     local loader_bonus = appmon_count() < BM.get_loader_limit() and 1 or 0
-    local incoming_limit = incoming_native_card_limit(card) + loader_bonus
-
-    return #G.jokers.cards < (tonumber(G.jokers.config.card_limit) or 0) + incoming_limit
+    return #G.jokers.cards < G.jokers.config.card_limit + incoming_card_limit(card) + loader_bonus
 end
 
 local function ensure_loader_counter()
-    if not G or not G.jokers or not UIBox then
-        return
-    end
-
     refresh_loader_ui()
 
     if BM._loader_counter_area ~= G.jokers then
-        if BM.loader_counter_box and BM.loader_counter_box.remove then
-            BM.loader_counter_box:remove()
-        end
-
+        if BM.loader_counter_box then BM.loader_counter_box:remove() end
         BM.loader_counter_box = nil
         BM._loader_counter_area = G.jokers
     end
 
-    if BM.loader_counter_box and not BM.loader_counter_box.REMOVED then
-        return
-    end
+    if BM.loader_counter_box and not BM.loader_counter_box.REMOVED then return end
 
     BM.loader_counter_box = UIBox {
         definition = {
             n = G.UIT.ROOT,
-            config = {
-                align = 'cm',
-                colour = G.C.CLEAR
-            },
+            config = {align = 'cm', colour = G.C.CLEAR},
             nodes = {
                 {
                     n = G.UIT.R,
-                    config = {
-                        align = 'cm',
-                        r = 0.08,
-                        padding = 0.04,
-                        colour = G.C.UI.TRANSPARENT_DARK
-                    },
+                    config = {align = 'cm', r = 0.08, padding = 0.04, colour = G.C.UI.TRANSPARENT_DARK},
                     nodes = {
                         {
                             n = G.UIT.T,
@@ -668,288 +369,156 @@ local function ensure_loader_counter()
     }
 end
 
-local function discard_failed_appmon_spawn(card)
-    if not card then
-        return nil
-    end
-
-    if card.area and card.area.remove_card and card.area.cards then
-        for i = #card.area.cards, 1, -1 do
-            if card.area.cards[i] == card then
-                card.area:remove_card(card)
-                break
-            end
-        end
-    end
-
-    strip_loader_bonus(card)
-    card.area = nil
-
-    if card.remove then
-        card:remove()
-    else
-        card.REMOVED = true
-    end
-
-    return nil
-end
-
-local function finish_appmon_emplace(card)
-    if card and BM.is_appmon(card) and BM.get_appmon_stage(card) == 'Baby' then
-        BM.appmon_digivolve_baby(card)
-    end
-
-    BM.rebalance_appmon_loader()
-    return card
-end
-
-local base_cardarea_emplace = CardArea.emplace
-local base_cardarea_remove_card = CardArea.remove_card
-
 local function area_contains(area, card)
-    for _, candidate in ipairs(area and area.cards or {}) do
-        if candidate == card then
-            return true
-        end
+    for _, other in ipairs(area.cards) do
+        if other == card then return true end
     end
     return false
 end
 
+local function discard_failed_appmon_spawn(card)
+    if card.area and area_contains(card.area, card) then card.area:remove_card(card) end
+    strip_loader_bonus(card)
+    card.area = nil
+    card:remove()
+end
+
+local function finish_appmon_emplace(card)
+    if BM.get_appmon_stage(card) == 'Baby' then BM.appmon_digivolve_baby(card) end
+    BM.rebalance_appmon_loader()
+end
+
+local cardarea_emplace = CardArea.emplace
+local cardarea_remove_card = CardArea.remove_card
+local cardarea_draw = CardArea.draw
+
 function CardArea:emplace(card, location, stay_flipped)
-    local is_appmon = BM.is_appmon(card)
-
     if not BM._appmon_loader_rebalancing
-    and G
     and G.jokers
-    and is_appmon
+    and BM.is_appmon(card)
     and (self == G.consumeables or self == G.jokers) then
-        local already_in_jokers = area_contains(G.jokers, card)
-
-        if not already_in_jokers and not BM.can_add_appmon(card) then
-            if alert_no_space then
-                alert_no_space(card, G.jokers)
-            end
-            return discard_failed_appmon_spawn(card)
+        if not area_contains(G.jokers, card) and not BM.can_add_appmon(card) then
+            alert_no_space(card, G.jokers)
+            discard_failed_appmon_spawn(card)
+            return
         end
 
-        local result = base_cardarea_emplace(G.jokers, card, location, stay_flipped)
+        local result = cardarea_emplace(G.jokers, card, location, stay_flipped)
         finish_appmon_emplace(card)
         return result
     end
 
-    local result = base_cardarea_emplace(self, card, location, stay_flipped)
-
-    if G and self == G.jokers then
-        refresh_loader_ui()
-    end
-
+    local result = cardarea_emplace(self, card, location, stay_flipped)
+    if self == G.jokers then refresh_loader_ui() end
     return result
 end
 
 function CardArea:remove_card(card, discarded_only)
-    local was_appmon = G and self == G.jokers and BM.is_appmon(card)
-    local result = base_cardarea_remove_card(self, card, discarded_only)
+    local was_appmon = self == G.jokers and BM.is_appmon(card)
+    local result = cardarea_remove_card(self, card, discarded_only)
 
     if was_appmon then
         strip_loader_bonus(card)
-
-        if not BM._appmon_loader_rebalancing then
-            BM.rebalance_appmon_loader()
-        end
-    elseif G and self == G.jokers then
+        if not BM._appmon_loader_rebalancing then BM.rebalance_appmon_loader() end
+    elseif self == G.jokers then
         refresh_loader_ui()
     end
 
     return result
 end
 
-local base_cardarea_draw = CardArea.draw
 function CardArea:draw(...)
-    local result = base_cardarea_draw(self, ...)
-
-    if G and self == G.jokers then
+    local result = cardarea_draw(self, ...)
+    if self == G.jokers then
         refresh_loader_ui()
         ensure_loader_counter()
-
-        if BM.loader_counter_box
-        and not BM.loader_counter_box.REMOVED
-        and BM.loader_counter_box.draw then
-            BM.loader_counter_box:draw()
-        end
+        if BM.loader_counter_box and not BM.loader_counter_box.REMOVED then BM.loader_counter_box:draw() end
     end
-
     return result
 end
 
-if Card and type(Card.set_ability) == 'function' and not BM._appmon_v12_set_ability_hook then
-    local old_card_set_ability = Card.set_ability
+local card_set_ability = Card.set_ability
+function Card:set_ability(...)
+    local in_jokers = self.area == G.jokers
+    if in_jokers and BM.is_appmon(self) then strip_loader_bonus(self) end
 
-    function Card:set_ability(...)
-        local in_jokers = G and self.area == G.jokers
-        local was_appmon = BM.is_appmon(self)
-
-        if in_jokers and was_appmon then
-            strip_loader_bonus(self)
-        end
-
-        local result = old_card_set_ability(self, ...)
-
-        if in_jokers and BM.is_appmon(self) and not BM._appmon_loader_rebalancing then
-            BM.rebalance_appmon_loader()
-        end
-
-        return result
+    local result = card_set_ability(self, ...)
+    if in_jokers and BM.is_appmon(self) and not BM._appmon_loader_rebalancing then
+        BM.rebalance_appmon_loader()
     end
-
-    BM._appmon_v12_set_ability_hook = true
+    return result
 end
 
-if Card and type(Card.set_edition) == 'function' and not BM._appmon_v12_set_edition_hook then
-    local old_card_set_edition = Card.set_edition
+local card_set_edition = Card.set_edition
+function Card:set_edition(...)
+    local in_jokers = self.area == G.jokers
+    if in_jokers and BM.is_appmon(self) then strip_loader_bonus(self) end
 
-    function Card:set_edition(...)
-        local in_jokers = G and self.area == G.jokers
-        local is_appmon = BM.is_appmon(self)
-
-        if in_jokers and is_appmon then
-            strip_loader_bonus(self)
-        end
-
-        local result = old_card_set_edition(self, ...)
-
-        if in_jokers and BM.is_appmon(self) and not BM._appmon_loader_rebalancing then
-            BM.rebalance_appmon_loader()
-        end
-
-        return result
+    local result = card_set_edition(self, ...)
+    if in_jokers and BM.is_appmon(self) and not BM._appmon_loader_rebalancing then
+        BM.rebalance_appmon_loader()
     end
-
-    BM._appmon_v12_set_edition_hook = true
+    return result
 end
 
-local old_check_for_buy_space = G.FUNCS.check_for_buy_space
+local check_for_buy_space = G.FUNCS.check_for_buy_space
 G.FUNCS.check_for_buy_space = function(card, ...)
-    if BM.is_appmon(card) then
-        if BM.can_add_appmon(card) then
-            return true
-        end
-
-        alert_no_space(card, G.jokers)
-        return false
-    end
-
-    return old_check_for_buy_space(card, ...)
+    if not BM.is_appmon(card) then return check_for_buy_space(card, ...) end
+    if BM.can_add_appmon(card) then return true end
+    alert_no_space(card, G.jokers)
+    return false
 end
 
 function BM.initialise_appmon_uses(card)
-    if not card or not BM.is_appmon(card) then
-        return
-    end
-
-    if BM.get_appmon_stage(card) == 'Baby' then
-        return
-    end
-
+    if not BM.is_appmon(card) or BM.get_appmon_stage(card) == 'Baby' then return end
     card.ability.extra = card.ability.extra or {}
     card.ability.extra.max_uses = card.ability.extra.max_uses or BM.APPMON_USE_COUNT
     card.ability.extra.uses = card.ability.extra.uses or card.ability.extra.max_uses
-
 end
 
-
-
 function BM.appmon_digivolve_baby(card)
-    if not card
-    or not BM.is_appmon(card)
-    or BM.get_appmon_stage(card) ~= 'Baby' then
-        return false
-    end
+    if not BM.is_appmon(card) or BM.get_appmon_stage(card) ~= 'Baby' then return false end
 
     local attribute = BM.get_attribute(card)
-    local candidates = attribute and BM.APPMON_BASE_BY_ATTRIBUTE[attribute] or {}
-
     local valid = {}
-    local seen = {}
 
-    local function add_candidate(slug)
-        if not slug or seen[slug] then
-            return
-        end
-
-        local key = BM.appmon_center_key(slug)
-        if G.P_CENTERS[key] then
-            seen[slug] = true
-            valid[#valid + 1] = slug
-        end
-    end
-
-    for _, slug in ipairs(candidates or {}) do
-        add_candidate(slug)
+    for _, slug in ipairs(BM.APPMON_BASE_BY_ATTRIBUTE[attribute] or {}) do
+        if G.P_CENTERS[BM.appmon_center_key(slug)] then valid[#valid + 1] = slug end
     end
 
     if BM.has_appmon_voucher('ultimate_app_realise') then
-        for key, center in pairs(G.P_CENTERS or {}) do
-            if center
-            and center.balatromon_appmon == true
+        for key, center in pairs(G.P_CENTERS) do
+            if center.balatromon_appmon
             and center.appmon_stage == 'Super'
-            and center.appmon_base ~= true
+            and not center.appmon_base
             and center.attribute == attribute then
-                local slug = tostring(key):gsub('^c_' .. BM.PREFIX .. '_', '')
-                add_candidate(slug)
+                valid[#valid + 1] = key:gsub('^c_' .. BM.PREFIX .. '_', '')
             end
         end
     end
 
-    if #valid == 0 then
-        return false
-    end
-
+    if #valid == 0 then return false end
     table.sort(valid)
 
-    local target_slug = BM.random_element(
-        valid,
-        'appmon_base_'
-            .. tostring(attribute)
-            .. '_'
-            .. tostring(card.sort_id or 0)
-    )
-
+    local target_slug = BM.random_element(valid, 'appmon_base_' .. tostring(attribute) .. '_' .. tostring(card.sort_id or 0))
     local target_key = BM.appmon_center_key(target_slug)
     local target = G.P_CENTERS[target_key]
 
-    if not target then
-        return false
-    end
-
     card:juice_up(0.8, 0.5)
     card:set_ability(target, nil, true)
-
     BM.initialise_appmon_uses(card)
-
     card:set_cost()
-
-    if card_eval_status_text then
-        card_eval_status_text(card, 'extra', nil, nil, nil, {
-            message = BM.localized_object_name(target, nil, target_key, target_slug)
-        })
-    end
-
-    BM.sync_loader_slots()
-
+    card_eval_status_text(card, 'extra', nil, nil, nil, {
+        message = BM.localized_object_name(target, nil, target_key, target_slug)
+    })
+    BM.rebalance_appmon_loader()
     return true
 end
 
-local old_buy_from_shop = G.FUNCS.buy_from_shop
-G.FUNCS.buy_from_shop = function(e, ...)
-    local card = e and e.config and e.config.ref_table
-
-    if not BM.is_appmon(card) then
-        return old_buy_from_shop(e, ...)
-    end
-
-    if e.config.id == 'buy_and_use' then
-        return false
-    end
+function BM.buy_appmon_from_shop(buy_from_shop, e, ...)
+    local card = e.config.ref_table
+    if not BM.is_appmon(card) then return buy_from_shop(e, ...) end
+    if e.config.id == 'buy_and_use' then return false end
 
     if not BM.can_add_appmon(card) then
         alert_no_space(card, G.jokers)
@@ -959,18 +528,17 @@ G.FUNCS.buy_from_shop = function(e, ...)
 
     local was_consumeable = card.ability.consumeable
     card.ability.consumeable = false
-
-    local result = old_buy_from_shop(e, ...)
+    local result = buy_from_shop(e, ...)
 
     G.E_MANAGER:add_event(Event {
         trigger = 'after',
         delay = 0.12,
         func = function()
-            if card and not card.REMOVED then
+            if not card.REMOVED then
                 card.ability.consumeable = was_consumeable
                 BM.appmon_digivolve_baby(card)
                 BM.initialise_appmon_uses(card)
-                BM.sync_loader_slots()
+                BM.rebalance_appmon_loader()
             end
             return true
         end
@@ -979,48 +547,34 @@ G.FUNCS.buy_from_shop = function(e, ...)
     return result
 end
 
-
-local old_card_focus_ui = G.UIDEF.card_focus_ui
+local card_focus_ui = G.UIDEF.card_focus_ui
 G.UIDEF.card_focus_ui = function(card, ...)
-    local ui = old_card_focus_ui(card, ...)
-
-    if BM.is_appmon(card)
-    and card.area == G.jokers
-    and card.ability.consumeable
-    and ui
-    and ui.get_UIE_by_ID then
+    local ui = card_focus_ui(card, ...)
+    if BM.is_appmon(card) and card.area == G.jokers and card.ability.consumeable and ui then
         local attach = ui:get_UIE_by_ID('ATTACH_TO_ME')
-
         if attach and not attach.children.use then
+            local key = card.config.center.key
+            local blind_appmon = key == BM.appmon_center_key('logimon')
+                or key == BM.appmon_center_key('bootmon')
+                or key == BM.appmon_center_key('rebootmon')
+
             attach.children.use = G.UIDEF.card_focus_button {
                 card = card,
                 parent = attach,
                 type = 'use',
-                func = (
-                    card.config.center.key
-                        == BM.appmon_center_key('logimon')
-                    or
-                    card.config.center.key
-                        == BM.appmon_center_key('bootmon')
-                    or
-                    card.config.center.key
-                        == BM.appmon_center_key('rebootmon')
-                )
-                and 'balatromon_can_use_blind_appmon'
-                or 'can_use_consumeable',
+                func = blind_appmon and 'balatromon_can_use_blind_appmon' or 'can_use_consumeable',
                 button = 'use_card',
                 card_width = card.T.w - 0.1
             }
         end
     end
-
     return ui
 end
 
 local function appmon_stage_badge(self, card, badges)
     badges[#badges + 1] = create_badge(
         self.appmon_stage or 'Appmon',
-        G.C.SECONDARY_SET and G.C.SECONDARY_SET.Appmon or HEX('243447'),
+        G.C.SECONDARY_SET.Appmon or HEX('243447'),
         G.C.WHITE,
         1
     )
@@ -1028,26 +582,16 @@ end
 
 local function baby_in_pool(self)
     local attribute = self.attribute
-
-    if BM.APPMON_SHOP_ATTRIBUTES[attribute] ~= true then
-        return false
-    end
+    if not BM.APPMON_SHOP_ATTRIBUTES[attribute] then return false end
 
     for _, slug in ipairs(BM.APPMON_BASE_BY_ATTRIBUTE[attribute] or {}) do
-        if G.P_CENTERS[BM.appmon_center_key(slug)] then
-            return true
-        end
+        if G.P_CENTERS[BM.appmon_center_key(slug)] then return true end
     end
-
     return false
 end
 
 local function baby_loc_vars(self)
-    return {
-        vars = {
-            self.attribute or 'Unknown'
-        }
-    }
+    return {vars = {self.attribute or 'Unknown'}}
 end
 
 local baby_names = {
@@ -1056,15 +600,7 @@ local baby_names = {
     {name = 'Swipemon', slug = 'swipemon', y = 2}
 }
 
-local attribute_order = {
-    'Social',
-    'Navi',
-    'Game',
-    'Tool',
-    'System',
-    'Entertainment',
-    'Life'
-}
+local attribute_order = {'Social', 'Navi', 'Game', 'Tool', 'System', 'Entertainment', 'Life'}
 
 for _, baby in ipairs(baby_names) do
     for index, attribute in ipairs(attribute_order) do
@@ -1094,23 +630,15 @@ for _, baby in ipairs(baby_names) do
                 }
             },
             loc_vars = baby_loc_vars,
-            can_use = function()
-                return false
-            end
+            can_use = function() return false end
         }
     end
 end
 
 function BM.appmon_uses_remaining(card)
-    if not card then
-        return BM.APPMON_USE_COUNT
-    end
-
+    if not card then return BM.APPMON_USE_COUNT end
     BM.initialise_appmon_uses(card)
-    return card.ability
-        and card.ability.extra
-        and card.ability.extra.uses
-        or BM.APPMON_USE_COUNT
+    return card.ability.extra.uses or BM.APPMON_USE_COUNT
 end
 
 function BM.get_appmon_uses(card)
@@ -1118,172 +646,94 @@ function BM.get_appmon_uses(card)
 end
 
 function BM.get_appmon_max_uses(card)
+    if not card then return BM.APPMON_USE_COUNT end
     BM.initialise_appmon_uses(card)
-
-    return card
-        and card.ability
-        and card.ability.extra
-        and card.ability.extra.max_uses
-        or BM.APPMON_USE_COUNT
+    return card.ability.extra.max_uses or BM.APPMON_USE_COUNT
 end
 
 function BM.refill_appmon_uses(card)
-    if not card or not BM.is_appmon(card) then
-        return false
-    end
-
+    if not BM.is_appmon(card) then return false end
     BM.initialise_appmon_uses(card)
-
-    card.ability.extra.uses =
-        card.ability.extra.max_uses
-        or BM.APPMON_USE_COUNT
-
+    card.ability.extra.uses = card.ability.extra.max_uses or BM.APPMON_USE_COUNT
     card:juice_up(0.5, 0.5)
-
     return true
 end
 
 local function remove_exhausted_appmon(card)
-    if not card or card.REMOVED or not BM.is_appmon(card) then
-        return false
+    if card.REMOVED or not BM.is_appmon(card) then return false end
+    if card._bm_appmon_remove_at and G.TIMERS.REAL < card._bm_appmon_remove_at then return false end
+
+    local extra = card.ability.extra
+    if not extra or not extra.uses or extra.uses > 0 then return false end
+
+    if card.area then
+        card.area:remove_from_highlighted(card)
+        if area_contains(card.area, card) then card.area:remove_card(card) end
     end
 
-    if card._bm_appmon_remove_at
-    and (G.TIMERS.REAL or 0) < card._bm_appmon_remove_at then
-        return false
-    end
-
-    if not card.ability
-    or not card.ability.extra
-    or tonumber(card.ability.extra.uses) == nil
-    or tonumber(card.ability.extra.uses) > 0 then
-        return false
-    end
-
-    local area = card.area
-
-    if area and area.remove_from_highlighted then
-        area:remove_from_highlighted(card)
-    end
-
-    if area and area.remove_card and area_contains(area, card) then
-        area:remove_card(card)
-    end
-
-    if card.start_dissolve then
-        card:start_dissolve()
-    elseif card.remove then
-        card:remove()
-    else
-        card.REMOVED = true
-    end
-
+    card:start_dissolve()
     return true
 end
 
 function BM.cleanup_exhausted_appmon()
-    if BM._appmon_exhausted_cleanup_busy
-    or not G
-    or not G.jokers
-    or not G.jokers.cards then
-        return
-    end
-
-    BM._appmon_exhausted_cleanup_busy = true
+    if not G.jokers then return end
 
     local exhausted = {}
-    for _, candidate in ipairs(G.jokers.cards) do
-        if BM.is_appmon(candidate)
-        and BM.get_appmon_stage(candidate) ~= 'Baby'
-        and candidate.ability
-        and candidate.ability.extra
-        and tonumber(candidate.ability.extra.uses) ~= nil
-        and tonumber(candidate.ability.extra.uses) <= 0 then
-            exhausted[#exhausted + 1] = candidate
+    for _, card in ipairs(G.jokers.cards) do
+        local extra = card.ability and card.ability.extra
+        if BM.is_appmon(card) and BM.get_appmon_stage(card) ~= 'Baby' and extra and extra.uses and extra.uses <= 0 then
+            exhausted[#exhausted + 1] = card
         end
     end
 
-    for _, candidate in ipairs(exhausted) do
-        remove_exhausted_appmon(candidate)
+    for _, card in ipairs(exhausted) do
+        remove_exhausted_appmon(card)
     end
-
-    BM._appmon_exhausted_cleanup_busy = false
 end
 
 function BM.consume_appmon_use(card)
     BM.initialise_appmon_uses(card)
-
-    card.ability.extra.uses = math.max(
-        0,
-        (card.ability.extra.uses or BM.APPMON_USE_COUNT) - 1
-    )
-
-    if card.ability.extra.uses <= 0 then
-        card._bm_appmon_remove_at =
-            (G.TIMERS.REAL or 0) + 0.6
-    end
+    card.ability.extra.uses = math.max(0, card.ability.extra.uses - 1)
+    if card.ability.extra.uses <= 0 then card._bm_appmon_remove_at = G.TIMERS.REAL + 0.6 end
 end
 
-local function keep_appmon_on_use(self, card)
+local function keep_appmon_on_use()
     return true
+end
+
+local function appmon_in_pool()
+    return false
+end
+
+local function appmon_loc_vars(self, info_queue, card)
+    return {vars = {BM.appmon_uses_remaining(card), BM.get_appmon_max_uses(card)}}
 end
 
 function BM.combine_appmon(left, right)
-    if not left
-    or not right
-    or not BM.is_appmon(left)
-    or not BM.is_appmon(right) then
-        return false
-    end
+    if not BM.is_appmon(left) or not BM.is_appmon(right) then return false end
 
     local route = BM.get_appmon_combination(left, right)
+    if not route then return false end
 
-    if not route then
-        return false
-    end
-
-    local target_key = route.result
-
-    if not G.P_CENTERS[target_key] then
-        target_key = BM.appmon_center_key(route.result)
-    end
-
+    local target_key = G.P_CENTERS[route.result] and route.result or BM.appmon_center_key(route.result)
     local target = G.P_CENTERS[target_key]
-
-    if not target then
-        return false
-    end
+    if not target then return false end
 
     left:juice_up(0.8, 0.5)
     right:juice_up(0.8, 0.5)
-
     left:set_ability(target, nil, true)
-
     BM.initialise_appmon_uses(left)
-
-    left.ability.extra.uses =
-        left.ability.extra.max_uses
-        or BM.APPMON_USE_COUNT
-
+    left.ability.extra.uses = left.ability.extra.max_uses or BM.APPMON_USE_COUNT
     left:set_cost()
 
-    if right.area == G.jokers then
-        G.jokers:remove_card(right)
-    end
-
+    if right.area == G.jokers then G.jokers:remove_card(right) end
     right:start_dissolve()
-
     BM.rebalance_appmon_loader()
-
-    if card_eval_status_text then
-        card_eval_status_text(left, 'extra', nil, nil, nil, {
-            message = BM.localized_object_name(target, nil, target_key, 'Combined!')
-        })
-    end
-
+    card_eval_status_text(left, 'extra', nil, nil, nil, {
+        message = BM.localized_object_name(target, nil, target_key, 'Combined!')
+    })
     return true
 end
-
 
 SMODS.Consumable {
     set = 'Appmon',
@@ -1306,9 +756,7 @@ SMODS.Consumable {
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-    in_pool = function()
-        return false
-    end,
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
     loc_txt = {
         name = 'Gatchmon',
@@ -1318,14 +766,7 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                card and card.ability and card.ability.extra and card.ability.extra.max_uses or BM.APPMON_USE_COUNT
-            }
-        }
-    end,
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
         return BM.appmon_uses_remaining(card) > 0 and G.deck and #G.deck.cards > 0
     end,
@@ -1357,9 +798,7 @@ SMODS.Consumable {
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-    in_pool = function()
-        return false
-    end,
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
     loc_txt = {
         name = 'Navimon',
@@ -1369,14 +808,7 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                card and card.ability and card.ability.extra and card.ability.extra.max_uses or BM.APPMON_USE_COUNT
-            }
-        }
-    end,
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
         return BM.appmon_uses_remaining(card) > 0 and G.deck and #G.deck.cards > 0
     end,
@@ -1396,38 +828,26 @@ BM.register_appmon_combination(
 SMODS.Consumable {
     set = 'Appmon',
     key = 'onmon',
-
     atlas = 'Appmon',
     pos = {x = 4, y = 3},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 5, y = 3},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_STANDARD_COST,
-
     attribute = 'Game',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Onmon',
         text = {
@@ -1436,71 +856,44 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
+        local blind = G.GAME.blind
+        local state = BM.onmon_state
         return BM.appmon_uses_remaining(card) > 0
-            and G.GAME
-            and G.GAME.blind
-            and G.GAME.blind.boss
-            and not G.GAME.blind.disabled
-            and not (
-                BM.onmon_state
-                and (
-                    BM.onmon_state.armed
-                    or BM.onmon_state.active
-                )
-            )
+            and blind and blind.boss and not blind.disabled
+            and not (state and (state.armed or state.active))
     end,
-
     use = function(self, card)
         BM.consume_appmon_use(card)
         BM.arm_onmon()
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'offmon',
-
     atlas = 'Appmon',
     pos = {x = 2, y = 4},
     soul_atlas = 'Appmon',
     soul_pos = {x = 3, y = 4},
-
     discovered = false,
     unlocked = true,
     cost = BM.APPMON_STANDARD_COST,
     attribute = 'Game',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Offmon',
         text = {
@@ -1510,63 +903,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_offmon()
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_offmon()
     end,
-
     use = function(self, card)
         BM.use_offmon(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'timemon',
-
     atlas = 'Appmon',
     pos = {x = 6, y = 3},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 7, y = 3},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_STANDARD_COST,
-
     attribute = 'Tool',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Timemon',
         text = {
@@ -1577,63 +946,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_timemon_undo()
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_timemon_undo()
     end,
-
     use = function(self, card)
         BM.use_timemon(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'hackmon',
-
     atlas = 'Appmon',
     pos = {x = 8, y = 3},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 9, y = 3},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_STANDARD_COST,
-
     attribute = 'System',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Hackmon',
         text = {
@@ -1643,63 +988,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_hackmon(card)
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_hackmon(card)
     end,
-
     use = function(self, card)
         BM.use_hackmon(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'perorimon',
-
     atlas = 'Appmon',
     pos = {x = 10, y = 3},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 11, y = 3},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_STANDARD_COST,
-
     attribute = 'Entertainment',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Perorimon',
         text = {
@@ -1710,63 +1031,47 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
     loc_vars = function(self, info_queue, card)
         return {
             vars = {
                 BM.appmon_uses_remaining(card),
                 BM.get_appmon_max_uses(card),
-                BM.get_perorimon_last_consumable_name
-                    and BM.get_perorimon_last_consumable_name()
-                    or 'None'
+                BM.get_perorimon_last_consumable_name()
             }
         }
     end,
-
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_perorimon(card)
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_perorimon(card)
     end,
-
     use = function(self, card)
         BM.use_perorimon(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'virusmon',
-
     atlas = 'Appmon',
     pos = {x = 12, y = 3},
     soul_atlas = 'Appmon',
     soul_pos = {x = 13, y = 3},
-
     discovered = false,
     unlocked = true,
     cost = BM.APPMON_STANDARD_COST,
     attribute = 'Life',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Standard',
     appmon_next_stage = 'Super',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Virusmon',
         text = {
@@ -1775,64 +1080,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_virusmon(card)
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_virusmon(card)
     end,
-
     use = function(self, card)
         BM.use_virusmon(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
-
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'craftmon',
-
     atlas = 'Appmon',
     pos = {x = 6, y = 4},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 7, y = 4},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_SUPER_COST,
-
     attribute = 'Tool',
-
     balatromon_appmon = true,
     appmon_base = true,
     appmon_stage = 'Super',
     appmon_next_stage = 'Ultimate',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Craftmon',
         text = {
@@ -1842,80 +1122,45 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and G.GAME
-            and G.GAME.blind
-            and G.GAME.blind.name ~= ''
+        return BM.appmon_uses_remaining(card) > 0 and G.GAME.blind and G.GAME.blind.name ~= ''
     end,
-
     use = function(self, card)
         BM.consume_appmon_use(card)
-
         local blind = BM.apply_craftmon_blind()
-
-        if blind and card_eval_status_text then
-            card_eval_status_text(
-                card,
-                'extra',
-                nil,
-                nil,
-                nil,
-                {
-                    message = BM.localized_blind_name(blind, 'Boss Effect!')
-                }
-            )
+        if blind then
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = BM.localized_blind_name(blind, 'Boss Effect!')
+            })
         end
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'dogatchmon',
-
     atlas = 'Appmon',
     pos = {x = 0, y = 4},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 1, y = 4},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_SUPER_COST,
-
     attribute = 'Social',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'Super',
     appmon_next_stage = 'Ultimate',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Dogatchmon',
         text = {
@@ -1925,68 +1170,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                card
-                    and card.ability
-                    and card.ability.extra
-                    and card.ability.extra.max_uses
-                    or BM.APPMON_USE_COUNT
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and G.deck
-            and #G.deck.cards > 0
+        return BM.appmon_uses_remaining(card) > 0 and G.deck and #G.deck.cards > 0
     end,
-
     use = function(self, card)
         BM.open_dogatchmon_draw(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'logimon',
-
     atlas = 'Appmon',
     pos = {x = 4, y = 4},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 5, y = 4},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_SUPER_COST,
-
     attribute = 'Social',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'Super',
     appmon_next_stage = 'Ultimate',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Logimon',
         text = {
@@ -1996,26 +1212,15 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
         return BM.appmon_uses_remaining(card) > 0
             and BM.can_use_boss_select_appmon()
             and #BM.appmon_valid_boss_pool(true) > 0
     end,
-
     use = function(self, card)
         if BM.reroll_boss_with_logimon() then
             BM.consume_appmon_use(card)
-
             card_eval_status_text(
                 card,
                 'extra',
@@ -2028,42 +1233,32 @@ SMODS.Consumable {
             )
         end
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'logamon',
-
     atlas = 'Appmon',
     pos = {x = 2, y = 5},
     soul_atlas = 'Appmon',
     soul_pos = {x = 3, y = 5},
-
     discovered = false,
     unlocked = true,
     cost = BM.APPMON_SUPER_COST,
     attribute = 'Social',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'Super',
     appmon_next_stage = 'Ultimate',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Logamon',
         text = {
@@ -2072,64 +1267,40 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_scoring_appmon()
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_scoring_appmon()
     end,
-
     use = function(self, card)
         BM.consume_appmon_use(card)
         BM.appmon_gain_blind_score(card, 1, 10)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'globemon',
-
     atlas = 'Appmon',
     pos = {x = 0, y = 5},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 1, y = 5},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_ULTIMATE_COST,
-
     attribute = 'Social',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'Ultimate',
     appmon_next_stage = 'God',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Globemon',
         text = {
@@ -2140,64 +1311,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and G.deck
-            and #G.deck.cards > 0
+        return BM.appmon_uses_remaining(card) > 0 and G.deck and #G.deck.cards > 0
     end,
-
     use = function(self, card)
         BM.open_globemon_draw(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'bootmon',
-
     atlas = 'Appmon',
     pos = {x = 4, y = 5},
-
     soul_atlas = 'Appmon',
     soul_pos = {x = 5, y = 5},
-
     discovered = false,
     unlocked = true,
-
     cost = BM.APPMON_ULTIMATE_COST,
-
     attribute = 'Tool',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'Ultimate',
     appmon_next_stage = 'God',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Bootmon',
         text = {
@@ -2208,62 +1354,41 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
         return BM.appmon_uses_remaining(card) > 0
             and BM.can_use_boss_select_appmon()
             and #BM.appmon_valid_boss_pool(true) > 0
     end,
-
     use = function(self, card)
         BM.open_bootmon_selector(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
-
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'shutmon',
-
     atlas = 'Appmon',
     pos = {x = 2, y = 6},
     soul_atlas = 'Appmon',
     soul_pos = {x = 3, y = 6},
-
     discovered = false,
     unlocked = true,
     cost = BM.APPMON_ULTIMATE_COST,
     attribute = 'Tool',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'Ultimate',
     appmon_next_stage = 'God',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Shutmon',
         text = {
@@ -2272,60 +1397,39 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_scoring_appmon()
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_scoring_appmon()
     end,
-
     use = function(self, card)
         BM.consume_appmon_use(card)
         BM.appmon_gain_blind_score(card, 1, 5)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'rebootmon',
-
     atlas = 'Appmon',
     pos = {x = 4, y = 6},
     soul_atlas = 'Appmon',
     soul_pos = {x = 5, y = 6},
-
     discovered = false,
     unlocked = true,
     cost = BM.APPMON_GOD_COST,
     attribute = 'God',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'God',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Rebootmon',
         text = {
@@ -2338,77 +1442,52 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        local extra = card.ability and card.ability.extra
-
+        local extra = card.ability.extra
         if BM.appmon_uses_remaining(card) <= 0 then
-            if extra then extra.rebootmon_mode = nil end
+            extra.rebootmon_mode = nil
             return false
         end
-
-        if BM.can_use_boss_select_appmon()
-        and #BM.appmon_valid_boss_pool(true) > 0 then
-            if extra then extra.rebootmon_mode = 'boss_select' end
+        if BM.can_use_boss_select_appmon() and #BM.appmon_valid_boss_pool(true) > 0 then
+            extra.rebootmon_mode = 'boss_select'
             return true
         end
-
         if BM.can_use_scoring_appmon() then
-            if extra then extra.rebootmon_mode = 'blind' end
+            extra.rebootmon_mode = 'blind'
             return true
         end
-
-        if extra then extra.rebootmon_mode = nil end
+        extra.rebootmon_mode = nil
         return false
     end,
-
     use = function(self, card)
         BM.use_rebootmon(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
 SMODS.Consumable {
     set = 'Appmon',
     key = 'rebootmon_virus',
-
     atlas = 'Appmon',
     pos = {x = 4, y = 7},
     soul_atlas = 'Appmon',
     soul_pos = {x = 5, y = 7},
-
     discovered = false,
     unlocked = true,
     cost = BM.APPMON_GOD_COST,
     attribute = 'God',
-
     balatromon_appmon = true,
     appmon_base = false,
     appmon_stage = 'God',
-
     config = {
         extra = {
             uses = BM.APPMON_USE_COUNT,
             max_uses = BM.APPMON_USE_COUNT
         }
     },
-
-    in_pool = function()
-        return false
-    end,
-
+    in_pool = appmon_in_pool,
     set_badges = appmon_stage_badge,
-
     loc_txt = {
         name = 'Rebootmon Virus',
         text = {
@@ -2419,25 +1498,13 @@ SMODS.Consumable {
             '{C:inactive}(#1#/#2# uses remaining){}'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        return {
-            vars = {
-                BM.appmon_uses_remaining(card),
-                BM.get_appmon_max_uses(card)
-            }
-        }
-    end,
-
+    loc_vars = appmon_loc_vars,
     can_use = function(self, card)
-        return BM.appmon_uses_remaining(card) > 0
-            and BM.can_use_scoring_appmon()
+        return BM.appmon_uses_remaining(card) > 0 and BM.can_use_scoring_appmon()
     end,
-
     use = function(self, card)
         BM.use_rebootmon_virus(card)
     end,
-
     keep_on_use = keep_appmon_on_use
 }
 
@@ -2458,7 +1525,6 @@ BM.register_appmon_combination(
     BM.appmon_center_key('craftmon'),
     BM.appmon_center_key('bootmon')
 )
-
 
 BM.register_appmon_combination(
     BM.appmon_center_key('offmon'),

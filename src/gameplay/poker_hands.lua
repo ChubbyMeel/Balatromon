@@ -305,12 +305,8 @@ local custom_for_base = {
     ['Flush Five'] = five_straight_flush.key
 }
 
-if BM.planet_key_for_hand and not BM._jogress_planet_lookup_patched then
-    BM._jogress_planet_lookup_patched = true
-    local old_planet_key_for_hand = BM.planet_key_for_hand
-    BM.planet_key_for_hand = function(hand_name)
-        return old_planet_key_for_hand(base_for_custom[hand_name] or hand_name)
-    end
+for hand, base in pairs(base_for_custom) do
+    BM.planet_hand_aliases[hand] = base
 end
 
 if SMODS.upgrade_poker_hands and not BM._jogress_planet_level_patched then

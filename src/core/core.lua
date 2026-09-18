@@ -1,6 +1,5 @@
 local BM = Balatromon
 
-
 function BM.emult(card, amount)
     if not amount or amount == 1 then
         return
@@ -65,7 +64,6 @@ function BM.emult(card, amount)
         }
     )
 end
-
 
 function BM.echips(card, amount)
     if not amount
@@ -142,31 +140,38 @@ BM.joker_defs = BM.joker_defs or {}
 BM.shop_joker_keys = BM.shop_joker_keys or {}
 BM.last_sold_joker_key = BM.last_sold_joker_key or nil
 
-BM.RANKS = {2,3,4,5,6,7,8,9,10,11,12,13,14}
-BM.SUITS = {'Hearts','Diamonds','Clubs','Spades'}
-BM.HANDS = {'High Card','Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush'}
-
+BM.RANKS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
+BM.SUITS = {'Hearts', 'Diamonds', 'Clubs', 'Spades'}
+BM.HANDS = {'High Card', 'Pair', 'Two Pair', 'Three of a Kind', 'Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'}
 
 function BM.slug(name)
-    return string.lower(name)
-        :gsub('[^%w]+', '_')
-        :gsub('^_+', '')
-        :gsub('_+$', '')
+    return string.lower(name):gsub('[^%w]+', '_'):gsub('^_+', ''):gsub('_+$', '')
+end
+
+function BM.center_key(slug)
+    return 'j_' .. BM.PREFIX .. '_' .. slug
+end
+
+function BM.is_digimon(card)
+    return card and card.config and card.config.center and card.config.center.balatromon == true
 end
 
 function BM.get_card_slug(card)
-    if not (card and card.config and card.config.center) then
-        return nil
-    end
+    if not BM.is_digimon(card) then return nil end
 
-    local key = card.config.center.key or ''
+    local center = card.config.center
+    local key = center.key or card.config.center_key
     local prefix = 'j_' .. BM.PREFIX .. '_'
-
-    if type(key) == 'string' and key:sub(1, #prefix) == prefix then
+    if key and key:sub(1, #prefix) == prefix then
         return key:sub(#prefix + 1)
     end
 
-    return key
+    local name = center.loc_txt and center.loc_txt.name or center.name
+    return name and BM.slug(name) or nil
+end
+
+function BM.get_stage(card)
+    return BM.is_digimon(card) and card.config.center.balatromon_stage or nil
 end
 
 function BM.is_leomon_slug(slug)
@@ -193,14 +198,12 @@ function BM.is_leomon_slug(slug)
     ) ~= nil
 end
 
-
 function BM.is_leomon(card)
     return BM.is_digimon(card)
         and BM.is_leomon_slug(
             BM.get_card_slug(card)
         )
 end
-
 
 function BM.get_leomon_essences()
     local out = {}
@@ -227,11 +230,9 @@ function BM.get_leomon_essences()
     return out
 end
 
-
 function BM.count_leomon_essence()
     return #BM.get_leomon_essences()
 end
-
 
 function BM.create_leomon_essence()
     if not G.consumeables then
@@ -260,7 +261,6 @@ function BM.create_leomon_essence()
 
     return essence
 end
-
 
 function BM.try_summon_bancholeomon()
     if not G.GAME
@@ -374,7 +374,6 @@ function BM.try_summon_bancholeomon()
     return true
 end
 
-
 function BM.kill_starved_leomon(card)
     if not card
     or card.REMOVED
@@ -444,7 +443,6 @@ function BM.kill_starved_leomon(card)
 
     return true
 end
-
 
 function BM.create_negative_random_leomon(seed)
     if not G.jokers then
@@ -603,10 +601,7 @@ function BM.apply_bancho_burst_growth(
                 nil
 
             if slug == 'leomon' then
-                if BM.has_x_antibody
-                and BM.has_x_antibody(
-                    target
-                ) then
+                if BM.has_x_antibody(target) then
                     e.x_leomon_chips =
                         e.x_leomon_chips
                         or e.x_gabumon_chips
@@ -692,38 +687,6 @@ function BM.apply_bancho_burst_growth(
 
     return grown
 end
-
-local function install_digivolution_tooltips()
-    G.localization.descriptions.Other =
-        G.localization.descriptions.Other or {}
-
-    G.localization.descriptions.Other.balatromon_digivice_requirement = {
-        name = 'Digivolution Requirement',
-        text = {
-            '{C:attention}Casual:{} Minimum {C:green}3 Bond{}',
-            '{C:attention}Standard:{} {C:green}Full Bond{}',
-        }
-    }
-
-    G.localization.descriptions.Other.balatromon_ready_to_digivolve = {
-        name = 'Ready to Digivolve!',
-        text = {
-            '{C:attention}Double Click{} to activate',
-        }
-    }
-end
-
-local old_process_loc_text = SMODS.current_mod.process_loc_text
-
-SMODS.current_mod.process_loc_text = function(self)
-    if old_process_loc_text then
-        old_process_loc_text(self)
-    end
-
-    install_digivolution_tooltips()
-end
-
-install_digivolution_tooltips()
 
 function BM.add_digivice_requirement_tooltip(info_queue)
     info_queue[#info_queue + 1] = {
@@ -833,43 +796,11 @@ function BM.remove_passive_deck_effect(card, slug)
     e._bm_passive_slug = nil
 end
 
-function BM.center_key(slug)
-    return 'j_' .. BM.PREFIX .. '_' .. slug
-end
-
-
-function BM.is_digimon(card)
-    local center =
-        card
-        and card.config
-        and card.config.center
-
-    return center
-        and center.balatromon == true
-end
-
-
-
-
 function BM.is_digimon_display_card(card)
-
-    if not card or not BM.is_digimon(card) then
-        return false
-    end
-
-    if G.jokers and card.area == G.jokers then
-        return true
-    end
-
-    if card.area
-    and card.area.config
-    and card.area.config.collection then
-        return true
-    end
-
-    return false
+    if not BM.is_digimon(card) then return false end
+    if G.jokers and card.area == G.jokers then return true end
+    return card.area and card.area.config and card.area.config.collection == true
 end
-
 
 function BM.deck_ranks()
     local found = {}
@@ -1064,97 +995,39 @@ function BM.reroll_card_target(card, seed)
     return e.target_rank, e.target_suit
 end
 
-if not BM._digimon_double_click_hooked then
-    BM._digimon_double_click_hooked = true
+local card_click = Card.click
+BM._last_digimon_click = nil
+BM._last_digimon_click_time = 0
 
-    local original_card_click = Card.click
-
-    BM._last_digimon_click = nil
-    BM._last_digimon_click_time = 0
-
-    Card.click = function(self, ...)
-
-        local result = original_card_click(self, ...)
-
-        if not BM.is_digimon_display_card(self) then
-            BM._last_digimon_click = nil
-            BM._last_digimon_click_time = 0
-            return result
-        end
-
-        local now = love.timer.getTime()
-
-        local same_card =
-            BM._last_digimon_click == self
-
-        local elapsed =
-            now - (BM._last_digimon_click_time or 0)
-
-        -- Balatro itself has a ~0.3 second click timeout.
-        -- Give the player a comfortable window beyond that.
-        local double_click =
-            same_card
-            and elapsed <= 0.45
-
-        if double_click then
-
-            BM._last_digimon_click = nil
-            BM._last_digimon_click_time = 0
-
-            G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.05,
-
-                func = function()
-
-                    if not self or self.REMOVED then
-                        return true
-                    end
-
-                    if BM.open_evolution_display then
-                        BM.open_evolution_display(self)
-                    else
-                        print(
-                            '[Balatromon] ERROR: '
-                            .. 'BM.open_evolution_display is missing'
-                        )
-                    end
-
-                    return true
-                end
-            }))
-
-        else
-
-            BM._last_digimon_click = self
-            BM._last_digimon_click_time = now
-
-        end
-
+Card.click = function(self, ...)
+    local result = card_click(self, ...)
+    if not BM.is_digimon_display_card(self) then
+        BM._last_digimon_click = nil
+        BM._last_digimon_click_time = 0
         return result
     end
-end
 
+    local now = love.timer.getTime()
+    local double_click = BM._last_digimon_click == self and now - BM._last_digimon_click_time <= 0.45
 
-function BM.get_stage(card)
-    if not BM.is_digimon(card) then
-        return nil
+    if double_click then
+        BM._last_digimon_click = nil
+        BM._last_digimon_click_time = 0
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.05,
+            func = function()
+                if self.REMOVED then return true end
+                BM.open_evolution_display(self)
+                return true
+            end
+        }))
+    else
+        BM._last_digimon_click = self
+        BM._last_digimon_click_time = now
     end
 
-    return card.config.center.balatromon_stage
-end
-
-function BM.slug(name)
-    return string.lower(name):gsub('[^%w]+','_'):gsub('^_+',''):gsub('_+$','')
-end
-
-function BM.center_key(slug)
-    return 'j_' .. BM.PREFIX .. '_' .. slug
-end
-
-function BM.is_digimon(card)
-    local c = card and card.config and card.config.center
-    return c and c.balatromon == true
+    return result
 end
 
 function BM.is_tired(card)
@@ -1170,7 +1043,6 @@ function BM.is_tired(card)
         and (e.tired_hands or 0) > 0
 end
 
-
 function BM.make_tired(card, hands)
     if not BM.is_digimon(card) then
         return false
@@ -1185,7 +1057,6 @@ function BM.make_tired(card, hands)
         return false
     end
 
-    -- Do not refresh/extend Tired if already Tired.
     if (e.tired_hands or 0) > 0 then
         return false
     end
@@ -1202,9 +1073,7 @@ function BM.make_tired(card, hands)
     local slug =
         BM.get_card_slug(card)
 
-    -- Temporarily suspend passive deck effects too.
     if slug
-    and BM.has_passive_deck_effect
     and BM.has_passive_deck_effect(slug)
     and e._bm_passive_applied
     and not e._bm_passive_removed then
@@ -1218,11 +1087,7 @@ function BM.make_tired(card, hands)
             true
     end
 
-    if BM.invalidate_optimiser then
-        BM.invalidate_optimiser(
-            'jokers'
-        )
-    end
+    BM.invalidate_optimiser('jokers')
 
     BM.bad_care_animation(
         card,
@@ -1231,7 +1096,6 @@ function BM.make_tired(card, hands)
 
     return true
 end
-
 
 function BM.wake_tired(card)
     if not BM.is_digimon(card) then
@@ -1261,10 +1125,7 @@ function BM.wake_tired(card)
 
         if not e.permanently_disabled
         and slug
-        and BM.has_passive_deck_effect
-        and BM.has_passive_deck_effect(
-            slug
-        ) then
+        and BM.has_passive_deck_effect(slug) then
             BM.apply_passive_deck_effect(
                 card,
                 slug
@@ -1272,11 +1133,7 @@ function BM.wake_tired(card)
         end
     end
 
-    if BM.invalidate_optimiser then
-        BM.invalidate_optimiser(
-            'jokers'
-        )
-    end
+    BM.invalidate_optimiser('jokers')
 
     BM.care_animation(
         card,
@@ -1286,7 +1143,6 @@ function BM.wake_tired(card)
 
     return true
 end
-
 
 function BM.tick_tired(card, context)
     if not BM.is_tired(card) then
@@ -1378,26 +1234,8 @@ function BM.tick_tired(card, context)
     )
 end
 
-function BM.get_stage(card)
-    if not BM.is_digimon(card) then return nil end
-    return card.config.center.balatromon_stage
-end
-
 function BM.bond_max_for_stage(stage)
-    if BM.get_mode_bond_max then
-        return BM.get_mode_bond_max(stage)
-    end
-
-    if stage == 'Fresh'
-    or stage == 'In-Training' then
-        return 1
-    end
-
-    if stage == 'Rookie' then
-        return 3
-    end
-
-    return 5
+    return BM.get_mode_bond_max(stage)
 end
 
 function BM.get_bond_max(card)
@@ -1560,9 +1398,7 @@ end
 function BM.care_bars(e, stage)
     e = e or {}
 
-    local hunger_max = BM.get_hunger_max
-        and BM.get_hunger_max()
-        or 5
+    local hunger_max = BM.get_hunger_max()
 
     local hunger = math.max(
         1,
@@ -1915,10 +1751,6 @@ function BM.set_enhancement(card, key, skip_juice)
         local changed = not BM.has_enhancement(card, key)
         card:set_ability(G.P_CENTERS[key], nil, true)
 
-        -- Enhancement-changing Digimon should visibly affect the playing card,
-        -- not only change its center silently. Centralising the juice here means
-        -- Patamon, Salamon, DemiDevimon, Sakumon, Zubamon, Megadramon, etc.
-        -- all get the same feedback automatically.
         if changed and card.juice_up and not skip_juice then
             card:juice_up(0.8, 0.5)
         end
@@ -2582,11 +2414,7 @@ function BM.feed(card, amount)
     local e = card.ability.extra
     local was_starved = e.permanently_disabled == true
 
-    if was_starved
-    and not (
-        BM.can_revive_starved
-        and BM.can_revive_starved()
-    ) then
+    if was_starved and not BM.can_revive_starved() then
         return
     end
 
@@ -2595,9 +2423,7 @@ function BM.feed(card, amount)
         (e.hunger or 1) - (amount or 1)
     )
 
-    local hunger_max = BM.get_hunger_max
-        and BM.get_hunger_max()
-        or 5
+    local hunger_max = BM.get_hunger_max()
 
     if was_starved
     and e.hunger < hunger_max then
@@ -2609,9 +2435,7 @@ function BM.feed(card, amount)
             'balatromon_hunger'
         )
 
-
         SMODS.recalc_debuff(card)
-
 
         local slug = BM.get_card_slug(card)
         if slug and BM.has_passive_deck_effect(slug) then
@@ -2703,13 +2527,11 @@ BM.FOOD_KEYS =
         ] = true,
     }
 
-
 function BM.is_food_key(key)
     return key
         and BM.FOOD_KEYS[key]
         == true
 end
-
 
 function BM.is_food_card(card)
     local center =
@@ -2804,8 +2626,6 @@ function BM.add_seal_tooltip(info_queue, key)
     end
 end
 
-
-
 function BM.get_hunger_rounds(card)
     if not card or not card.ability then
         return 2
@@ -2827,14 +2647,7 @@ function BM.get_hunger_rounds(card)
 end
 
 function BM.care_tick(card, context)
-
-    if BM.tick_tired then
-        BM.tick_tired(
-            card,
-            context
-        )
-    end
-
+    BM.tick_tired(card, context)
     if not (context.end_of_round and context.main_eval and not context.blueprint) then return end
     local e = card.ability.extra
     local center = card.config and card.config.center
@@ -2850,13 +2663,9 @@ function BM.care_tick(card, context)
 
     if e.permanently_disabled then return end
 
-    local hunger_max = BM.get_hunger_max
-        and BM.get_hunger_max()
-        or 5
+    local hunger_max = BM.get_hunger_max()
 
-    local bond_hunger_limit = BM.get_bond_gain_max_hunger
-        and BM.get_bond_gain_max_hunger()
-        or 3
+    local bond_hunger_limit = BM.get_bond_gain_max_hunger()
 
     e.care_rounds = (e.care_rounds or 0) + 1
 
@@ -2900,9 +2709,7 @@ function BM.care_tick(card, context)
                 trigger = 'after',
                 delay = 0.2,
                 func = function()
-                    if card
-                    and not card.REMOVED
-                    and BM.queue_care_crisis then
+                    if not card.REMOVED then
                         BM.queue_care_crisis(card)
                     end
 
@@ -2977,10 +2784,6 @@ function BM.should_bond_shake(card)
         return false
     end
 
-    if not BM.get_display_evolutions then
-        return false
-    end
-
     for _, option in ipairs(BM.get_display_evolutions(card)) do
         if not option.bad_path then
             return true
@@ -2998,8 +2801,6 @@ function BM.start_bond_shake(card)
 
     e._bond_shaking = true
 
-    -- Pokermon uses this same pattern for Pokemon that are ready to evolve:
-    -- keep juicing the card while the condition remains true.
     local eval = function(c)
         local extra = c and c.ability and c.ability.extra
         local keep_shaking = c and not c.REMOVED and BM.is_bond_full(c)
@@ -3024,9 +2825,7 @@ function BM.card_ready_for_digivolution(card, device_key)
         return false
     end
 
-    local required_bond = BM.get_digivolution_bond_requirement
-        and BM.get_digivolution_bond_requirement(card, device_key)
-        or BM.get_bond_max(card)
+    local required_bond = BM.get_digivolution_bond_requirement(card, device_key)
 
     return (card.ability.extra.bond or 0) >= required_bond
 end
@@ -3192,7 +2991,6 @@ function BM.is_most_played_hand_before_play(hand)
     return current == most
 end
 
-
 function BM.is_least_played_hand_before_play(hand)
     if not hand
     or not G.GAME
@@ -3256,14 +3054,11 @@ function BM.stage_shop_weight(stage)
 end
 
 function BM.stage_rarity(stage)
-    return (BM.stage_rarity_keys and BM.stage_rarity_keys[stage]) or 1
+    return BM.stage_rarity_keys[stage] or 1
 end
 
 function BM.on_add(card, slug)
-    if card
-    and card._bm_suppress_on_add then
-        return
-    end
+    if card._bm_suppress_on_add then return end
 
     if BM.has_passive_deck_effect(slug) then
         BM.apply_passive_deck_effect(card, slug)
@@ -3273,8 +3068,7 @@ function BM.on_add(card, slug)
         card.ability.rental = true
     end
 
-    if (slug == 'polarbearmon' or slug == 'skadimon')
-    and BM.refresh_planet_shop_costs then
+    if slug == 'polarbearmon' or slug == 'skadimon' then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
@@ -3285,8 +3079,7 @@ function BM.on_add(card, slug)
             end
         }))
     end
-    if slug == 'redvegiemon'
-    and BM.refresh_redvegiemon_shop_costs then
+    if slug == 'redvegiemon' then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
@@ -3297,8 +3090,7 @@ function BM.on_add(card, slug)
         }))
     end
 
-    if (slug == 'sunflowmon' or slug == 'lilamon')
-    and BM.refresh_sunflowmon_shop_packs then
+    if slug == 'sunflowmon' or slug == 'lilamon' then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
@@ -3309,18 +3101,12 @@ function BM.on_add(card, slug)
         }))
     end
 
-    if slug == 'imperialdramon_paladin_mode'
-    and G.hand
-    and card
-    and card.ability
-    and card.ability.extra
-    and not card.ability.extra._paladin_hand_size then
+    if slug == 'imperialdramon_paladin_mode' and not card.ability.extra._paladin_hand_size then
         G.hand:change_size(3)
 
         card.ability.extra._paladin_hand_size =
             true
     end
-
 
 end
 
@@ -3329,8 +3115,7 @@ function BM.on_remove(card, slug)
         BM.remove_passive_deck_effect(card, slug)
     end
 
-    if (slug == 'polarbearmon' or slug == 'skadimon')
-    and BM.refresh_planet_shop_costs then
+    if slug == 'polarbearmon' or slug == 'skadimon' then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
@@ -3342,8 +3127,7 @@ function BM.on_remove(card, slug)
         }))
     end
 
-    if slug == 'redvegiemon'
-    and BM.refresh_redvegiemon_shop_costs then
+    if slug == 'redvegiemon' then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0,
@@ -3354,12 +3138,7 @@ function BM.on_remove(card, slug)
         }))
     end
 
-    if slug == 'imperialdramon_paladin_mode'
-    and G.hand
-    and card
-    and card.ability
-    and card.ability.extra
-    and card.ability.extra._paladin_hand_size then
+    if slug == 'imperialdramon_paladin_mode' and card.ability.extra._paladin_hand_size then
         G.hand:change_size(-3)
 
         card.ability.extra._paladin_hand_size =
@@ -3375,8 +3154,6 @@ function BM.can_sell(card, slug)
 end
 
 local function getEnhancements()
-    -- Rebuild every time so enhancements registered
-    -- by other mods are always included.
     local enhancements = {"c_base"}
 
     local pool = {}
@@ -3385,7 +3162,6 @@ local function getEnhancements()
         table.insert(pool, v)
     end
 
-    -- Keep approximately the normal enhancement order.
     table.sort(pool, function(a, b)
         return (a.order or 0) < (b.order or 0)
     end)
@@ -3395,9 +3171,6 @@ local function getEnhancements()
         ['m_' .. BM.PREFIX .. '_signal'] = true,
     }
 
-    -- IMPORTANT:
-    -- table.insert makes the array contiguous,
-    -- so ipairs will not stop at an order gap.
     for _, v in ipairs(pool) do
         if not blocked[v.key] then
             table.insert(enhancements, v.key)
@@ -3406,7 +3179,6 @@ local function getEnhancements()
 
     return enhancements
 end
-
 
 local function balatromon_find_evolution_tag()
     local wanted = 'tag_' .. BM.PREFIX .. '_evolution_tag'
@@ -3418,7 +3190,7 @@ local function balatromon_find_evolution_tag()
     return nil
 end
 
-SMODS.current_mod.calculate = function(self, context)
+function BM.calculate_evolution_tag(context)
     if not (context.first_hand_drawn and context.main_eval) then return end
 
     local tag = balatromon_find_evolution_tag()

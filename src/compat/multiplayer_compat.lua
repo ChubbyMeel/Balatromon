@@ -17,7 +17,6 @@ BM.multiplayer_compat =
 
 local MC = BM.multiplayer_compat
 
-
 local function multiplayer_active()
     if not MP then
         return false
@@ -42,9 +41,7 @@ local function multiplayer_active()
     return false
 end
 
-
 MC.is_active = multiplayer_active
-
 
 local function reset_transients()
     if G
@@ -78,10 +75,8 @@ local function reset_transients()
     end
 end
 
-
 MC.reset_transients =
     reset_transients
-
 
 local function install_shop_fix()
     if MC._shop_fix_installed then
@@ -90,7 +85,6 @@ local function install_shop_fix()
 
     MC._shop_fix_installed = true
     MC._shop_create_depth = 0
-
 
     if create_card then
         local create_card_ref =
@@ -143,7 +137,6 @@ local function install_shop_fix()
             return card
         end
     end
-
 
     if get_current_pool then
         local get_current_pool_ref =
@@ -206,35 +199,6 @@ local function install_shop_fix()
     end
 end
 
-
-local function install_run_reset()
-    if MC._run_reset_installed
-    or not Game
-    or not Game.start_run then
-        return
-    end
-
-    MC._run_reset_installed = true
-
-    local start_run_ref =
-        Game.start_run
-
-    Game.start_run = function(
-        self,
-        args
-    )
-        if multiplayer_active() then
-            reset_transients()
-        end
-
-        return start_run_ref(
-            self,
-            args
-        )
-    end
-end
-
-
 local function install_mode_hash()
     if MC._mode_hash_installed
     or not MP
@@ -246,7 +210,6 @@ local function install_mode_hash()
 
     local generate_hash_ref =
         MP.generate_hash
-
 
     function MP:generate_hash(...)
         local mod =
@@ -288,31 +251,12 @@ local function install_mode_hash()
         return ret
     end
 
-
-    if BM.set_configured_mode
-    and not MC._mode_setter_wrapped then
-        MC._mode_setter_wrapped =
-            true
-
-        local set_mode_ref =
-            BM.set_configured_mode
-
-        BM.set_configured_mode =
-        function(mode)
-            local ret =
-                set_mode_ref(mode)
-
-            if MP
-            and MP.generate_hash
-            and SMODS.booted then
-                MP:generate_hash()
-            end
-
-            return ret
+    function MC.refresh_mode_hash()
+        if MP and MP.generate_hash and SMODS.booted then
+            MP:generate_hash()
         end
     end
 end
-
 
 function MC.install()
     if MC._installed
@@ -323,7 +267,6 @@ function MC.install()
     MC._installed = true
 
     install_shop_fix()
-    install_run_reset()
     install_mode_hash()
 
     if sendDebugMessage then
@@ -334,10 +277,8 @@ function MC.install()
     end
 end
 
-
 local inject_items_ref =
     SMODS.injectItems
-
 
 if type(inject_items_ref)
 == 'function' then

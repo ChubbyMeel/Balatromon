@@ -1,8 +1,6 @@
 local BM = Balatromon
 
-local function install_digivolution_tooltips()
-    if not (G and G.localization and G.localization.descriptions) then return end
-
+function BM.install_digivolution_localization()
     G.localization.descriptions.Other = G.localization.descriptions.Other or {}
 
     SMODS.process_loc_text(
@@ -29,20 +27,10 @@ local function install_digivolution_tooltips()
     )
 end
 
-function BM.add_digivice_requirement_tooltip(info_queue)
-    if not info_queue then return end
-
-    info_queue[#info_queue + 1] = {
-        set = 'Other',
-        key = 'balatromon_digivice_requirement'
-    }
-end
-
 function BM.add_ready_digivolution_tooltip(info_queue, card)
-    if not info_queue or not card or card.facing == 'back' then return end
+    if card.facing == 'back' then return end
 
-    if BM.can_manual_digivolve
-    and BM.can_manual_digivolve(card) then
+    if BM.can_manual_digivolve(card) then
         info_queue[#info_queue + 1] = {
             set = 'Other',
             key = 'balatromon_ready_to_digivolve'
@@ -50,17 +38,7 @@ function BM.add_ready_digivolution_tooltip(info_queue, card)
     end
 end
 
-local old_process_loc_text = SMODS.current_mod.process_loc_text
-
-SMODS.current_mod.process_loc_text = function(self)
-    if old_process_loc_text then
-        old_process_loc_text(self)
-    end
-
-    install_digivolution_tooltips()
-end
-
-install_digivolution_tooltips()
+BM.install_digivolution_localization()
 
 for _, center in pairs(SMODS.Centers or {}) do
     if center

@@ -188,47 +188,31 @@ and not BM._collection_joker_tally_wrapped then
     end
 end
 
-local previous_custom_collection_tabs =
-    SMODS.current_mod.custom_collection_tabs
-
-SMODS.current_mod.custom_collection_tabs =
-function(...)
-    local tabs = {}
-
-    if previous_custom_collection_tabs then
-        local existing =
-            previous_custom_collection_tabs(...)
-
-        for _, tab in ipairs(existing or {}) do
-            tabs[#tabs + 1] =
-                tab
-        end
+function BM.add_vanilla_collection_tab(tabs)
+    if G.ACTIVE_MOD_UI then
+        return
     end
 
-    if not G.ACTIVE_MOD_UI then
-        tabs[#tabs + 1] =
-            UIBox_button({
-                button =
-                    'your_collection_balatromon_vanilla_jokers',
+    tabs[#tabs + 1] =
+        UIBox_button({
+            button =
+                'your_collection_balatromon_vanilla_jokers',
 
-                id =
-                    'your_collection_balatromon_vanilla_jokers',
+            id =
+                'your_collection_balatromon_vanilla_jokers',
 
-                label = {
-                    'Vanilla Jokers'
-                },
+            label = {
+                'Vanilla Jokers'
+            },
 
-                count =
-                    vanilla_joker_tally(),
+            count =
+                vanilla_joker_tally(),
 
-                minw = 5,
-                minh = 1.2,
+            minw = 5,
+            minh = 1.2,
 
-                focus_args = {
-                    snap_to = true
-                }
-            })
-    end
-
-    return tabs
+            focus_args = {
+                snap_to = true
+            }
+        })
 end

@@ -271,12 +271,7 @@ end
 G.C.BALATROMON_SPLASH_RED = HEX('B7475D')
 G.C.BALATROMON_SPLASH_BLUE = HEX('35566C')
 
-local balatromon_old_main_menu = Game.main_menu
-
-Game.main_menu = function(change_context)
-    local ret =
-        balatromon_old_main_menu(change_context)
-
+local function apply_balatromon_main_menu()
     if G.SPLASH_BACK then
         G.SPLASH_BACK:define_draw_steps({
             {
@@ -331,8 +326,6 @@ Game.main_menu = function(change_context)
             end
         }))
     end
-
-    return ret
 end
 
 SMODS.Sound {
@@ -400,17 +393,6 @@ assert(SMODS.load_file('src/system/music.lua'))()
 
 BM.install_attribute_badges()
 
-SMODS.current_mod.process_loc_text = function()
-    G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {
-        name = 'Renamon Effect',
-        text = {
-            'Earn {C:money}$5{} for each',
-            'discarded {C:attention}#1#{}',
-            '{C:inactive}(rank changes at end of round){}'
-        }
-    }
-end
-
 local function wrap_digimon_tooltip_text(text, max_length)
     max_length = max_length or 34
 
@@ -439,22 +421,22 @@ local function wrap_digimon_tooltip_text(text, max_length)
     return lines
 end
 
-local old_process_loc_text =
-    SMODS.current_mod.process_loc_text
-
-SMODS.current_mod.process_loc_text = function(self)
-    if old_process_loc_text then
-        old_process_loc_text(self)
-    end
-
+local function install_balatromon_localization()
     G.localization.descriptions.Other =
         G.localization.descriptions.Other or {}
 
-    for slug, def in pairs(
-        Balatromon.joker_defs or {}
-    ) do
+    G.localization.descriptions.Other['DigiMeel_sakuyamon_renamon_effect'] = {
+        name = 'Renamon Effect',
+        text = {
+            'Earn {C:money}$5{} for each',
+            'discarded {C:attention}#1#{}',
+            '{C:inactive}(rank changes at end of round){}'
+        }
+    }
+
+    for slug, def in pairs(BM.joker_defs or {}) do
         local key =
-            Balatromon.PREFIX
+            BM.PREFIX
             .. '_digimon_ref_'
             .. slug
 
@@ -464,8 +446,7 @@ SMODS.current_mod.process_loc_text = function(self)
             {
                 name = def.name or slug,
                 text = wrap_digimon_tooltip_text(
-                    def.effect
-                        or 'No effect description',
+                    def.effect or 'No effect description',
                     34
                 )
             }
@@ -481,3 +462,171 @@ assert(SMODS.load_file('src/helpers/retrigger_hooks.lua'))()
 assert(SMODS.load_file('src/ui/deckskins.lua'))()
 assert(SMODS.load_file('src/ui/digivolution_tooltips.lua'))()
 
+SMODS.current_mod.custom_collection_tabs = function(...)
+    local tabs = {}
+
+    if BM.add_vanilla_collection_tab then
+        BM.add_vanilla_collection_tab(tabs, ...)
+    end
+
+    if BM.add_x_antibody_collection_tab then
+        BM.add_x_antibody_collection_tab(tabs, ...)
+    end
+
+    return tabs
+end
+
+SMODS.current_mod.process_loc_text = function(self)
+    install_balatromon_localization()
+
+    if BM.install_appmon_localization then
+        BM.install_appmon_localization()
+    end
+
+    if BM.install_x_antibody_localization then
+        BM.install_x_antibody_localization()
+    end
+
+    local pokermon_compat = BM.pokermon_compat
+    if pokermon_compat and pokermon_compat.install_localization then
+        pokermon_compat.install_localization()
+    end
+
+    if BM.install_digivolution_localization then
+        BM.install_digivolution_localization()
+    end
+end
+
+SMODS.current_mod.calculate = function(self, context)
+    local result
+
+    if BM.calculate_evolution_tag then
+        result = BM.calculate_evolution_tag(context)
+    end
+
+    if BM.calculate_hackmon then
+        local hackmon_result = BM.calculate_hackmon(context)
+        if hackmon_result then
+            result = hackmon_result
+        end
+    end
+
+    local pokermon_compat = BM.pokermon_compat
+    if pokermon_compat and pokermon_compat.calculate then
+        pokermon_compat.calculate(context)
+    end
+
+    return result
+end
+
+local balatromon_main_menu = Game.main_menu
+
+function Game:main_menu(change_context)
+    local result = balatromon_main_menu(self, change_context)
+
+    apply_balatromon_main_menu()
+
+    if BM.open_pending_profile_mode_picker then
+        BM.open_pending_profile_mode_picker()
+    end
+
+    return result
+end
+
+local balatromon_start_run = Game.start_run
+
+Game.start_run = function(self, args)
+    local multiplayer_compat = BM.multiplayer_compat
+    if multiplayer_compat
+    and multiplayer_compat.is_active
+    and multiplayer_compat.is_active()
+    and multiplayer_compat.reset_transients then
+        multiplayer_compat.reset_transients()
+    end
+
+    if BM.reset_hackmon_run_state then
+        BM.reset_hackmon_run_state()
+    end
+
+    if BM.prepare_appmon_run then
+        args = BM.prepare_appmon_run(args)
+    end
+
+    local loading_save = args and args.savetext ~= nil
+    local result = balatromon_start_run(self, args)
+
+    if BM.apply_run_mode then
+        BM.apply_run_mode(loading_save)
+    end
+
+    if BM.finish_appmon_run then
+        BM.finish_appmon_run()
+    end
+
+    return result
+end
+
+local balatromon_use_consumeable = Card.use_consumeable
+
+Card.use_consumeable = function(self, ...)
+    if BM.track_perorimon_consumable then
+        BM.track_perorimon_consumable(self)
+    end
+
+    if BM.track_last_tarot then
+        BM.track_last_tarot(self)
+    end
+
+    return balatromon_use_consumeable(self, ...)
+end
+
+local balatromon_set_cost = Card.set_cost
+
+Card.set_cost = function(self, ...)
+    local result = balatromon_set_cost(self, ...)
+
+    if BM.apply_polarbearmon_shop_cost then
+        BM.apply_polarbearmon_shop_cost(self)
+    end
+
+    if BM.apply_redvegiemon_shop_cost then
+        BM.apply_redvegiemon_shop_cost(self)
+    end
+
+    return result
+end
+
+local balatromon_buy_from_shop = G.FUNCS.buy_from_shop
+
+G.FUNCS.buy_from_shop = function(e, ...)
+    local card = e
+        and e.config
+        and e.config.ref_table
+
+    local sort_id = card and card.sort_id or 0
+    local bought_digimon = card
+        and BM.is_digimon(card)
+        and not BM.is_appmon(card)
+
+    local result
+
+    if BM.buy_appmon_from_shop then
+        result = BM.buy_appmon_from_shop(
+            balatromon_buy_from_shop,
+            e,
+            ...
+        )
+    else
+        result = balatromon_buy_from_shop(e, ...)
+    end
+
+    if BM.apply_food_stamp_after_buy then
+        BM.apply_food_stamp_after_buy(
+            card,
+            sort_id,
+            bought_digimon
+        )
+    end
+
+    return result
+end

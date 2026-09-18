@@ -467,69 +467,50 @@ SMODS.Voucher {
     end,
 }
 
-if not BM._food_stamp_buy_hook
-and G.FUNCS
-and G.FUNCS.buy_from_shop then
-    local old_voucher_buy_from_shop = G.FUNCS.buy_from_shop
-
-    G.FUNCS.buy_from_shop = function(e, ...)
-        local card = e
-            and e.config
-            and e.config.ref_table
-
-        local bought_digimon = card
-            and BM.is_digimon(card)
-            and not BM.is_appmon(card)
-
-        local sort_id = card and card.sort_id or 0
-        local result = old_voucher_buy_from_shop(e, ...)
-
-        if bought_digimon
-        and card
-        and not card.REMOVED
-        and card.area == G.jokers
-        and voucher_active('food_stamp') then
-            G.E_MANAGER:add_event(Event {
-                trigger = 'after',
-                delay = 0.1,
-                func = function()
-                    if card
-                    and not card.REMOVED
-                    and card.area == G.jokers
-                    and G.consumeables
-                    and BM.has_room(G.consumeables)
-                    and SMODS.pseudorandom_probability(
-                        card,
-                        'balatromon_food_stamp_' .. tostring(sort_id),
-                        1,
-                        4
-                    ) then
-                        local made = BM.add_food_stamp_food(
-                            'balatromon_food_stamp_' .. tostring(sort_id)
-                        )
-
-                        if made and card_eval_status_text then
-                            card_eval_status_text(
-                                card,
-                                'extra',
-                                nil,
-                                nil,
-                                nil,
-                                {
-                                    message = 'Food!',
-                                    colour = G.C.GREEN
-                                }
-                            )
-                        end
-                    end
-
-                    return true
-                end
-            })
-        end
-
-        return result
+function BM.apply_food_stamp_after_buy(card, sort_id, bought_digimon)
+    if not bought_digimon
+    or not card
+    or card.REMOVED
+    or card.area ~= G.jokers
+    or not voucher_active('food_stamp') then
+        return
     end
 
-    BM._food_stamp_buy_hook = true
+    G.E_MANAGER:add_event(Event {
+        trigger = 'after',
+        delay = 0.1,
+        func = function()
+            if card
+            and not card.REMOVED
+            and card.area == G.jokers
+            and G.consumeables
+            and BM.has_room(G.consumeables)
+            and SMODS.pseudorandom_probability(
+                card,
+                'balatromon_food_stamp_' .. tostring(sort_id),
+                1,
+                4
+            ) then
+                local made = BM.add_food_stamp_food(
+                    'balatromon_food_stamp_' .. tostring(sort_id)
+                )
+
+                if made and card_eval_status_text then
+                    card_eval_status_text(
+                        card,
+                        'extra',
+                        nil,
+                        nil,
+                        nil,
+                        {
+                            message = 'Food!',
+                            colour = G.C.GREEN
+                        }
+                    )
+                end
+            end
+
+            return true
+        end
+    })
 end
