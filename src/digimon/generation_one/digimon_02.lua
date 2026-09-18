@@ -387,6 +387,7 @@ do
                 '{C:inactive}(carried over Chips from Gabumon){} {C:inactive}(poker hand',
                 'changes at end of round){}',
                 '{C:inactive}(Currently {C:chips}+#5#{C:inactive} Chips){}',
+                'Applies {C:attention}Elecmon{}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -400,6 +401,7 @@ do
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'leomon_hand') or e.target_hand or 'High Card'
+            BM.add_digimon_tooltip(info_queue, 'elecmon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},target_hand,e.chips or 0}}
         end,
@@ -415,7 +417,7 @@ elements = {BM.care_bars(e, stage)},target_hand,e.chips or 0}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Leomon', stage = stage, evolves_to = 'LoaderLeomon, Knightmon, GrapLeomon', effect = 'Gain +15 Chips if played hand contains [poker hand] (carried over Chips from Gabumon) (poker hand changes at end of round)'}
+    BM.joker_defs[slug] = {name = 'Leomon', stage = stage, evolves_to = 'LoaderLeomon, Knightmon, GrapLeomon', effect = 'Gain +15 Chips if played hand contains [poker hand] (carried over Chips from Gabumon) (poker hand changes at end of round). Apply Elecmon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end

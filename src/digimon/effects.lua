@@ -829,11 +829,28 @@ H.garurumon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then for _,c in ipairs(context.scoring_hand or {}) do if BM.is_face(c) then e.chips=e.chips+10; return {message='+10 Chips'} end end end
     if context.joker_main and e.chips~=0 then return {chips=e.chips} end
 end
-H.leomon = function(card,context)
-    local e=card.ability.extra; e.chips=e.chips or 0; BM.ensure_target(card,'target_hand',BM.HANDS,'leomon_hand')
-    if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_hand',BM.HANDS,'leomon_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
-    if context.before and context.main_eval and BM.contains_hand(context,e.target_hand) and not context.blueprint then e.chips=e.chips+15; return {message='+15 Chips'} end
-    if context.joker_main and e.chips~=0 then return {chips=e.chips} end
+H.leomon = function(card, context)
+    local inherited = H.elecmon(card, context)
+    local e = card.ability.extra
+    e.chips = e.chips or 0
+    BM.ensure_target(card, 'target_hand', BM.HANDS, 'leomon_hand')
+
+    if context.end_of_round and context.main_eval and not context.blueprint then
+        BM.reroll_target(card, 'target_hand', BM.HANDS, 'leomon_hand')
+        return BM.target_change_return(card, 'Target: ' .. tostring(e.target_hand), G.C.ATTENTION)
+    end
+
+    if context.before and context.main_eval and BM.contains_hand(context, e.target_hand) and not context.blueprint then
+        e.chips = e.chips + 15
+        return {message = '+15 Chips'}
+    end
+
+    if context.joker_main then
+        local chips = e.chips + (inherited and inherited.chips or 0)
+        if chips ~= 0 then return {chips = chips} end
+    end
+
+    return inherited
 end
 H.madleomon = function(card, context)
     local e = card.ability.extra
@@ -1233,86 +1250,113 @@ H.zerimon = function(card, context)
     end
 end
 H.gummymon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then BM.add_sell_value_to_all(1); return {message='+$1 Sell Value'} end end
-H.terriermon = function(card,context)
-    local played=context.other_card
-    if context.individual and context.cardarea==G.play and (BM.card_has_rank(played,8) or BM.card_has_rank(played,10) or BM.card_has_rank(played,11)) and SMODS.pseudorandom_probability(card,'terriermon',1,4) and not context.blueprint then if BM.add_consumable('Tarot') then return {message='Tarot!'} end end
-end
-H.gargomon = function(card,context) local played=context.other_card; if context.individual and context.cardarea==G.play and (BM.is_face(played) or BM.card_has_rank(played,14) or BM.card_has_rank(played,2)) then return {mult=5} end end
-H.guardromon = function(card,context)
-    if context.first_hand_drawn and context.main_eval and not context.blueprint then local seal=SMODS.poll_seal{key='guardromon_seal',guaranteed=true}; BM.add_playing_card{area=G.hand,seal=seal}; return {message='Card Added!'} end
-end
-H.machmon = function() end -- SMODS.shortcut is patched below while Machmon is owned.
-H.rapidmon = function(card,context)
-    local e=card.ability.extra
-    if context.setting_blind and context.main_eval and not context.blueprint then e.used_first_discard=false end
-    if context.discard and not e.used_first_discard and context.full_hand and #context.full_hand==1 and not context.blueprint then e.used_first_discard=true; return {remove=true,dollars=3} end
-end
-H.andromon = function() end -- Card:is_suit is patched below while Andromon is owned.
-H.tankdramon = function(card,context)
-    if context.end_of_round and context.main_eval and not context.blueprint then
-        local money=0; local purple=0
-        for _,c in ipairs(G.hand.cards or {}) do if c.seal=='Gold' then money=money+3 elseif c.seal=='Purple' then purple=purple+1 end end
-        for _=1,purple do BM.add_consumable('Tarot') end
-        if money>0 or purple>0 then return {dollars=money,message='Seals Activated!'} end
+H.terriermon = function(card, context)
+    local played = context.other_card
+    if context.individual and context.cardarea == G.play and (BM.card_has_rank(played, 8) or BM.card_has_rank(played, 10) or BM.card_has_rank(played, 11)) and SMODS.pseudorandom_probability(card, 'terriermon', 1, 4) and not context.blueprint then
+        if BM.add_consumable('Tarot') then return {message = 'Tarot!'} end
     end
 end
-H.megagargomon = function(card, context)
-    if context.ending_shop then
-        local candidates =
-            BM.get_copyable_consumables()
 
-        if #candidates == 0 then
-            return
+H.gargomon = function(card, context)
+    local inherited = H.terriermon(card, context)
+    local played = context.other_card
+
+    if context.individual and context.cardarea == G.play and (BM.is_face(played) or BM.card_has_rank(played, 14) or BM.card_has_rank(played, 2)) then
+        local result = inherited or {}
+        result.mult = (result.mult or 0) + 5
+        return result
+    end
+
+    return inherited
+end
+
+H.guardromon = function(card, context)
+    if context.first_hand_drawn and context.main_eval and not context.blueprint then
+        local seal = SMODS.poll_seal{key = 'guardromon_seal', guaranteed = true}
+        BM.add_playing_card{area = G.hand, seal = seal}
+        return {message = 'Card Added!'}
+    end
+end
+
+H.machmon = function(card, context)
+    if context.after and context.main_eval and not context.blueprint and not BM.contains_hand(context, 'Straight') then
+        local seal = SMODS.poll_seal{key = 'machmon_seal', guaranteed = true}
+        BM.add_playing_card{area = G.hand, seal = seal}
+        return {message = 'Card Added!'}
+    end
+end
+
+H.rapidmon = function(card, context)
+    local e = card.ability.extra
+
+    if context.setting_blind and context.main_eval and not context.blueprint then
+        e.discard_used = false
+    end
+
+    local inherited
+    if not e.discard_used then inherited = H.gargomon(card, context) end
+
+    if context.discard and not e.discard_used and not context.blueprint then
+        e.discard_used = true
+        if context.full_hand and #context.full_hand == 1 then
+            return {remove = true, dollars = 3}
+        end
+    end
+
+    return inherited
+end
+
+H.andromon = function() end
+
+H.tankdramon = function(card, context)
+    if context.end_of_round and context.main_eval and not context.blueprint then
+        local money = 0
+        local purple = 0
+
+        for _, held in ipairs(G.hand.cards or {}) do
+            if held.seal == 'Gold' then
+                money = money + 3
+            elseif held.seal == 'Purple' then
+                purple = purple + 1
+            end
         end
 
-        G.E_MANAGER:add_event(
-            Event({
-                func = function()
-                    local target =
-                        pseudorandom_element(
-                            candidates,
-                            pseudoseed(
-                                'megagargomon'
-                            )
-                        )
-
-                    if not target then
-                        return true
-                    end
-
-                    local copy =
-                        copy_card(
-                            target,
-                            nil
-                        )
-
-                    if not copy then
-                        return true
-                    end
-
-                    copy:set_edition(
-                        {
-                            negative = true
-                        },
-                        true
-                    )
-
-                    copy:add_to_deck()
-
-                    G.consumeables:emplace(
-                        copy
-                    )
-
-                    return true
-                end
-            })
-        )
-
-        return {
-            message = 'Copied!'
-        }
+        for _ = 1, purple do BM.add_consumable('Tarot') end
+        if money > 0 or purple > 0 then return {dollars = money, message = 'Seals Activated!'} end
     end
 end
+
+H.megagargomon = function(card, context)
+    local e = card.ability.extra
+
+    if context.setting_blind and context.main_eval and not context.blueprint then
+        e.apply_rapidmon = #G.consumeables.cards == 0
+    end
+
+    local inherited
+    if e.apply_rapidmon then inherited = H.rapidmon(card, context) end
+
+    if context.ending_shop then
+        local candidates = BM.get_copyable_consumables()
+        if #candidates == 0 then return inherited end
+
+        G.E_MANAGER:add_event(Event({
+            func = function()
+                local target = pseudorandom_element(candidates, pseudoseed('megagargomon'))
+                local copy = copy_card(target)
+                copy:set_edition({negative = true}, true)
+                copy:add_to_deck()
+                G.consumeables:emplace(copy)
+                return true
+            end
+        }))
+
+        return {message = 'Copied!'}
+    end
+
+    return inherited
+end
+
 H.hiandromon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1; e.suit_count=e.suit_count or 0; BM.ensure_target(card,'target_suit',BM.deck_suits(),'hiandro_suit')
     if context.end_of_round and context.main_eval and not context.blueprint then e.suit_count=0; BM.reroll_target(card,'target_suit',BM.deck_suits(),'hiandro_suit'); return BM.target_change_return(card,'Target: '..tostring(e.target_suit),(G.C.SUITS and G.C.SUITS[e.target_suit]) or G.C.FILTER) end

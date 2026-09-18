@@ -275,6 +275,7 @@ do
             {
                 'Played face cards, Ace cards and 2\'s give {C:mult}+5{}',
                 'Mult when scored',
+                'Apply {C:attention}Terriermon{} effect',
             },
             {BM.care_status_text(stage)}
         }},
@@ -286,6 +287,7 @@ do
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'Rapidmon',
         loc_vars = function(self, info_queue, card)
+            BM.add_digimon_tooltip(info_queue, 'terriermon', card)
             local e = card and card.ability and card.ability.extra or extra
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
@@ -301,7 +303,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Gargomon', stage = stage, evolves_to = 'Rapidmon', effect = 'Played face cards, Ace cards and 2\'s give +5 Mult when scored'}
+    BM.joker_defs[slug] = {name = 'Gargomon', stage = stage, evolves_to = 'Rapidmon', effect = 'Played face cards, Ace cards and 2\'s give +5 Mult when scored. Apply Terriermon effect'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -355,8 +357,9 @@ do
         key = slug,
         loc_txt = {name = 'Machmon', text = {
             {
-                'Allows Straights to be made with gaps of 1',
-                'rank',
+                'Allows Straights to be made with gaps of 1 rank',
+                'If played hand is not a Straight, gain a random',
+                'playing card with a random seal and draw it to hand',
             },
             {BM.care_status_text(stage)}
         }},
@@ -383,7 +386,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Machmon', stage = stage, evolves_to = 'LoaderLeomon, Tankdramon', effect = 'Allows Straights to be made with gaps of 1 rank'}
+    BM.joker_defs[slug] = {name = 'Machmon', stage = stage, evolves_to = 'LoaderLeomon, Tankdramon', effect = 'Allows Straights to be made with gaps of 1 rank. If played hand is not a Straight, gain a random playing card with a random seal and draw it to hand'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -398,6 +401,8 @@ do
             {
                 'If first discard of round has only 1 card,',
                 'destroy it and earn {C:money}$3{}',
+                'If discard is not yet used this round,',
+                'apply {C:attention}Gargomon{}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -409,6 +414,7 @@ do
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'MegaGargomon',
         loc_vars = function(self, info_queue, card)
+            BM.add_digimon_tooltip(info_queue, 'gargomon', card)
             local e = card and card.ability and card.ability.extra or extra
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
@@ -424,7 +430,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Rapidmon', stage = stage, evolves_to = 'MegaGargomon', effect = 'If first discard of round has only 1 card, destroy it and earn $3'}
+    BM.joker_defs[slug] = {name = 'Rapidmon', stage = stage, evolves_to = 'MegaGargomon', effect = 'If first discard of round has only 1 card, destroy it and earn $3. If discard is not yet used this round, apply Gargomon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -521,6 +527,8 @@ do
             {
                 'Creates a Negative copy of 1 random consumable',
                 'card in your possession at the end of the shop',
+                'If no consumable is in the consumable slot at',
+                'start of round, apply {C:attention}Rapidmon{}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -532,6 +540,7 @@ do
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
+            BM.add_digimon_tooltip(info_queue, 'rapidmon', card)
             local e = card and card.ability and card.ability.extra or extra
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
@@ -547,7 +556,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'MegaGargomon', stage = stage, evolves_to = '-', effect = 'Creates a Negative copy of 1 random consumable card in your possession at the end of the shop'}
+    BM.joker_defs[slug] = {name = 'MegaGargomon', stage = stage, evolves_to = '-', effect = 'Creates a Negative copy of 1 random consumable card in your possession at the end of the shop. If no consumable is in the consumable slot at start of round, apply Rapidmon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
