@@ -675,17 +675,18 @@ function(card, context)
         )
     end
 end
-H.cotsucomon = function(card,context) BM.apply_blind_reduction(card,context,0.02,false) end
-H.kakkinmon = function(card,context) BM.apply_blind_reduction(card,context,0.03,false) end
-H.ludomon = function(card,context) BM.apply_blind_reduction(card,context,0.05,false) end
-H.tialudomon = function(card,context) BM.apply_blind_reduction(card,context,0.10,true) end
-H.raijiludomon = function(card,context) BM.apply_blind_reduction(card,context,0.25,true) end
+H.cotsucomon = function(card,context) BM.apply_blind_reduction(card,context,0.05,false) end
+H.kakkinmon = function(card,context) BM.apply_blind_reduction(card,context,0.15,false) end
+H.ludomon = function(card,context) BM.apply_blind_reduction(card,context,0.25,false) end
+H.tialudomon = function(card,context) BM.apply_blind_reduction(card,context,0.30,true) end
+H.raijiludomon = function(card,context) BM.apply_blind_reduction(card,context,0.50,true) end
 H.knightmon = function(card,context)
     local e=card.ability.extra; e.mult=e.mult or 0
-    if context.after and context.main_eval and not context.blueprint and not SMODS.last_hand_oneshot then e.mult=e.mult+10; return {message='+10 Mult'} end
+    if context.after and context.main_eval and not context.blueprint and not SMODS.last_hand_oneshot then e.mult=e.mult+6; return {message='+6 Mult'} end
     if context.joker_main and e.mult~=0 then return {mult=e.mult} end
 end
 H.bryweludramon = function(card,context)
+    H.raijiludomon(card,context)
     if context.setting_blind
     and context.main_eval
     and BM.is_boss()
@@ -1948,7 +1949,7 @@ H.tanemon = plant_boss_food
 
 H.palmon = function(card, context)
     if context.joker_main then
-        local value = 3 * BM.count_food()
+        local value = 6 * BM.count_food()
 
         if value > 0 then
             return {
@@ -1962,7 +1963,7 @@ end
 
 H.lalamon = function(card, context)
     if context.joker_main then
-        local value = 30 * BM.count_food()
+        local value = 60 * BM.count_food()
 
         if value > 0 then
             return {
@@ -1975,29 +1976,23 @@ H.lalamon = function(card, context)
 end
 
 H.mushroomon = function(card, context)
-    if context.end_of_round
-    and context.main_eval
-    and not context.blueprint then
-        local value = 2 * BM.count_food()
-
-        if BM.is_boss() then
-            BM.add_random_food(
-                'mushroomon_food_' .. tostring(card.sort_id or 0)
-            )
-        end
-
-        if value > 0 then
-            return {
-                dollars = value
-            }
-        end
+    local value
+    if context.end_of_round and context.main_eval and not context.blueprint then
+        value = 2 * BM.count_food()
     end
+
+    local result = plant_boss_food(card, context)
+    if value and value > 0 then
+        result = result or {}
+        result.dollars = value
+    end
+    return result
 end
 
 H.togemon = function(card, context)
     if context.joker_main then
         return {
-            xmult = 1 + 0.5 * BM.count_food()
+            xmult = 1 + 0.75 * BM.count_food()
         }
     end
 

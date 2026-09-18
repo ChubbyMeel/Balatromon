@@ -256,7 +256,7 @@ do
             text = {
                 {
                     'Feeds itself at the end of each round',
-                    '{C:mult}+3{} Mult for every {C:attention}Food Item{} and',
+                    '{C:mult}+6{} Mult for every {C:attention}Food Item{}',
                     'in your consumable area',
                     '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
                     'Also applies {C:attention}Tanemon{} effect',
@@ -300,7 +300,7 @@ do
                     e.bond or 0,
                     e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},
-                    3 * BM.count_food()
+                    6 * BM.count_food()
                 }
             }
         end,
@@ -348,7 +348,7 @@ elements = {BM.care_bars(e, stage)},
         name = 'Palmon',
         stage = stage,
         evolves_to = 'Togemon, Numemon',
-        effect = '+3 Mult for each Food Item, also applies Tanemon effect'
+        effect = '+6 Mult for each Food Item, also applies Tanemon effect'
     }
 
     local weight = BM.stage_shop_weight(stage)
@@ -380,7 +380,7 @@ do
             text = {
                 {
                     'Feeds itself at the end of each round',
-                    '{C:chips}+30{} Chips for every {C:attention}Food Item{} and',
+                    '{C:chips}+60{} Chips for every {C:attention}Food Item{}',
                     'in your consumable area',
                     '{C:inactive}(Currently {C:chips}+#4#{C:inactive} Chips){}',
                     'Also applies {C:attention}Tanemon{} effect',
@@ -424,7 +424,7 @@ do
                     e.bond or 0,
                     e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},
-                    30 * BM.count_food()
+                    60 * BM.count_food()
                 }
             }
         end,
@@ -472,7 +472,7 @@ elements = {BM.care_bars(e, stage)},
         name = 'Lalamon',
         stage = stage,
         evolves_to = 'Sunflowmon',
-        effect = '+30 Chips for each Food Item, also applies Tanemon effect'
+        effect = '+60 Chips for each Food Item, also applies Tanemon effect'
     }
 
     local weight = BM.stage_shop_weight(stage)
@@ -624,7 +624,7 @@ do
                 {
                     'Feeds itself at the end of each round',
                     'Each {C:attention}Food Item{} gives',
-                    '{X:mult,C:white}X0.5{} Mult',
+                    '{X:mult,C:white}X0.75{} Mult',
                     '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
                     'Also applies {C:attention}Tanemon{} effect',
                 },
@@ -661,7 +661,7 @@ do
                     e.bond or 0,
                     e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},
-                    1 + 0.5 * BM.count_food()
+                    1 + 0.75 * BM.count_food()
                 }
             }
         end,
@@ -705,7 +705,7 @@ elements = {BM.care_bars(e, stage)},
         name = 'Togemon',
         stage = stage,
         evolves_to = 'Lillymon',
-        effect = 'Each Food Item gives X0.5 Mult, also applies Tanemon effect'
+        effect = 'Each Food Item gives X0.75 Mult, also applies Tanemon effect'
     }
 
     local weight = BM.stage_shop_weight(stage)

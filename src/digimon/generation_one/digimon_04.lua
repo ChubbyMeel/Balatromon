@@ -9,7 +9,7 @@ do
         loc_txt = {name = 'Cotsucomon', text = {
             {
                 'Reduce score requirement to beat small and big',
-                'blind by 2%',
+                'blind by 5%',
             },
             {BM.care_status_text(stage)}
         }},
@@ -36,7 +36,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Cotsucomon', stage = stage, evolves_to = 'Kakkinmon', effect = 'Reduce score requirement to beat small and big blind by 2%'}
+    BM.joker_defs[slug] = {name = 'Cotsucomon', stage = stage, evolves_to = 'Kakkinmon', effect = 'Reduce score requirement to beat small and big blind by 5%'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -50,7 +50,7 @@ do
         loc_txt = {name = 'Kakkinmon', text = {
             {
                 'Reduce score requirement to beat small and big',
-                'blind by 3%',
+                'blind by 15%',
             },
             {BM.care_status_text(stage)}
         }},
@@ -77,7 +77,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Kakkinmon', stage = stage, evolves_to = 'Ludomon', effect = 'Reduce score requirement to beat small and big blind by 3%'}
+    BM.joker_defs[slug] = {name = 'Kakkinmon', stage = stage, evolves_to = 'Ludomon', effect = 'Reduce score requirement to beat small and big blind by 15%'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -91,7 +91,7 @@ do
         loc_txt = {name = 'Ludomon', text = {
             {
                 'Reduce score requirement to beat small and big',
-                'blind by 5%',
+                'blind by 25%',
             },
             {BM.care_status_text(stage)}
         }},
@@ -118,7 +118,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Ludomon', stage = stage, evolves_to = 'TiaLudomon', effect = 'Reduce score requirement to beat small and big blind by 5%'}
+    BM.joker_defs[slug] = {name = 'Ludomon', stage = stage, evolves_to = 'TiaLudomon', effect = 'Reduce score requirement to beat small and big blind by 25%'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -132,7 +132,7 @@ do
         loc_txt = {name = 'TiaLudomon', text = {
             {
                 'Reduce score requirement to beat any blind by',
-                '10%',
+                '30%',
             },
             {BM.care_status_text(stage)}
         }},
@@ -159,7 +159,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'TiaLudomon', stage = stage, evolves_to = 'RaijiLudomon, Knightmon', effect = 'Reduce score requirement to beat any blind by 10%'}
+    BM.joker_defs[slug] = {name = 'TiaLudomon', stage = stage, evolves_to = 'RaijiLudomon, Knightmon', effect = 'Reduce score requirement to beat any blind by 30%'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -173,7 +173,7 @@ do
         loc_txt = {name = 'RaijiLudomon', text = {
             {
                 'Reduce score requirement to beat any blind by',
-                '25%',
+                '50%',
             },
             {BM.care_status_text(stage)}
         }},
@@ -200,7 +200,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'RaijiLudomon', stage = stage, evolves_to = 'BryweLudramon', effect = 'Reduce score requirement to beat any blind by 25%'}
+    BM.joker_defs[slug] = {name = 'RaijiLudomon', stage = stage, evolves_to = 'BryweLudramon', effect = 'Reduce score requirement to beat any blind by 50%'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -213,7 +213,7 @@ do
         key = slug,
         loc_txt = {name = 'Knightmon', text = {
             {
-                'Gain {C:mult}+10{} Mult for every hand played that does',
+                'Gain {C:mult}+6{} Mult for every hand played that does',
                 'not win',
                 '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
             },
@@ -243,7 +243,7 @@ elements = {BM.care_bars(e, stage)},e.mult or 0}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Knightmon', stage = stage, evolves_to = 'Gallantmon', effect = 'Gain +10 Mult for every hand played that does not win'}
+    BM.joker_defs[slug] = {name = 'Knightmon', stage = stage, evolves_to = 'Gallantmon', effect = 'Gain +6 Mult for every hand played that does not win'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -256,7 +256,7 @@ do
         key = slug,
         loc_txt = {name = 'BryweLudramon', text = {
             {
-                'Disable boss blind',
+                'Disable boss blind, apply {C:attention}RaijiLudomon{}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -268,6 +268,7 @@ do
         balatromon = true,
         balatromon_stage = stage, balatromon_evolves_to = 'RagnaLoardmon',
         loc_vars = function(self, info_queue, card)
+            BM.add_digimon_tooltip(info_queue, 'raijiludomon', card)
             local e = card and card.ability and card.ability.extra or extra
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
@@ -283,7 +284,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'BryweLudramon', stage = stage, evolves_to = 'RagnaLoardmon', effect = 'Disable boss blind'}
+    BM.joker_defs[slug] = {name = 'BryweLudramon', stage = stage, evolves_to = 'RagnaLoardmon', effect = 'Disable boss blind, apply RaijiLudomon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
