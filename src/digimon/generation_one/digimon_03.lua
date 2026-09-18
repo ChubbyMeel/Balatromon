@@ -8,7 +8,7 @@ do
         key = slug,
         loc_txt = {name = 'Jyarimon', text = {
             {
-                '{C:mult}+8{} Mult if played hand contains a Pair',
+                '{C:mult}+8{} Mult if played hand contains Two Pair',
             },
             {BM.care_status_text(stage)}
         }},
@@ -35,7 +35,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Jyarimon', stage = stage, evolves_to = 'Gigimon', effect = '+8 Mult if played hand contains a Pair'}
+    BM.joker_defs[slug] = {name = 'Jyarimon', stage = stage, evolves_to = 'Gigimon', effect = '+8 Mult if played hand contains Two Pair'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -48,7 +48,7 @@ do
         key = slug,
         loc_txt = {name = 'Gigimon', text = {
             {
-                '{C:mult}+9{} Mult if played hand contains Two Pair',
+                '{C:mult}+10{} Mult if played hand contains a Pair',
             },
             {BM.care_status_text(stage)}
         }},
@@ -75,7 +75,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Gigimon', stage = stage, evolves_to = 'Guilmon', effect = '+9 Mult if played hand contains Two Pair'}
+    BM.joker_defs[slug] = {name = 'Gigimon', stage = stage, evolves_to = 'Guilmon', effect = '+10 Mult if played hand contains a Pair'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -88,7 +88,7 @@ do
         key = slug,
         loc_txt = {name = 'Guilmon', text = {
             {
-                '{C:mult}+10{} Mult if played hand contains a Flush',
+                '{C:mult}+16{} Mult if played hand contains a Flush or Pair',
             },
             {BM.care_status_text(stage)}
         }},
@@ -115,7 +115,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Guilmon', stage = stage, evolves_to = 'Growlmon, Numemon, Monochromon', effect = '+10 Mult if played hand contains a Flush'}
+    BM.joker_defs[slug] = {name = 'Guilmon', stage = stage, evolves_to = 'Growlmon, Numemon, Monochromon', effect = '+16 Mult if played hand contains a Flush or Pair'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -128,8 +128,9 @@ do
         key = slug,
         loc_txt = {name = 'Growlmon', text = {
             {
-                '{C:mult}+17{} Mult if played hand contains Four of a',
-                'Kind',
+                '{C:mult}+23{} Mult if played hand contains',
+                'Four of a Kind or a Flush',
+                '{C:mult}+18{} Mult if played hand is exactly a Pair',
             },
             {BM.care_status_text(stage)}
         }},
@@ -156,7 +157,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Growlmon', stage = stage, evolves_to = 'WarGrowlmon, Megadramon, Gigadramon', effect = '+17 Mult if played hand contains Four of a Kind'}
+    BM.joker_defs[slug] = {name = 'Growlmon', stage = stage, evolves_to = 'WarGrowlmon, Megadramon, Gigadramon', effect = '+23 Mult if played hand contains Four of a Kind or Flush; +18 Mult if hand is exactly a Pair'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -169,8 +170,8 @@ do
         key = slug,
         loc_txt = {name = 'Monochromon', text = {
             {
-                'Add to Mult the highest valued card in played',
-                'hand and make it gold',
+                'Add to Mult double the highest valued card in',
+                'played hand and make it Gold',
             },
             {BM.care_status_text(stage)}
         }},
@@ -197,7 +198,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Monochromon', stage = stage, evolves_to = 'Mammothmon, Triceramon', effect = 'Add to Mult the highest valued card in played hand and make it gold'}
+    BM.joker_defs[slug] = {name = 'Monochromon', stage = stage, evolves_to = 'Mammothmon, Triceramon', effect = 'Add to Mult double the highest valued card in played hand and make it Gold'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -205,13 +206,13 @@ end
 do
     local slug = 'wargrowlmon'
     local stage = 'Ultimate'
-    local extra = {hunger = 1, bond = 0, care_mistakes = 0, care_rounds = 0}
+    local extra = {hunger = 1, bond = 0, care_mistakes = 0, care_rounds = 0, mult = 20}
     SMODS.Joker {
         key = slug,
         loc_txt = {name = 'WarGrowlmon', text = {
             {
-                'Gain {C:mult}+15{} Mult every time {C:attention}#4#{} is played',
-                '{C:inactive}(poker hand changes at end of round){}',
+                'Gain {C:mult}+10{} Mult every time {C:attention}#4#{} is played',
+                '{C:inactive}(poker hand changes every round){}',
                 '{C:inactive}(Currently {C:mult}+#5#{C:inactive} Mult){}',
             },
             {BM.care_status_text(stage)}
@@ -227,7 +228,7 @@ do
             local e = card and card.ability and card.ability.extra or extra
             local target_hand=card and BM.ensure_target(card,'target_hand',BM.HANDS,'wargrowl_hand') or e.target_hand or 'High Card'
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,
-elements = {BM.care_bars(e, stage)},target_hand,e.mult or 0}}
+elements = {BM.care_bars(e, stage)},target_hand,math.max(20,e.mult or 20)}}
         end,
         in_pool = function(self, args)
             return stage == 'Fresh' or stage == 'In-Training' or stage == 'Rookie' or stage == 'Champion' or stage == 'Rare'
@@ -241,7 +242,7 @@ elements = {BM.care_bars(e, stage)},target_hand,e.mult or 0}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'WarGrowlmon', stage = stage, evolves_to = 'Gallantmon, BlackWarGreymon', effect = 'Gain +15 Mult every time [poker hand] is played (poker hand changes at end of round)'}
+    BM.joker_defs[slug] = {name = 'WarGrowlmon', stage = stage, evolves_to = 'Gallantmon, BlackWarGreymon', effect = 'Gain +10 Mult every time [poker hand] is played (poker hand changes every round, starts at +20 Mult)'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -295,7 +296,7 @@ do
         key = slug,
         loc_txt = {name = 'Gigadramon', text = {
             {
-                'Add to Mult double the lowest valued card held',
+                'Add to Mult triple the lowest valued card held',
                 'in hand',
                 '{C:inactive}(Currently {C:mult}+#4#{C:inactive} Mult){}',
             },
@@ -310,7 +311,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Machinedramon, BlackWarGreymon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            local current = 0; if G.hand and G.hand.cards then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then current=r*2 end end
+            local current = 0; if G.hand and G.hand.cards then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then current=r*3 end end
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},current}}
         end,
@@ -326,7 +327,7 @@ elements = {BM.care_bars(e, stage)},current}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Gigadramon', stage = stage, evolves_to = 'Machinedramon, BlackWarGreymon', effect = 'Add to Mult double the lowest valued card held in hand'}
+    BM.joker_defs[slug] = {name = 'Gigadramon', stage = stage, evolves_to = 'Machinedramon, BlackWarGreymon', effect = 'Add to Mult triple the lowest valued card held in hand'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -381,7 +382,7 @@ do
         key = slug,
         loc_txt = {name = 'Triceramon', text = {
             {
-                '{C:mult}^1.3{} Mult if played hand contains {C:attention}#4#{}',
+                '{X:mult,C:white}X4{} Mult if played hand contains {C:attention}#4#{}',
                 '{C:inactive}(poker hand changes every hand){}',
             },
             {BM.care_status_text(stage)}
@@ -411,7 +412,7 @@ elements = {BM.care_bars(e, stage)},target_hand}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Triceramon', stage = stage, evolves_to = 'WarGreymon, BlackWarGreymon, HeavyLeomon', effect = '^1.3 Mult if played hand contains [poker hand] (poker hand changes every hand)'}
+    BM.joker_defs[slug] = {name = 'Triceramon', stage = stage, evolves_to = 'WarGreymon, BlackWarGreymon, HeavyLeomon', effect = 'X4 Mult if played hand contains [poker hand] (poker hand changes every hand)'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end

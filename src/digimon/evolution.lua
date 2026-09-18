@@ -1346,6 +1346,11 @@ function BM.perform_digivolution(card, option, device_key, opts)
     card.ability.extra =
         card.ability.extra or {}
 
+    if old_slug == 'wargrowlmon'
+    and option.slug == 'gallantmon' then
+        card.ability.extra.inherited_gallantmon_value = math.max(20, carry.mult or 20)
+    end
+
     if old_slug == 'gallantmon'
     and option.slug == 'gallantmon_crimson_mode' then
         card.ability.extra.emult =

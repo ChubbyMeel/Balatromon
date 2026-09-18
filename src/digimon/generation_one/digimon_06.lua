@@ -1,7 +1,5 @@
 local BM = Balatromon
 
--- Do add Betamon soon? 
-
 do
     local slug = 'pichimon'
     local stage = 'Fresh'
@@ -10,7 +8,7 @@ do
         key = slug,
         loc_txt = {name = 'Pichimon', text = {
             {
-                '{C:chips}+50{} Chips if played hand contains a Pair',
+                '{C:chips}+70{} Chips if played hand contains Three of a Kind',
             },
             {BM.care_status_text(stage)}
         }},
@@ -37,7 +35,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Pichimon', stage = stage, evolves_to = 'Bukamon', effect = '+50 Chips if played hand contains a Pair'}
+    BM.joker_defs[slug] = {name = 'Pichimon', stage = stage, evolves_to = 'Bukamon', effect = '+70 Chips if played hand contains Three of a Kind'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -50,8 +48,7 @@ do
         key = slug,
         loc_txt = {name = 'Bukamon', text = {
             {
-                '{C:chips}+100{} Chips if played hand contains Three of a',
-                'Kind',
+                '{C:chips}+100{} Chips if played hand contains a Pair',
             },
             {BM.care_status_text(stage)}
         }},
@@ -78,7 +75,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Bukamon', stage = stage, evolves_to = 'Gomamon, Crabmon', effect = '+100 Chips if played hand contains Three of a Kind'}
+    BM.joker_defs[slug] = {name = 'Bukamon', stage = stage, evolves_to = 'Gomamon, Crabmon', effect = '+100 Chips if played hand contains a Pair'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -92,6 +89,7 @@ do
         loc_txt = {name = 'Gomamon', text = {
             {
                 '{C:chips}+80{} Chips if played hand contains a Flush',
+                '{C:chips}+80{} Chips if played hand contains a Pair',
             },
             {BM.care_status_text(stage)}
         }},
@@ -118,12 +116,10 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Gomamon', stage = stage, evolves_to = 'Ikkakumon, Shellmon', effect = '+80 Chips if played hand contains a Flush'}
+    BM.joker_defs[slug] = {name = 'Gomamon', stage = stage, evolves_to = 'Ikkakumon, Shellmon', effect = '+80 Chips if played hand contains a Flush; +80 Chips if played hand contains a Pair'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
-
-
 
 do
     local slug = 'crabmon'
@@ -133,7 +129,8 @@ do
         key = slug,
         loc_txt = {name = 'Crabmon', text = {
             {
-                '{C:chips}+160{} Chips if played hand contains a Straight',
+                '{C:chips}+200{} Chips if played hand contains a Straight',
+                'or Three of a Kind',
             },
             {BM.care_status_text(stage)}
         }},
@@ -160,7 +157,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Crabmon', stage = stage, evolves_to = 'Seadramon, Shellmon', effect = '+160 Chips if played hand contains a Straight'}
+    BM.joker_defs[slug] = {name = 'Crabmon', stage = stage, evolves_to = 'Seadramon, Shellmon', effect = '+200 Chips if played hand contains a Straight or Three of a Kind'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -173,7 +170,7 @@ do
         key = slug,
         loc_txt = {name = 'Ikkakumon', text = {
             {
-                'Gives {C:chips}+20{} Chips for every unenhanced cards',
+                'Gives {C:chips}+13{} Chips for every unenhanced card',
                 'played this hand',
             },
             {BM.care_status_text(stage)}
@@ -201,7 +198,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Ikkakumon', stage = stage, evolves_to = 'Zudomon, Mammothmon', effect = 'Gives +5 Chips for every unenhanced cards played this hand'}
+    BM.joker_defs[slug] = {name = 'Ikkakumon', stage = stage, evolves_to = 'Zudomon, Mammothmon', effect = 'Gives +13 Chips for every unenhanced card played this hand'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -296,6 +293,7 @@ do
             {
                 'Gives {C:chips}+100{} Chips and {C:money}$8{} when boss blind effect',
                 'is activated',
+                'Applies {C:attention}Ikkakumon{}, {C:attention}Crabmon{}, and {C:attention}Gomamon{}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -308,6 +306,9 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Vikemon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'ikkakumon', card)
+            BM.add_digimon_tooltip(info_queue, 'crabmon', card)
+            BM.add_digimon_tooltip(info_queue, 'gomamon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -322,7 +323,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Zudomon', stage = stage, evolves_to = 'Vikemon', effect = 'Gives +100 Chips and $8 when boss blind effect is activated'}
+    BM.joker_defs[slug] = {name = 'Zudomon', stage = stage, evolves_to = 'Vikemon', effect = 'Gives +100 Chips and $8 when boss blind effect is activated; applies Ikkakumon, Crabmon and Gomamon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -419,7 +420,7 @@ do
         key = slug,
         loc_txt = {name = 'Vikemon', text = {
             {
-                '{C:chips}+1000{} Chips, -3 hand size',
+                '{C:chips}+1100{} Chips, -3 hand size',
             },
             {BM.care_status_text(stage)}
         }},
@@ -449,7 +450,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Vikemon', stage = stage, evolves_to = '-', effect = '+1000 Chips, -3 hand size'}
+    BM.joker_defs[slug] = {name = 'Vikemon', stage = stage, evolves_to = '-', effect = '+1100 Chips, -3 hand size'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
@@ -462,7 +463,8 @@ do
         key = slug,
         loc_txt = {name = 'Hydramon', text = {
             {
-                'Each played stone card gives {C:mult}+20{} Mult',
+                'Each played Stone Card gives {C:mult}+20{} Mult',
+                'Applies {C:attention}MarineBullmon{}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -475,6 +477,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
+            BM.add_digimon_tooltip(info_queue, 'marinebullmon', card)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
         end,
         in_pool = function(self, args)
@@ -489,7 +492,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Hydramon', stage = stage, evolves_to = '-', effect = 'Each played stone card gives +20 Mult'}
+    BM.joker_defs[slug] = {name = 'Hydramon', stage = stage, evolves_to = '-', effect = 'Each played Stone Card gives +20 Mult; applies MarineBullmon'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end

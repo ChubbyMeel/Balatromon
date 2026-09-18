@@ -302,21 +302,27 @@ H.blackwargreymon = function(card,context)
     if context.remove_playing_cards and not context.blueprint then local n=#(context.removed or {}); if n>0 then e.xmult=e.xmult+0.5*n; return {message='XMult Up!'} end end
     if context.joker_main then return {xmult=e.xmult} end
 end
-H.jyarimon = hand_mult('Pair',8)
-H.gigimon = hand_mult('Two Pair',9)
-H.guilmon = hand_mult('Flush',10)
-H.growlmon = hand_mult('Four of a Kind',17)
+H.jyarimon = hand_mult('Two Pair',8)
+H.gigimon = hand_mult('Pair',10)
+H.guilmon = function(card,context)
+    if context.joker_main and (BM.contains_hand(context,'Flush') or BM.contains_hand(context,'Pair')) then return {mult=16} end
+end
+H.growlmon = function(card,context)
+    if not context.joker_main then return end
+    if BM.contains_hand(context,'Four of a Kind') or BM.contains_hand(context,'Flush') then return {mult=23} end
+    if context.scoring_name=='Pair' then return {mult=18} end
+end
 H.monochromon = function(card,context)
     if context.joker_main then
         local c,r=BM.highest_card(context.scoring_hand,false)
-        if c then if not context.blueprint then BM.set_enhancement(c,'m_gold') end; return {mult=r} end
+        if c then if not context.blueprint then BM.set_enhancement(c,'m_gold') end; return {mult=r*2} end
     end
 end
 H.wargrowlmon = function(card,context)
-    local e=card.ability.extra; e.mult=e.mult or 0; BM.ensure_target(card,'target_hand',BM.HANDS,'wargrowl_hand')
+    local e=card.ability.extra; e.mult=math.max(20,e.mult or 20); BM.ensure_target(card,'target_hand',BM.HANDS,'wargrowl_hand')
     if context.end_of_round and context.main_eval and not context.blueprint then BM.reroll_target(card,'target_hand',BM.HANDS,'wargrowl_hand'); return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION) end
-    if context.before and context.main_eval and context.scoring_name==e.target_hand and not context.blueprint then e.mult=e.mult+15; return {message='+15 Mult'} end
-    if context.joker_main and e.mult~=0 then return {mult=e.mult} end
+    if context.before and context.main_eval and context.scoring_name==e.target_hand and not context.blueprint then e.mult=e.mult+10; return {message='+10 Mult'} end
+    if context.joker_main then return {mult=e.mult} end
 end
 H.megadramon = function(card,context)
     if context.before and context.main_eval and not context.blueprint then
@@ -326,38 +332,15 @@ H.megadramon = function(card,context)
         return {message='Steel!'}
     end
 end
-H.gigadramon = function(card,context) if context.joker_main then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then return {mult=r*2} end end end
+H.gigadramon = function(card,context) if context.joker_main then local _,r=BM.lowest_card(G.hand.cards); if r and r<math.huge then return {mult=r*3} end end end
 H.mammothmon = function(card,context) if context.joker_main and BM.all_four_suits(context.scoring_hand) then return {dollars=20,chips=50,xmult=2} end end
-H.triceramon = function(card, context)
-    local e = card.ability.extra
-
-    BM.ensure_target(
-        card,
-        'target_hand',
-        BM.HANDS,
-        'tricera_hand'
-    )
-
-    if context.joker_main
-    and BM.contains_hand(context, e.target_hand)  then
-        BM.emult(card, 1.3)
-    end
-
-    if context.after
-    and context.main_eval
-    and not context.blueprint then
-        BM.reroll_target(
-            card,
-            'target_hand',
-            BM.HANDS,
-            'tricera_hand'
-        )
-
-        return BM.target_change_return(
-            card,
-            'Target: ' .. tostring(e.target_hand),
-            G.C.ATTENTION
-        )
+H.triceramon = function(card,context)
+    local e=card.ability.extra
+    BM.ensure_target(card,'target_hand',BM.HANDS,'tricera_hand')
+    if context.joker_main and BM.contains_hand(context,e.target_hand) then return {xmult=4} end
+    if context.after and context.main_eval and not context.blueprint then
+        BM.reroll_target(card,'target_hand',BM.HANDS,'tricera_hand')
+        return BM.target_change_return(card,'Target: '..tostring(e.target_hand),G.C.ATTENTION)
     end
 end
 
@@ -912,22 +895,39 @@ H.monzaemon = function(card,context) if context.setting_blind and context.main_e
 H.warumonzaemon = function(card,context) if context.end_of_round and context.main_eval and not context.blueprint then local n=BM.add_food(2); if n>0 then return {message='Food!'} end end end
 H.polarbearmon = function(card, context)
 end
-H.pichimon = hand_chips('Pair',50)
-H.bukamon = hand_chips('Three of a Kind',100)
-H.gomamon = hand_chips('Flush',80)
-H.crabmon = hand_chips('Straight',160)
-H.ikkakumon = function(card,context) if context.joker_main then local n=0; for _,c in ipairs(context.full_hand or {}) do if BM.is_unenhanced(c) then n=n+1 end end; if n>0 then return {chips=20*n} end end end
+H.pichimon = hand_chips('Three of a Kind',70)
+H.bukamon = hand_chips('Pair',100)
+H.gomamon = function(card,context)
+    if not context.joker_main then return end
+    local chips=0
+    if BM.contains_hand(context,'Flush') then chips=chips+80 end
+    if BM.contains_hand(context,'Pair') then chips=chips+80 end
+    if chips>0 then return {chips=chips} end
+end
+H.crabmon = function(card,context)
+    if context.joker_main and (BM.contains_hand(context,'Straight') or BM.contains_hand(context,'Three of a Kind')) then return {chips=200} end
+end
+H.ikkakumon = function(card,context) if context.joker_main then local n=0; for _,c in ipairs(context.full_hand or {}) do if BM.is_unenhanced(c) then n=n+1 end end; if n>0 then return {chips=13*n} end end end
 H.shellmon = function(card,context) if context.setting_blind and context.main_eval and not context.blueprint then BM.add_playing_card{area=G.deck, enhancement='m_stone'}; return {message='Stone Card!'} end end
 H.seadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.is_face(context.other_card) then return {chips=30} end end
 H.zudomon = function(card,context)
     local e=card.ability.extra
     if context.setting_blind and context.main_eval and not context.blueprint then e.boss_active=BM.is_boss(); if e.boss_active then return {dollars=8,message='Boss Bonus!'} end end
-    if context.joker_main and e.boss_active then return {chips=100} end
+    if context.joker_main then
+        local chips=e.boss_active and 100 or 0
+        local effects={H.ikkakumon(card,context),H.crabmon(card,context),H.gomamon(card,context)}
+        for _,effect in ipairs(effects) do if effect and effect.chips then chips=chips+effect.chips end end
+        if chips>0 then return {chips=chips} end
+    end
 end
 H.marinebullmon = function(card,context) if context.joker_main then local n=BM.count_deck_enhancement('m_stone'); if n>0 then return {chips=25*n} end end end
 H.megaseadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.is_face(context.other_card) and not context.blueprint then context.other_card.ability.perma_bonus=(context.other_card.ability.perma_bonus or 0)+30; return {chips=30,message='+30 Permanent Chips'} end end
-H.vikemon = simple_chips(1000)
-H.hydramon = function(card,context) if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_stone') then return {mult=20} end end
+H.vikemon = simple_chips(1100)
+H.hydramon = function(card,context)
+    local inherited=H.marinebullmon(card,context)
+    if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_stone') then return {mult=20} end
+    return inherited
+end
 H.metalseadramon = function(card,context) if context.individual and context.cardarea==G.play and not context.blueprint then context.other_card.ability.perma_bonus=(context.other_card.ability.perma_bonus or 0)+50; return {chips=50,message='+50 Permanent Chips'} end end
 H.poyomon = function(card,context) if context.individual and context.cardarea==G.play and BM.has_enhancement(context.other_card,'m_lucky') then return {mult=2} end end
 H.tokomon = boss_negative_tarot('c_magician',1)
