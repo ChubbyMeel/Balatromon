@@ -109,7 +109,7 @@ SMODS.Atlas {
     py = 95
 }
 
-Balatromon.EXPERIMENTAL_BUILD = true
+Balatromon.EXPERIMENTAL_BUILD = false
 Balatromon.LATEST_RELEASE_URL = 'https://github.com/ChubbyMeel/Balatromon/releases/latest'
 
 G.FUNCS.balatromon_open_latest_release = function()
