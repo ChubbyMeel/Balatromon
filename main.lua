@@ -51,6 +51,13 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
+    key = 'Clipping',
+    path = 'DigiMeel_Clipping.png',
+    px = 71,
+    py = 95,
+}
+
+SMODS.Atlas {
     key = 'Tag',
     path = 'DigiMeel_Tag.png',
     px = 34,
@@ -383,6 +390,7 @@ assert(SMODS.load_file('src/items/tamers.lua'))()
 assert(SMODS.load_file('src/ui/evolution_map.lua'))()
 assert(SMODS.load_file('src/x_antibody/x_antibody.lua'))()
 assert(SMODS.load_file('src/x_antibody/x_collection.lua'))()
+assert(SMODS.load_file('src/core/clippings.lua'))()
 assert(SMODS.load_file('src/core/artist_badges.lua'))()
 assert(SMODS.load_file('src/items/vanilla_patches.lua'))()
 assert(SMODS.load_file('src/gameplay/boss_blinds.lua'))()
@@ -417,6 +425,10 @@ SMODS.current_mod.custom_collection_tabs = function(...)
 end
 
 SMODS.current_mod.process_loc_text = function(self)
+    if BM.install_attribute_clip_localization then
+        BM.install_attribute_clip_localization()
+    end
+
     if BM.install_appmon_localization then
         BM.install_appmon_localization()
     end
@@ -436,6 +448,7 @@ SMODS.current_mod.process_loc_text = function(self)
 end
 
 SMODS.current_mod.calculate = function(self, context)
+    BM.calculate_attribute_clip_context(context)
     local result
 
     if BM.calculate_evolution_tag then
@@ -522,6 +535,8 @@ local balatromon_set_cost = Card.set_cost
 
 Card.set_cost = function(self, ...)
     local result = balatromon_set_cost(self, ...)
+
+    BM.apply_attribute_clip_cost(self)
 
     if BM.apply_polarbearmon_shop_cost then
         BM.apply_polarbearmon_shop_cost(self)
