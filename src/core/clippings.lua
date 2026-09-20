@@ -354,9 +354,9 @@ SMODS.DrawStep {
     func = function(card)
         if not BM.is_attribute_clip_active(card) then return end
         local level = math.min(BM.get_attribute_clip_level(card), 8)
-        local shader = level >= 6 and 'polychrome' or level >= 2 and 'foil' or nil
-        draw_clip(card, attribute_pos[attribute_key(card)])
+        local shader = level >= 6 and 'polychrome' or nil
         draw_clip(card, BM.ATTRIBUTE_CLIP_LEVELS[level].x, shader)
+        draw_clip(card, attribute_pos[attribute_key(card)])
     end,
     conditions = {vortex = false, facing = 'front'}
 }
