@@ -543,44 +543,6 @@ local COMMON_CARD = {
     discovered = false,
     unlocked = true,
 }
-local function selected_clip_target()
-    local targets = selected_digimon(2)
-    if #targets == 1 then return targets[1] end
-end
-
-local function finish_clip_use(target)
-    target:juice_up(0.6, 0.5)
-    play_sound('tarot1')
-    G.jokers:unhighlight_all()
-end
-
-
-
-SMODS.Consumable {
-    set = 'Spectral',
-    key = 'gilded_coat',
-    atlas = 'Consumable',
-    pos = {x = 1, y = 5},
-    discovered = false,
-    unlocked = true,
-    cost = 3,
-    loc_txt = {
-        name = 'Gilded Coat',
-        text = {
-            'Upgrade the {C:attention}Attribute Clip{}',
-            'on {C:attention}1 selected Digimon{}'
-        }
-    },
-    can_use = function(self, card)
-        local target = selected_clip_target()
-        return target and BM.has_attribute_clip(target)
-    end,
-    use = function(self, card, area, copier)
-        local target = selected_clip_target()
-        BM.upgrade_attribute_clip(target)
-        finish_clip_use(target)
-    end,
-}
 
 local function record_food_spoil()
     if not G
@@ -614,7 +576,17 @@ local function record_food_spoil()
 end
 
 local function food_warranty_active()
-    return G and G.GAME and (G.GAME.balatromon_food_warranty == true or (G.GAME.used_vouchers and G.GAME.used_vouchers['v_' .. BM.PREFIX .. '_food_warranty'] == true))
+    return G
+        and G.GAME
+        and (
+            G.GAME.balatromon_food_warranty == true
+            or (
+                G.GAME.used_vouchers
+                and G.GAME.used_vouchers[
+                    'v_' .. BM.PREFIX .. '_food_warranty'
+                ] == true
+            )
+        )
 end
 
 local function create_food_warranty_replacement(card)
@@ -2536,32 +2508,4 @@ SMODS.Consumable {
 
         BM.rebalance_appmon_loader()
     end
-}
-
-SMODS.Consumable {
-    set = COMMON_CARD.set,
-    key = 'attribute_clipping',
-    atlas = 'Consumable',
-    pos = {x = 0, y = 5},
-    discovered = false,
-    unlocked = true,
-    cost = 4,
-    loc_txt = {
-        name = 'Attribute Clipping',
-        text = {
-            'Give {C:attention}1 selected Digimon{}',
-            'an {C:attention}Attribute Clip{} or upgrade it',
-            'up to {C:attention}Silver{}'
-        }
-    },
-    can_use = function(self, card)
-        local target = selected_clip_target()
-        return target and BM.can_upgrade_attribute_clip(target, 3)
-    end,
-    use = function(self, card, area, copier)
-        BM.remember_digi_item(card)
-        local target = selected_clip_target()
-        BM.upgrade_attribute_clip(target, 3)
-        finish_clip_use(target)
-    end,
 }
