@@ -1310,6 +1310,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
         emult = e.emult,
         x_garurumon_chips = e.x_garurumon_chips,
         permanently_disabled = e.permanently_disabled,
+        extra_value = card.ability.extra_value or 0,
     }
 
 
@@ -1325,6 +1326,7 @@ function BM.perform_digivolution(card, option, device_key, opts)
     if old_slug and BM.on_remove then BM.on_remove(card, old_slug) end
 
     card:set_ability(option.center, nil, true)
+    card.ability.extra_value = carry.extra_value
 
     if not option.is_dedigivolution then
         if (
@@ -1540,6 +1542,7 @@ function BM.make_recovery_digitama(card)
 
     local saved_extra =
         copy_recovery_data(e)
+    local extra_value = card.ability.extra_value or 0
 
     saved_extra.hunger = 1
     saved_extra.bond = 0
@@ -1569,6 +1572,7 @@ function BM.make_recovery_digitama(card)
         nil,
         true
     )
+    card.ability.extra_value = extra_value
 
     card.ability.extra =
         card.ability.extra or {}
@@ -1636,6 +1640,7 @@ function BM.restore_recovery_digitama(card)
         copy_recovery_data(
             e.recover_extra or {}
         )
+    local extra_value = card.ability.extra_value or 0
 
     card._bm_suppress_on_add = true
 
@@ -1644,6 +1649,7 @@ function BM.restore_recovery_digitama(card)
         nil,
         true
     )
+    card.ability.extra_value = extra_value
 
     card.ability.extra =
         card.ability.extra or {}
@@ -1836,6 +1842,7 @@ function BM.dedigivolve_one_stage(card)
 
     local care_rounds =
         old_extra.care_rounds or 0
+    local extra_value = card.ability.extra_value or 0
 
     card:juice_up(0.9, 0.8)
 
@@ -1864,6 +1871,7 @@ function BM.dedigivolve_one_stage(card)
         nil,
         true
     )
+    card.ability.extra_value = extra_value
 
     card.ability.extra =
         card.ability.extra or {}
