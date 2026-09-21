@@ -90,18 +90,21 @@ function BM.has_attribute(source, attribute)
     return attribute_key(current) == attribute_key(wanted)
 end
 
-local function install_badge_hook(object_type)
-    if not object_type or object_type._bm_attribute_badge then return end
-    local old_set_badges = object_type.set_badges
-    object_type.set_badges = function(self, card, badges)
-        if old_set_badges then old_set_badges(self, card, badges) end
-        BM.add_attribute_badge(card, badges)
-    end
-    object_type._bm_attribute_badge = true
-end
-
 function BM.install_attribute_badges()
-    install_badge_hook(SMODS.ObjectTypes.Joker)
-    install_badge_hook(SMODS.ConsumableTypes.Tarot)
-    install_badge_hook(SMODS.ConsumableTypes.Appmon)
+    local card_h_popup = G.UIDEF.card_h_popup
+    G.UIDEF.card_h_popup = function(card, ...)
+        local center = card.config and card.config.center
+        if not center or not BM.get_attribute(card) then return card_h_popup(card, ...) end
+
+        local direct_set_badges = rawget(center, 'set_badges')
+        local old_set_badges = center.set_badges
+        center.set_badges = function(self, target, badges)
+            if old_set_badges then old_set_badges(self, target, badges) end
+            BM.add_attribute_badge(target, badges, self)
+        end
+
+        local result = card_h_popup(card, ...)
+        center.set_badges = direct_set_badges
+        return result
+    end
 end
