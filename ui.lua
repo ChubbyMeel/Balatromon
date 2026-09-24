@@ -206,6 +206,12 @@ function()
                         G.C.UI.TEXT_LIGHT
                     ),
 
+                    credit_text(
+                        'Some sound effects are adapted from Amulet',
+                        0.38,
+                        G.C.UI.TEXT_LIGHT
+                    ),
+
                     {
                         n = G.UIT.R,
                         config = {

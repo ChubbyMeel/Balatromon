@@ -1,5 +1,15 @@
 local BM = Balatromon
 
+SMODS.Sound {
+    key = 'mult_e',
+    path = 'mult_e.ogg'
+}
+
+SMODS.Sound {
+    key = 'chips_e',
+    path = 'chips_e.ogg'
+}
+
 function BM.emult(card, amount)
     if not amount or amount == 1 then
         return
@@ -57,7 +67,7 @@ function BM.emult(card, amount)
                 G.C.MULT,
 
             sound =
-                'multhit2',
+                BM.PREFIX .. '_mult_e',
 
             volume =
                 0.7
@@ -128,7 +138,7 @@ function BM.echips(card, amount)
                 G.C.CHIPS,
 
             sound =
-                'xchips',
+                BM.PREFIX .. '_chips_e',
 
             volume =
                 0.7

@@ -31,7 +31,7 @@ SMODS.Sound {
     path = 'BraveHeart2.ogg',
 
     pitch = 1,
-    volume = 1,
+    volume = 0.6,
 
     select_music_track = function(self)
         if in_run()
@@ -47,7 +47,7 @@ SMODS.Sound {
     path = 'BraveHeart1.ogg',
 
     pitch = 1,
-    volume = 1,
+    volume = 0.6,
 
     select_music_track = function(self)
         if in_run()
@@ -62,7 +62,7 @@ SMODS.Sound {
     path = 'BraveHeart.ogg',
 
     pitch = 1,
-    volume = 1,
+    volume = 0.6,
 
     select_music_track = function(self)
         if in_run()
