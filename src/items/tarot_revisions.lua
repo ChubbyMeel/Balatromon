@@ -165,6 +165,49 @@ function BM.roll_attributed_consumable(card)
     end
 end
 
+local function attributed_consumable_pool(set, attribute)
+    local source = set == 'Tarot' and tarot_data or set == 'Planet' and planet_data or set == 'Spectral' and spectral_data
+    local pool = {}
+    for key, data in pairs(source or {}) do
+        local center = G.P_CENTERS[key]
+        if center and center.set == set and not center.hidden
+        and (not attribute or data.any or data.attribute == attribute) then
+            pool[#pool + 1] = {set = set, key = key, attribute = data.attribute, any = data.any}
+        end
+    end
+    if set == 'Tarot' and G.P_CENTERS.c_judgement and not G.P_CENTERS.c_judgement.hidden then
+        pool[#pool + 1] = {set = 'Tarot', key = 'c_judgement', any = true}
+    end
+    local digitama = G.P_CENTERS[mod_key('golden_digitama')]
+    if set == 'Spectral' and digitama and digitama.set == 'Spectral' and not digitama.hidden then
+        pool[#pool + 1] = {set = 'Spectral', key = digitama.key, any = true}
+    end
+    table.sort(pool, function(a, b) return a.key < b.key end)
+    return pool
+end
+
+function BM.create_attributed_consumable(set, attribute, seed)
+    if not G.consumeables or not BM.has_room(G.consumeables) then return end
+    local pool = {}
+    for _, card_set in ipairs(set and {set} or {'Tarot', 'Planet', 'Spectral'}) do
+        for _, entry in ipairs(attributed_consumable_pool(card_set, attribute)) do
+            pool[#pool + 1] = entry
+        end
+    end
+    local choice = BM.random_element(pool, seed or 'balatromon_attributed_consumable')
+    if not choice then return end
+    local chosen_attribute = attribute or choice.attribute
+        or BM.random_element(attributes, (seed or 'balatromon_attributed_consumable') .. '_attribute')
+    local card = SMODS.add_card {
+        set = choice.set,
+        area = G.consumeables,
+        key = choice.key,
+        key_append = seed or 'balatromon_attributed_consumable'
+    }
+    if card and chosen_attribute then BM.set_attributed_consumable(card, chosen_attribute) end
+    return card
+end
+
 local function digimon_pool(stage, attribute)
     local pool = {}
     for _, center in ipairs(G.P_CENTER_POOLS and G.P_CENTER_POOLS.Joker or {}) do

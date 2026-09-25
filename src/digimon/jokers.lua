@@ -30,7 +30,7 @@ function BM.register_digimon(def)
         config = {extra = extra},
         rarity = BM.stage_rarity(stage),
         cost = def.cost or BM.digimon_costs[stage] or 5,
-        atlas = 'Joker',
+        atlas = def.atlas or 'Joker',
         pos = def.pos,
         blueprint_compat = def.blueprint_compat ~= false,
         eternal_compat = true,

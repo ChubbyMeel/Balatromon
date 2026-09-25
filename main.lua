@@ -23,6 +23,13 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
+    key = 'Joker_2nd',
+    path = 'DigiMeel_Joker_2nd.png',
+    px = 71,
+    py = 95,
+}
+
+SMODS.Atlas {
     key = 'Consumable',
     path = 'DigiMeel_Consumable.png',
     px = 71,
@@ -367,12 +374,15 @@ assert(SMODS.load_file('src/digimon/tired.lua'))()
 assert(SMODS.load_file('src/compat/element_compat.lua'))()
 assert(SMODS.load_file('src/core/rarities.lua'))()
 assert(SMODS.load_file('src/digimon/evolution.lua'))()
+assert(SMODS.load_file('src/digimon/evolution_2.lua'))()
 assert(SMODS.load_file('src/items/digi_items.lua'))()
 assert(SMODS.load_file('src/digimon/effects.lua'))()
+assert(SMODS.load_file('src/digimon/effects_2.lua'))()
 assert(SMODS.load_file('src/gameplay/poker_hands.lua'))()
 assert(SMODS.load_file('src/digimon/royal_knights.lua'))()
 assert(SMODS.load_file('src/digimon/jokers.lua'))()
 load_lua_folder('src/digimon/set_one')
+load_lua_folder('src/digimon/set_two')
 assert(SMODS.load_file('src/digimon/attributes.lua'))()
 assert(SMODS.load_file('src/appmon/appmon.lua'))()
 assert(SMODS.load_file('src/appmon/appmon_effect.lua'))()
