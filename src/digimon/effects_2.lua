@@ -25,6 +25,8 @@ local function merge_effects(a, b)
     return result
 end
 
+
+
 local function used_attribute(context, attribute)
     return context.using_consumeable
         and not context.blueprint
@@ -151,4 +153,64 @@ end
 
 H.proximamon = function(card, context)
     return merge_effects(H.siriusmon(card, context), H.arcturusmon(card, context))
+end
+
+local function create_tarot_or_planet(card, seed)
+    if not G.consumeables or not BM.has_room(G.consumeables) then return end
+    local set = BM.random_element({'Tarot', 'Planet'}, seed .. ':' .. tostring(G.GAME and G.GAME.hands_played or 0) .. ':' .. tostring(card.sort_id or 0))
+    if BM.add_consumable(set) then return {message = set .. '!', colour = G.C.SECONDARY_SET[set]} end
+end
+
+local function has_attributed_consumable()
+    for _, held in ipairs(G.consumeables and G.consumeables.cards or {}) do
+        local attribute = BM.get_attribute(held)
+        if attribute and attribute ~= 'None' then return true end
+    end
+    return false
+end
+
+H.pyonmon = function(card, context)
+    if context.end_of_round and context.main_eval and not context.game_over and not context.blueprint and not context.retrigger_joker and has_attributed_consumable() then
+        return create_tarot_or_planet(card, 'pyonmon')
+    end
+end
+
+H.bosamon = function(card, context)
+    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and G.GAME.blind and G.GAME.blind.chips and G.GAME.chips >= G.GAME.blind.chips * 0.5 then
+        return create_tarot_or_planet(card, 'bosamon')
+    end
+end
+
+H.angoramon = function(card, context)
+    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and (G.GAME.dollars or 0) <= 0 then
+        return create_tarot_or_planet(card, 'angoramon')
+    end
+end
+
+H.symbareangoramon = function(card, context)
+    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and (G.GAME.dollars or 0) <= 4 then
+        return create_tarot_or_planet(card, 'symbareangoramon')
+    end
+end
+
+H.lamortmon = function(card, context)
+    local inherited = H.symbareangoramon(card, context)
+    if context.end_of_round and context.main_eval and context.game_over and not context.blueprint and not context.retrigger_joker and G.GAME.blind and G.GAME.blind.chips and G.GAME.blind.chips > 0 and G.GAME.chips >= G.GAME.blind.chips * 0.15 then
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.1,
+            func = function()
+                if card and not card.REMOVED then card:start_dissolve() end
+                return true
+            end
+        }))
+        return {saved = true, message = 'Saved!', colour = G.C.RED}
+    end
+    return inherited
+end
+
+H.diarbbitmon = function(card, context)
+    local inherited = H.lamortmon(card, context)
+    if inherited then return inherited end
+    return H.wezengammamon(card, context)
 end

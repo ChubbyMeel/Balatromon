@@ -1,5 +1,7 @@
 local BM = Balatromon
 
+BM.evolution_rules = BM.evolution_rules or {}
+
 BM.evolution_rules.curimon = {
     gurimon = {note = 'Standard route'}
 }
@@ -36,4 +38,27 @@ BM.evolution_rules.siriusmon = {
 }
 BM.evolution_rules.arcturusmon = {
     proximamon = {device = 'golden_digivice', note = 'Beyond route'}
+}
+
+
+BM.evolution_rules.pyonmon = {
+    bosamon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.bosamon = {
+    angoramon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.angoramon = {
+    symbareangoramon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.symbareangoramon = {
+    lamortmon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.lamortmon = {
+    diarbbitmon = {note = 'Standard route'},
+
+    megagargomon = {note = 'Alternate Standard route'}
 }

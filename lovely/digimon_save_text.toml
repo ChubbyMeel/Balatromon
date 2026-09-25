@@ -1,0 +1,26 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 0
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = "local game_over = true"
+position = "before"
+payload = '''
+G.GAME.balatromon_saved_by_digimon = nil
+'''
+match_indent = true
+times = 1
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "{n=G.UIT.O, config={object = DynaText({string = {' '..localize('ph_mr_bones')..' '}, colours = {G.C.FILTER}, shadow = true, pop_in = 0, scale = 0.5*scale, silent = true})}}"
+position = "at"
+payload = '''
+{n=G.UIT.O, config={object = DynaText({string = {' '..localize(G.GAME.balatromon_saved_by_digimon and 'ph_bm_saved_by_digimon' or 'ph_mr_bones')..' '}, colours = {G.C.FILTER}, shadow = true, pop_in = 0, scale = 0.5*scale, silent = true})}}
+'''
+match_indent = true
+times = 1

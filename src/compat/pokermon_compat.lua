@@ -921,35 +921,14 @@ and not PC._hefty_food_wrapped then
     end
 end
 
-local function random_digimon_center(seed)
+local function random_digimon_center(seed, attribute)
     local pool = {}
-
-    for _, center in ipairs(
-        G.P_CENTER_POOLS
-        and G.P_CENTER_POOLS.Joker
-        or {}
-    ) do
-        if center.balatromon == true then
-            pool[#pool + 1] = center
-        end
+    for _, center in ipairs(G.P_CENTER_POOLS and G.P_CENTER_POOLS.Joker or {}) do
+        if center.balatromon == true and (not attribute or BM.has_attribute(center, attribute)) then pool[#pool + 1] = center end
     end
-
-    table.sort(
-        pool,
-        function(a, b)
-            return tostring(a.key)
-                < tostring(b.key)
-        end
-    )
-
-    if #pool == 0 then
-        return nil
-    end
-
-    return BM.random_element(
-        pool,
-        seed
-    )
+    table.sort(pool, function(a, b) return tostring(a.key) < tostring(b.key) end)
+    if #pool == 0 then return nil end
+    return BM.random_element(pool, seed)
 end
 
 local function create_negative_food()
@@ -976,50 +955,29 @@ end
 
 local judgement = registered_center('c_judgement')
 
-if judgement
-and not PC._judgement_wrapped then
+if judgement and not PC._judgement_wrapped then
     PC._judgement_wrapped = true
 
     judgement.can_use = function(self, card)
-        return G.jokers
-            and #G.jokers.cards
-                < G.jokers.config.card_limit
-            and G.consumeables ~= nil
+        return G.jokers and #G.jokers.cards < G.jokers.config.card_limit and G.consumeables ~= nil
     end
 
     judgement.use = function(self, card, area, copier)
-        local ante =
-            G.GAME
-            and G.GAME.round_resets
-            and G.GAME.round_resets.ante
-            or 0
-
-        local seed =
-            'balatromon_pokermon_judgement_'
-            .. tostring(ante)
-
-        local pokemon =
-            pseudorandom(
-                pseudoseed(
-                    seed .. '_ecosystem'
-                )
-            ) >= PC.digimon_shop_share
-
+        local ante = G.GAME and G.GAME.round_resets and G.GAME.round_resets.ante or 0
+        local seed = 'balatromon_pokermon_judgement_' .. tostring(ante)
+        local attribute = BM.get_attributed_consumable_attribute(card)
         local key
 
-        if pokemon then
-            key = random_pokemon_key(
-                seed .. '_pokemon'
-            )
-        end
-
-        if not key then
-            local center =
-                random_digimon_center(
-                    seed .. '_digimon'
-                )
-
+        if attribute then
+            local center = random_digimon_center(seed .. '_' .. string.lower(attribute), attribute)
             key = center and center.key
+        else
+            local pokemon = pseudorandom(pseudoseed(seed .. '_ecosystem')) >= PC.digimon_shop_share
+            if pokemon then key = random_pokemon_key(seed .. '_pokemon') end
+            if not key then
+                local center = random_digimon_center(seed .. '_digimon')
+                key = center and center.key
+            end
         end
 
         if key then
@@ -1027,8 +985,7 @@ and not PC._judgement_wrapped then
                 set = 'Joker',
                 area = G.jokers,
                 key = key,
-                key_append =
-                    'balatromon_pokermon_judgement'
+                key_append = 'balatromon_pokermon_judgement'
             }
         end
 
