@@ -388,6 +388,7 @@ assert(SMODS.load_file('src/appmon/appmon.lua'))()
 assert(SMODS.load_file('src/appmon/appmon_effect.lua'))()
 assert(SMODS.load_file('src/items/boosters.lua'))()
 assert(SMODS.load_file('src/items/tarot_revisions.lua'))()
+assert(SMODS.load_file('src/items/playing_attributes.lua'))()
 assert(SMODS.load_file('src/gameplay/shop.lua'))()
 assert(SMODS.load_file('src/items/enhancements.lua'))()
 assert(SMODS.load_file('src/items/seals.lua'))()
@@ -410,6 +411,7 @@ assert(SMODS.load_file('src/system/profile_mode.lua'))()
 assert(SMODS.load_file('src/system/optimiser.lua'))()
 assert(SMODS.load_file('src/system/music.lua'))()
 
+BM.install_playing_attribute_tooltips()
 BM.install_attribute_badges()
 
 assert(SMODS.load_file('src/compat/pokermon_compat.lua'))()
@@ -431,10 +433,18 @@ SMODS.current_mod.custom_collection_tabs = function(...)
         BM.add_x_antibody_collection_tab(tabs, ...)
     end
 
+    if BM.add_playing_attribute_collection_tab then
+        BM.add_playing_attribute_collection_tab(tabs, ...)
+    end
+
     return tabs
 end
 
 SMODS.current_mod.process_loc_text = function(self)
+    if BM.install_playing_attribute_localization then
+        BM.install_playing_attribute_localization()
+    end
+
     if BM.install_attribute_clip_localization then
         BM.install_attribute_clip_localization()
     end
