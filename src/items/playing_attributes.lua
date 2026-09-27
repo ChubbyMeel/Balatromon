@@ -19,8 +19,18 @@ function BM.set_playing_attribute(card, attribute)
     if card.ability.balatromon_playing_attribute ~= attribute then
         card.ability.balatromon_exposed_triggers = nil
         card.ability.balatromon_liberated_plays = nil
+        card.ability.balatromon_protected_blind = nil
     end
     card.ability.balatromon_playing_attribute = attribute
+    if attribute == 'Vaccine' and card.debuff then
+        local blind = G.GAME and G.GAME.blind
+        card:set_debuff(false)
+        if blind and blind.boss and not blind.disabled then
+            card.ability.balatromon_protected_blind = true
+        else
+            BM.clear_playing_attribute(card)
+        end
+    end
 end
 
 function BM.get_playing_attribute(card)
@@ -32,6 +42,7 @@ function BM.clear_playing_attribute(card)
     card.ability.balatromon_playing_attribute = nil
     card.ability.balatromon_exposed_triggers = nil
     card.ability.balatromon_liberated_plays = nil
+    card.ability.balatromon_protected_blind = nil
     if card.children and card.children.bm_attribute then
         card.children.bm_attribute:remove()
         card.children.bm_attribute = nil
@@ -151,9 +162,24 @@ function Card:set_edition(edition, ...)
     return result
 end
 
+local blind_debuff = Blind.debuff_card
+function Blind:debuff_card(card, ...)
+    BM._playing_attribute_blind_debuff = true
+    blind_debuff(self, card, ...)
+    BM._playing_attribute_blind_debuff = nil
+end
+
 local set_debuff = Card.set_debuff
 function Card:set_debuff(value)
-    if value and not self.debuff and protect(self) then return end
+    if value and BM.get_playing_attribute(self) == 'Vaccine' then
+        local blind = G.GAME and G.GAME.blind
+        if BM._playing_attribute_blind_debuff and blind and blind.boss and not blind.disabled then
+            self.ability.balatromon_protected_blind = true
+            if self.debuff then return set_debuff(self, false) end
+            return
+        end
+        if protect(self) then return end
+    end
     return set_debuff(self, value)
 end
 
@@ -462,6 +488,13 @@ local function trigger_exposed(card)
 end
 
 function BM.calculate_playing_attribute_context(context)
+    if context.end_of_round and context.cardarea == G.jokers and not context.individual then
+        for _, card in ipairs(G.playing_cards or {}) do
+            if BM.get_playing_attribute(card) == 'Vaccine' and card.ability.balatromon_protected_blind then
+                BM.clear_playing_attribute(card)
+            end
+        end
+    end
     if context.before and context.main_eval and active('Virus') then
         for _, card in ipairs(G.playing_cards or {}) do
             if BM.get_playing_attribute(card) == 'Data' then BM.set_playing_attribute(card, 'Virus') end
@@ -631,7 +664,8 @@ function BM.install_playing_attribute_localization()
         name = 'Protected',
         text = {
             'Cannot be {C:red}debuffed{}, transformed, or destroyed.',
-            'Loses Protected after preventing one effect.'
+            'Loses Protected after preventing one effect.',
+            '{C:attention}Boss Blind{} debuffs remove it at end of round.'
         }
     }
     G.localization.descriptions.Other[BM.PREFIX .. '_playing_data'] = {
