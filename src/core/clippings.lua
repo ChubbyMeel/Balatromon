@@ -363,7 +363,7 @@ SMODS.DrawStep {
 
 local set_ability = Card.set_ability
 function Card:set_ability(center, initial, delay_sprites)
-    local clip = self.ability and self.ability.extra and self.ability.extra.attribute_clip
+    local clip = BM.is_digimon(self) and self.ability and self.ability.extra and self.ability.extra.attribute_clip
     local changed = self.playing_card and self.added_to_deck and not initial and self.config.center ~= center
     local result = set_ability(self, center, initial, delay_sprites)
     if clip and BM.is_digimon(self) then

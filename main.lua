@@ -469,7 +469,7 @@ end
 
 SMODS.current_mod.calculate = function(self, context)
     BM.calculate_attribute_clip_context(context)
-    local result
+    local result = BM.calculate_playing_attribute_context and BM.calculate_playing_attribute_context(context)
 
     if BM.calculate_evolution_tag then
         result = BM.calculate_evolution_tag(context)
