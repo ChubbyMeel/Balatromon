@@ -603,3 +603,40 @@ G.FUNCS.buy_from_shop = function(e, ...)
 
     return result
 end
+
+local balatromon_debuff_card = Blind.debuff_card
+
+Blind.debuff_card = function(self, card, ...)
+    local target = BM._boss_debuff_target
+    BM._boss_debuff_target = card
+    local result = balatromon_debuff_card(self, card, ...)
+    BM._boss_debuff_target = target
+    return result
+end
+
+local balatromon_drawn_to_hand = Blind.drawn_to_hand
+
+Blind.drawn_to_hand = function(self, ...)
+    local active = BM._boss_debuffing
+    BM._boss_debuffing = self.boss and not self.disabled
+    local result = balatromon_drawn_to_hand(self, ...)
+    BM._boss_debuffing = active
+    return result
+end
+
+local balatromon_set_debuff = Card.set_debuff
+
+Card.set_debuff = function(self, value, ...)
+    if value and (BM._boss_debuff_target == self or BM._boss_debuffing) and BM.prevent_boss_debuff and BM.prevent_boss_debuff(self) then
+        if self.debuff then return balatromon_set_debuff(self, false, ...) end
+        return
+    end
+    return balatromon_set_debuff(self, value, ...)
+end
+
+local balatromon_smods_debuff_card = SMODS.debuff_card
+
+SMODS.debuff_card = function(card, value, source, ...)
+    if value and source == 'balatromon_yggdrasil' and BM.prevent_boss_debuff and BM.prevent_boss_debuff(card) then return end
+    return balatromon_smods_debuff_card(card, value, source, ...)
+end

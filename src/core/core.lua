@@ -2670,6 +2670,7 @@ function BM.care_tick(card, context)
     BM.tick_tired(card, context)
     if not (context.end_of_round and context.main_eval and not context.blueprint) then return end
     local e = card.ability.extra
+    local guarded = BM.care_guarded and BM.care_guarded(card)
     local center = card.config and card.config.center
     if center and center.balatromon_self_feed then
         BM.feed(card, 1)
@@ -2714,7 +2715,12 @@ function BM.care_tick(card, context)
             old_mistakes + 1
         )
 
-        if e.care_mistakes > old_mistakes then
+        if old_mistakes < 3
+        and e.care_mistakes >= 3
+        and guarded then
+            e.care_mistakes = 2
+            BM.care_animation(card, 'Protected!', G.C.GREEN)
+        elseif e.care_mistakes > old_mistakes then
             BM.bad_care_animation(
                 card,
                 ':('
@@ -2751,6 +2757,11 @@ function BM.care_tick(card, context)
     end
 
     if (e.hunger or 1) >= hunger_max then
+        if guarded then
+            BM.care_animation(card, 'Protected!', G.C.GREEN)
+            return
+        end
+
         local slug =
             BM.get_card_slug(card)
 

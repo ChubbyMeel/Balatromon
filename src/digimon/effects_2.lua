@@ -214,3 +214,148 @@ H.diarbbitmon = function(card, context)
     if inherited then return inherited end
     return H.wezengammamon(card, context)
 end
+
+local function left_of(card)
+    local i = BM.joker_index(card)
+    return i and G.jokers and G.jokers.cards[i - 1]
+end
+
+local function boss_active()
+    local blind = G.GAME and G.GAME.blind
+    return blind and blind.boss and not blind.disabled
+end
+
+function BM.care_guarded(target)
+    for _, card in ipairs(G.jokers and G.jokers.cards or {}) do
+        local slug = BM.get_card_slug(card)
+        if (slug == 'teslajellymon' or slug == 'amphimon') and BM.is_active_digimon(card) and left_of(card) == target then
+            return true
+        end
+    end
+    return false
+end
+
+function BM.prevent_boss_debuff(target)
+    if not boss_active() then return false end
+
+    if target.playing_card then
+        local guarded = false
+        for _, card in ipairs(G.jokers and G.jokers.cards or {}) do
+            if BM.is_active_digimon(card) then
+                local slug = BM.get_card_slug(card)
+                if slug == 'jellymon_hidden' then
+                    card.ability.extra.protected = true
+                    guarded = true
+                elseif slug == 'puyomon' and card.ability.extra.guard_id == target.playing_card then
+                    guarded = true
+                end
+            end
+        end
+        return guarded
+    end
+
+    if not BM.is_digimon(target) then return false end
+
+    for _, card in ipairs(G.jokers and G.jokers.cards or {}) do
+        if BM.is_active_digimon(card) then
+            local slug = BM.get_card_slug(card)
+            local left = left_of(card)
+            if slug == 'jellymon_unfurl' and (target == card or target == left) then return true end
+            if (slug == 'teslajellymon' or slug == 'amphimon') and target == left then return true end
+        end
+    end
+    return false
+end
+
+local function swap_jelly(card)
+    local center = G.P_CENTERS[BM.center_key('jellymon_unfurl')]
+    if not center then return end
+
+    local old = copy_table(card.ability.extra or {})
+    local value = card.ability.extra_value or 0
+    old.protected = nil
+
+    BM.on_remove(card, 'jellymon_hidden')
+    card:set_ability(center, nil, true)
+    card.ability.extra_value = value
+    for k, v in pairs(old) do card.ability.extra[k] = v end
+    BM.on_add(card, 'jellymon_unfurl')
+    card:set_cost()
+    card:juice_up(1.2, 0.8)
+end
+
+H.puyomon = function(card, context)
+    if not ((context.hand_drawn or context.first_hand_drawn) and context.main_eval and not context.blueprint) then return end
+    local e = card.ability.extra
+    e.guard_id = nil
+    if not boss_active() or not G.hand or #G.hand.cards == 0 then return end
+
+    local round = G.GAME.current_round or {}
+    local target = BM.random_element(G.hand.cards, 'puyomon_' .. tostring(card.sort_id or 0) .. '_' .. tostring(round.hands_played or 0) .. '_' .. tostring(round.discards_used or 0))
+    if not target then return end
+
+    e.guard_id = target.playing_card
+    SMODS.recalc_debuff(target)
+    return {message = 'Protected!', colour = G.C.GREEN}
+end
+
+H.puyoyomon = function(card, context)
+    if not (context.selling_self and not context.blueprint) then return end
+    local changed = false
+    for _, target in ipairs(G.playing_cards or {}) do
+        if target.debuff then
+            target:set_debuff(false)
+            changed = true
+        end
+    end
+    if changed then return {message = 'Enabled!', colour = G.C.GREEN} end
+end
+
+H.jellymon_hidden = function(card, context)
+    local e = card.ability.extra
+    if context.end_of_round and context.main_eval and not context.blueprint and e.protected then
+        e.protected = false
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.15, func = function()
+            if card and not card.REMOVED and BM.get_card_slug(card) == 'jellymon_hidden' then swap_jelly(card) end
+            return true
+        end}))
+        return {message = 'Unfurl!', colour = G.C.ATTENTION}
+    end
+end
+
+H.jellymon_unfurl = function() end
+H.teslajellymon = function() end
+
+H.thetismon = function(card, context)
+    if not (context.end_of_round and context.main_eval and not context.blueprint and not context.retrigger_joker) then return end
+    if not SMODS.pseudorandom_probability(card, 'thetismon_reset', 1, 10) then return end
+
+    local options = {}
+    for _, target in ipairs(G.jokers and G.jokers.cards or {}) do
+        if BM.is_digimon(target) and target.ability and target.ability.extra and not target.ability.extra.permanently_disabled then
+            local e = target.ability.extra
+            if (e.care_mistakes or 0) > 0 then options[#options + 1] = {card = target, kind = 'care'} end
+            if (e.hunger or 1) > 1 then options[#options + 1] = {card = target, kind = 'hunger'} end
+        end
+    end
+
+    if #options == 0 then return end
+    local pick = BM.random_element(options, 'thetismon_pick_' .. tostring(card.sort_id or 0) .. '_' .. tostring(G.GAME.round or 0))
+    if not pick then return end
+
+    local e = pick.card.ability.extra
+    if pick.kind == 'care' then
+        e.care_mistakes = 0
+        e.care_crisis = nil
+        BM.care_animation(pick.card, 'Care Reset!', G.C.GREEN)
+        return {message = 'Care Reset!', colour = G.C.GREEN}
+    end
+
+    e.hunger = 1
+    BM.care_animation(pick.card, 'Hunger Reset!', G.C.GREEN)
+    return {message = 'Hunger Reset!', colour = G.C.GREEN}
+end
+
+H.amphimon = function(card, context)
+    return merge_effects(H.thetismon(card, context), H.teslajellymon(card, context))
+end

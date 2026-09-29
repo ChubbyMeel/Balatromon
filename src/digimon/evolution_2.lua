@@ -59,6 +59,33 @@ BM.evolution_rules.symbareangoramon = {
 
 BM.evolution_rules.lamortmon = {
     diarbbitmon = {note = 'Standard route'},
-
     megagargomon = {note = 'Alternate Standard route'}
+}
+
+BM.evolution_rules.puyomon = {
+    puyoyomon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.puyoyomon = {
+    jellymon_hidden = {note = 'Hidden form'},
+    jellymon_unfurl = {note = 'Unfurled form'},
+    salamon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.jellymon_hidden = {
+    teslajellymon = {note = 'Standard route'},
+    jellymon_unfurl = {note = 'Unfurled form'}
+}
+
+BM.evolution_rules.jellymon_unfurl = {
+    teslajellymon = {note = 'Standard route'},
+    jellymon_hidden = {note = 'Hidden form'}
+}
+
+BM.evolution_rules.teslajellymon = {
+    thetismon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.thetismon = {
+    amphimon = {note = 'Standard route'}
 }
