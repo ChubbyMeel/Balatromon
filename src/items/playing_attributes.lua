@@ -68,8 +68,17 @@ local function mark(card)
     local targets = BM._playing_attribute_targets
     local attribute = targets and targets[card]
     if not attribute then return end
-    BM.set_playing_attribute(card, attribute)
+    local seals = BM._intermediary_targets
+    local seal = seals and seals[card]
     targets[card] = nil
+    if seals then seals[card] = nil end
+    BM.set_playing_attribute(card, attribute)
+    if seal and BM.make_intermediary then
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0, func = function()
+            if card and not card.REMOVED then BM.make_intermediary(card, seal) end
+            return true
+        end}))
+    end
 end
 
 local spreading
@@ -242,10 +251,21 @@ local use = Card.use_consumeable
 function Card:use_consumeable(area, copier)
     BM._playing_attribute_targets = nil
     BM._playing_attribute_new = nil
+    BM._intermediary_targets = nil
     local attribute = BM.get_attributed_consumable_attribute(self)
     if attribute then
         local affected = targets(self, attribute)
-        if next(affected) then BM._playing_attribute_targets = affected end
+        if next(affected) then
+            BM._playing_attribute_targets = affected
+            local set = self.config.center.set
+            if (set == 'Tarot' or set == 'Spectral') and BM.intermediary_for then
+                local pending = {}
+                for card in pairs(affected) do
+                    if BM.intermediary_for(card.seal) then pending[card] = card.seal end
+                end
+                if next(pending) then BM._intermediary_targets = pending end
+            end
+        end
         local key = self.config.center.key
         if creates[key] then
             BM._playing_attribute_new = {attribute = attribute, left = self.ability.extra}

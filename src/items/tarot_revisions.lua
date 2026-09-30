@@ -157,11 +157,11 @@ function BM.roll_attributed_consumable(card)
     local center = card and card.config and card.config.center
     if not key or not center then return end
     if center.set == 'Tarot' then
-        roll_attribute(card, card_data(card), 'balatromon_attributed_tarot', 6)
+        roll_attribute(card, card_data(card), 'balatromon_attributed_tarot', 8)
     elseif center.set == 'Planet' then
         roll_attribute(card, planet_data[key], 'balatromon_attributed_planet', 6)
     elseif center.set == 'Spectral' then
-        roll_attribute(card, card_data(card), 'balatromon_attributed_spectral', 10)
+        roll_attribute(card, card_data(card), 'balatromon_attributed_spectral', 12)
     end
 end
 
