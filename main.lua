@@ -30,6 +30,13 @@ SMODS.Atlas {
 }
 
 SMODS.Atlas {
+    key = 'JokerWord',
+    path = 'DigiMeel_JokerText.png',
+    px = 70,
+    py = 94,
+}
+
+SMODS.Atlas {
     key = 'Consumable',
     path = 'DigiMeel_Consumable.png',
     px = 71,
@@ -121,6 +128,70 @@ SMODS.Atlas {
     path = 'DigiMeel_Undiscovered.png',
     px = 71,
     py = 95
+}
+
+
+local joker_word_pos = {
+    Fresh = 0,
+    Digitama = 0,
+    ['In-Training'] = 0,
+    Rookie = 1,
+    Champion = 2,
+    Rare = 2,
+    Ultimate = 3,
+    Mega = 4,
+    Beyond = 5,
+}
+
+local function clear_joker_word(card)
+    if not card.children or not card.children.bm_joker_word then return end
+    local sprite = card.children.bm_joker_word
+    if sprite.remove then sprite:remove() end
+    card.children.bm_joker_word = nil
+end
+
+local function ensure_joker_word(card)
+    if not BM.is_digimon(card) or not card.children or not card.children.center then
+        clear_joker_word(card)
+        return nil
+    end
+    local x = joker_word_pos[BM.get_stage(card)]
+    if x == nil then
+        clear_joker_word(card)
+        return nil
+    end
+    local sprite = card.children.bm_joker_word
+    if not sprite then
+        sprite = SMODS.create_sprite(card.T.x, card.T.y, card.T.w, card.T.h, BM.PREFIX .. '_JokerWord', {x = x, y = 0})
+        sprite.states.hover.can = false
+        sprite.states.click.can = false
+        sprite.states.drag.can = false
+        sprite.states.collide.can = false
+        sprite.custom_draw = true
+        sprite:set_role({major = card, role_type = 'Glued', draw_major = card})
+        card.children.bm_joker_word = sprite
+    elseif sprite.sprite_pos and sprite.sprite_pos.x ~= x then
+        sprite:set_sprite_pos({x = x, y = 0})
+    end
+    sprite.custom_draw = true
+    return sprite
+end
+
+local function draw_joker_word(card)
+    local sprite = ensure_joker_word(card)
+    if not sprite then return end
+    sprite:glue_to_major(card)
+    sprite:draw_shader('dissolve')
+    sprite:draw_shader('voucher', nil, card.ARGS.send_to_shader)
+end
+
+SMODS.DrawStep {
+    key = 'joker_word',
+    order = 6,
+    conditions = {vortex = false, facing = 'front'},
+    func = function(card)
+        draw_joker_word(card)
+    end
 }
 
 Balatromon.EXPERIMENTAL_BUILD = true

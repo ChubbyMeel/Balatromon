@@ -567,6 +567,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'seasonal',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 0, y = 0},
     discovered = false,
@@ -605,6 +606,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'machine',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 1, y = 0},
     discovered = false,
@@ -642,6 +644,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'tied_first_medal',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 2, y = 0},
     discovered = false,
@@ -676,6 +679,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'firewall',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 3, y = 0},
     discovered = false,
@@ -718,6 +722,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'tampered_gold',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 2, y = 1},
     discovered = false,
@@ -746,6 +751,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'delivery',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 3, y = 1},
     discovered = false,
@@ -775,6 +781,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'corrupted',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 4, y = 1},
     discovered = false,
@@ -801,6 +808,7 @@ SMODS.Seal {
 
 SMODS.Seal {
     key = 'spacious',
+    weight = 0,
     atlas = 'IntermediarySeal',
     pos = {x = 5, y = 1},
     discovered = false,
