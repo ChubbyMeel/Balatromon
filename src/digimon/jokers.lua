@@ -101,6 +101,9 @@ function BM.register_digimon(def)
             if card.ability.extra.permanently_disabled then return end
             return BM.run_effect(slug, card, context)
         end,
+        calc_dollar_bonus = BM.round_money[slug] and function(self, card)
+            return BM.get_round_money(slug, card)
+        end,
     }
 
     BM.joker_defs[slug] = {

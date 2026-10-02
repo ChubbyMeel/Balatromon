@@ -34,6 +34,9 @@ do
             if card.ability.extra.permanently_disabled then return end
             return BM.run_effect(slug, card, context)
         end,
+        calc_dollar_bonus = function(self, card)
+            return BM.get_round_money(slug, card)
+        end,
     }
     BM.joker_defs[slug] = {name = 'Relemon', stage = stage, evolves_to = 'Viximon', effect = 'Earn $4 at end of round'}
     local weight = BM.stage_shop_weight(stage)
@@ -73,6 +76,9 @@ do
             BM.care_tick(card, context)
             if card.ability.extra.permanently_disabled then return end
             return BM.run_effect(slug, card, context)
+        end,
+        calc_dollar_bonus = function(self, card)
+            return BM.get_round_money(slug, card)
         end,
     }
     BM.joker_defs[slug] = {name = 'Viximon', stage = stage, evolves_to = 'Renamon', effect = 'Earn $5 at end of round'}
@@ -160,6 +166,9 @@ elements = {BM.care_bars(e, stage)},e.payout or 10}}
             BM.care_tick(card, context)
             if card.ability.extra.permanently_disabled then return end
             return BM.run_effect(slug, card, context)
+        end,
+        calc_dollar_bonus = function(self, card)
+            return BM.get_round_money(slug, card)
         end,
     }
     BM.joker_defs[slug] = {name = 'Kyubimon', stage = stage, evolves_to = 'Taomon, LadyDevimon', effect = 'Earn $10 at end of round. Payout increases by $2 when Boss Blind is defeated'}

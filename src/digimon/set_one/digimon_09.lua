@@ -173,7 +173,7 @@ do
             name = 'Flamedramon',
             text={
                 {
-                    '{C:green}#4# in #5#{} chance to upgrade played poker hand after it is scored',
+                    '{C:green}#4# in #5#{} chance to level up played poker hand',
                 },
                 {
                     BM.care_status_text(stage),
@@ -203,7 +203,7 @@ do
                 SMODS.get_probability_vars(
                     card,
                     1,
-                    5,
+                    3,
                     'flamedramon'
                 )
 
@@ -258,7 +258,7 @@ elements = {BM.care_bars(e, stage)},
         name = 'Flamedramon',
         stage = stage,
         evolves_to = 'Wingdramon, BlueMeramon',
-        effect = '1 in 5 chance to upgrade played poker hand'
+        effect = '1 in 3 chance to level up played poker hand'
     }
 
     local weight = BM.stage_shop_weight(stage)

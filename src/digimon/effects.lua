@@ -6,7 +6,20 @@ local function simple_mult(n) return function(card, context) if context.joker_ma
 local function simple_chips(n) return function(card, context) if context.joker_main then return {chips=n} end end end
 local function hand_mult(hand,n) return function(card,context) if context.joker_main and BM.contains_hand(context,hand) then return {mult=n} end end end
 local function hand_chips(hand,n) return function(card,context) if context.joker_main and BM.contains_hand(context,hand) then return {chips=n} end end end
-local function eor_dollars(n) return function(card,context) if context.end_of_round and context.main_eval then return {dollars=n} end end end
+BM.round_money = {
+    relemon = function() return 4 end,
+    viximon = function() return 5 end,
+    kyubimon = function(card) return card.ability.extra.payout or 10 end,
+    mushroomon = function(card) return card.ability.extra.round_money or 0 end,
+    hagurumon = function() return BM.unique_planets_used() end,
+    flarerizamon = function() return BM.unique_planets_used() end
+}
+
+function BM.get_round_money(slug, card)
+    if card.debuff or card.ability.extra.permanently_disabled or BM.is_tired(card) then return end
+    local dollars = BM.round_money[slug](card)
+    if dollars > 0 then return dollars end
+end
 
 local function bm_enhancements(card)
     if not card then
@@ -1084,7 +1097,7 @@ H.chibomon = function(card,context) if context.repetition and context.cardarea==
 H.demiveemon = function(card,context) if context.repetition and context.cardarea==G.play and context.scoring_hand and context.other_card==context.scoring_hand[1] then return {repetitions=1} end end
 H.veemon = function(card,context) if context.repetition and context.cardarea==G.play and context.scoring_hand and context.other_card==context.scoring_hand[1] then return {repetitions=2} end end
 H.exveemon = function(card,context) if context.repetition and context.cardarea==G.play and BM.is_face(context.other_card) then return {repetitions=1} end end
-H.flamedramon = function(card,context) if context.after and context.main_eval and not context.blueprint and SMODS.pseudorandom_probability(card,'flamedramon',1,5) then SMODS.upgrade_poker_hands{hands=context.scoring_name,level_up=1,from=card}; return {message='Hand Upgraded!'} end end
+H.flamedramon = function(card,context) if context.before and context.main_eval and SMODS.pseudorandom_probability(card,'flamedramon',1,3) then return {level_up=1, message=localize('k_level_up_ex')} end end
 H.paildramon = function(card,context) if context.repetition and context.cardarea==G.play and (G.GAME.current_round.hands_left or 0)==0 then return {repetitions=2} end end
 H.wingdramon = function(card,context)
     local e=card.ability.extra
@@ -1212,8 +1225,6 @@ H.hoverespimon = function(card, context)
         end
     end
 end
-H.relemon = eor_dollars(4)
-H.viximon = eor_dollars(5)
 H.renamon = function(card,context)
     local e=card.ability.extra; e.target_rank=BM.ensure_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
@@ -1222,7 +1233,6 @@ end
 H.kyubimon = function(card,context)
     local e=card.ability.extra; e.payout=e.payout or 10
     if context.blind_defeated and BM.is_boss() and not context.blueprint then e.payout=e.payout+2; return {message='Payout Up!'} end
-    if context.end_of_round and context.main_eval then return {dollars=e.payout} end
 end
 H.taomon = function(card,context) if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end end
 H.sakuyamon = function(card,context)
@@ -2020,17 +2030,12 @@ H.lalamon = function(card, context)
 end
 
 H.mushroomon = function(card, context)
-    local value
-    if context.end_of_round and context.main_eval and not context.blueprint then
-        value = 2 * BM.count_food()
+    if context.setting_blind and not context.blueprint then
+        card.ability.extra.round_money = 0
+    elseif context.end_of_round and context.main_eval and not context.blueprint then
+        card.ability.extra.round_money = BM.count_food() * 2
     end
-
-    local result = plant_boss_food(card, context)
-    if value and value > 0 then
-        result = result or {}
-        result.dollars = value
-    end
-    return result
+    return plant_boss_food(card, context)
 end
 
 H.togemon = function(card, context)
@@ -2612,27 +2617,9 @@ H.upamon = function(card, context)
 end
 
 H.motimon = function(card, context)
-    if context.end_of_round
-    and context.main_eval
-    and not context.blueprint then
-        local count = 0
-
-        for _, held in ipairs(
-            G.hand
-            and G.hand.cards
-            or {}
-        ) do
-            if held.seal == 'Blue'
-            and not held.debuff then
-                count = count + 1
-            end
-        end
-
-        if count > 0 then
-            return {
-                dollars = count * 3
-            }
-        end
+    if context.end_of_round and context.individual and context.cardarea == G.hand
+    and context.other_card.seal == 'Blue' and not context.other_card.debuff and not context.blueprint then
+        return {dollars = 3, card = context.other_card}
     end
 end
 
@@ -3532,21 +3519,6 @@ H.solarmon = function(card, context)
     end
 end
 
-H.hagurumon = function(card, context)
-    if context.end_of_round
-    and context.main_eval then
-
-        local dollars =
-            BM.unique_planets_used()
-
-        if dollars > 0 then
-            return {
-                dollars = dollars
-            }
-        end
-    end
-end
-
 H.meramon = function(card, context)
     local e = card.ability.extra
     e.xmult = e.xmult or 1
@@ -3578,19 +3550,6 @@ H.flarerizamon = function(card, context)
         if mult > 0 then
             return {
                 mult = mult
-            }
-        end
-    end
-
-    if context.end_of_round
-    and context.main_eval then
-
-        local dollars =
-            BM.unique_planets_used()
-
-        if dollars > 0 then
-            return {
-                dollars = dollars
             }
         end
     end

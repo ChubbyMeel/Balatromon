@@ -590,6 +590,9 @@ elements = {BM.care_bars(e, stage)},
                 context
             )
         end,
+        calc_dollar_bonus = function(self, card)
+            return BM.get_round_money(slug, card)
+        end,
     }
 
     BM.joker_defs[slug] = {
