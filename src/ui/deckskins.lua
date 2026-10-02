@@ -1,79 +1,75 @@
-local BM = Balatromon
-
-local face_ranks = {
-    'Jack',
-    'Queen',
-    'King',
+local ranks = {
+    '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    'Jack', 'Queen', 'King', 'Ace'
 }
 
-local display_ranks = {
-    'King',
-    'Queen',
-    'Jack',
+local faces = {
+    'Jack', 'Queen', 'King'
+}
+
+local display = {
+    'Ace', 'King', 'Queen', 'Jack', '10'
 }
 
 local suits = {
-    {
-        key = 'clubs',
-        suit = 'Clubs',
-        lc = 'Clubs_LC.png',
-        hc = 'Clubs_HC.png',
-    },
-    {
-        key = 'diamonds',
-        suit = 'Diamonds',
-        lc = 'Diamonds_LC.png',
-        hc = 'Diamonds_HC.png',
-    },
-    {
-        key = 'hearts',
-        suit = 'Hearts',
-        lc = 'Hearts_LC.png',
-        hc = 'Hearts_HC.png',
-    },
-    {
-        key = 'spades',
-        suit = 'Spades',
-        lc = 'Spades_LC.png',
-        hc = 'Spades_HC.png',
-    },
+    {'hearts', 'Hearts'},
+    {'clubs', 'Clubs'},
+    {'diamonds', 'Diamonds'},
+    {'spades', 'Spades'},
 }
 
-for _, def in ipairs(suits) do
-    local atlas_lc = SMODS.Atlas {
-        key = def.key .. '_lc',
-        path = def.lc,
-        px = 71,
-        py = 95,
-    }
+local lc = SMODS.Atlas {
+    key = 'deckskin_lc',
+    path = 'Deckskin_LC.png',
+    px = 71,
+    py = 95,
+}
 
-    local atlas_hc = SMODS.Atlas {
-        key = def.key .. '_hc',
-        path = def.hc,
-        px = 71,
-        py = 95,
-    }
+local hc = SMODS.Atlas {
+    key = 'deckskin_hc',
+    path = 'Deckskin_HC.png',
+    px = 71,
+    py = 95,
+}
 
+for _, suit in ipairs(suits) do
     SMODS.DeckSkin {
-        key = def.key,
-        suit = def.suit,
+        key = suit[1],
+        suit = suit[2],
         loc_txt = 'Balatromon',
-
         palettes = {
             {
                 key = 'lc',
-                ranks = face_ranks,
-                display_ranks = display_ranks,
-                atlas = atlas_lc.key,
-                pos_style = 'ranks',
+                ranks = ranks,
+                display_ranks = display,
+                atlas = lc.key,
+                pos_style = 'deck',
+                loc_txt = {['en-us'] = 'Full Deck'},
             },
-
+            {
+                key = 'face_lc',
+                ranks = faces,
+                display_ranks = display,
+                atlas = lc.key,
+                pos_style = 'deck',
+                loc_txt = {['en-us'] = 'Face Cards'},
+            },
             {
                 key = 'hc',
-                ranks = face_ranks,
-                display_ranks = display_ranks,
-                atlas = atlas_hc.key,
-                pos_style = 'ranks',
+                ranks = ranks,
+                display_ranks = display,
+                atlas = hc.key,
+                pos_style = 'deck',
+                loc_txt = {['en-us'] = 'Full Deck (High Contrast)'},
+                hc_default = true,
+            },
+            {
+                key = 'face_hc',
+                ranks = faces,
+                display_ranks = display,
+                atlas = hc.key,
+                pos_style = 'deck',
+                loc_txt = {['en-us'] = 'Face Cards (High Contrast)'},
                 hc_default = true,
             },
         },

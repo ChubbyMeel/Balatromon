@@ -187,7 +187,7 @@ end
 
 SMODS.DrawStep {
     key = 'joker_word',
-    order = 6,
+    order = 35,
     conditions = {vortex = false, facing = 'front'},
     func = function(card)
         draw_joker_word(card)
