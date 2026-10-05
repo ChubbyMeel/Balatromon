@@ -322,7 +322,7 @@ BM.x_antibody_effects.gallantmon = function(card, context, base)
     local e = card.ability.extra
 
     if e.x_gallantmon_emult == nil then
-        local normal_xmult = normal_gallantmon_xmult(e)
+        local normal_xmult = BM.gallantmon_current_xmult(card)
 
         e.x_gallantmon_emult = x_inherit_exponent(normal_xmult, 10)
     end
@@ -1866,6 +1866,9 @@ function BM.install_x_antibody_tooltips()
 
                     elseif slug == 'wargrowlmon' then
                         result.vars[5] = e.x_antibody_wargrowl_xmult or math.max(1, (e.mult or 0) / 10)
+
+                    elseif slug == 'gallantmon' then
+                        result.vars[4] = e.x_gallantmon_emult or x_inherit_exponent(BM.gallantmon_current_xmult(card), 10)
 
                     elseif slug == 'gabumon' then
                         result.vars[4] = e.x_gabumon_chips or 1
