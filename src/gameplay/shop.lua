@@ -410,6 +410,23 @@ if not BM._shop_pool_patched and get_current_pool then
         if _type == 'Joker'
         and (_append == 'sho' or _append == 'shop') then
 
+            if BM.mutable_active and BM.mutable_active() then
+                local pool = {}
+
+                for slug in pairs(BM.joker_defs or {}) do
+                    local key = BM.center_key(slug)
+                    local center = G.P_CENTERS[key]
+
+                    if center and center.balatromon == true then
+                        pool[#pool + 1] = key
+                    end
+                end
+
+                if #pool > 0 then
+                    return pool, 'BalatromonMutableShop_' .. tostring(_rarity or 'Random')
+                end
+            end
+
             local pool = {}
 
             local normal_graph =

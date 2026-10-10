@@ -341,6 +341,73 @@ register_crest_sleeve({
 })
 
 
+local function apply_mutable_vouchers()
+    for _, key in ipairs({'v_overstock_norm', 'v_magic_trick'}) do
+        if not G.GAME.used_vouchers[key] then
+            G.GAME.used_vouchers[key] = true
+            G.GAME.starting_voucher_count = (G.GAME.starting_voucher_count or 0) + 1
+
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    Card.apply_to_run(nil, G.P_CENTERS[key])
+                    return true
+                end
+            }))
+        end
+    end
+end
+
+CardSleeves.Sleeve {
+    key = 'mutable',
+    name = 'Mutable Sleeve',
+
+    atlas = 'Sleeve',
+    pos = {
+        x = 4,
+        y = 0
+    },
+
+    unlocked = false,
+    discovered = true,
+
+    config = {
+        balatromon_mutable = true
+    },
+
+    loc_txt = {
+        name = 'Mutable Sleeve',
+
+        text = {
+            'Booster Packs can contain {C:attention}any type{} of card',
+            'All Digimon can appear in the shop',
+            'regardless of {C:attention}stage{} or {C:attention}rarity{}',
+            'Start with {C:attention}Overstock{} and {C:attention}Magic Trick{}'
+        },
+
+        unlock = {
+            'Use an {C:attention}X-Antibody{} on',
+            '{C:attention}8 different Digimon{} in one run',
+            '{C:inactive}(#1#/#2#){}'
+        }
+    },
+
+    locked_loc_vars = function(self, info_queue, card)
+        return {vars = {BM.mutable_x_count(), 8}}
+    end,
+
+    check_for_unlock = function(self, args)
+        return args
+            and args.type == 'balatromon_mutable_x'
+            and BM.mutable_x_count() >= 8
+    end,
+
+    apply = function(self)
+        CardSleeves.Sleeve.apply(self)
+        apply_mutable_vouchers()
+    end
+}
+
+
 if get_new_boss
 and not BM._sleeve_boss_wrapped then
     BM._sleeve_boss_wrapped = true

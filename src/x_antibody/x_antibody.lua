@@ -1156,6 +1156,8 @@ function BM.apply_x_antibody(card)
         BM.discover_x_antibody(BM.get_card_slug(card))
     end
 
+    if BM.track_mutable_x then BM.track_mutable_x(card) end
+
     card.ability.extra = card.ability.extra or {}
 
     card.ability.extra.x_antibody_rounds = BM.X_ANTIBODY_ROUNDS

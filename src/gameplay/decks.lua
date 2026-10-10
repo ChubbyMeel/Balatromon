@@ -1,5 +1,60 @@
 local BM = Balatromon
 
+
+function BM.mutable_active()
+    local back = G.GAME
+        and G.GAME.selected_back
+        and G.GAME.selected_back.effect
+        and G.GAME.selected_back.effect.config
+
+    if back and back.balatromon_mutable then return true end
+
+    local sleeve = G.GAME
+        and G.GAME.selected_sleeve
+        and G.P_CENTERS
+        and G.P_CENTERS[G.GAME.selected_sleeve]
+
+    return sleeve
+        and sleeve.config
+        and sleeve.config.balatromon_mutable
+        or false
+end
+
+function BM.mutable_x_count()
+    local used = G.GAME and G.GAME.balatromon_mutable_x or {}
+    local count = 0
+
+    for _ in pairs(used) do count = count + 1 end
+
+    return count
+end
+
+function BM.track_mutable_x(card)
+    if not G.GAME or G.GAME.seeded or G.GAME.challenge then return end
+
+    local slug = BM.get_card_slug(card)
+    if not slug then return end
+
+    G.GAME.balatromon_mutable_x = G.GAME.balatromon_mutable_x or {}
+    if G.GAME.balatromon_mutable_x[slug] then return end
+
+    G.GAME.balatromon_mutable_x[slug] = true
+
+    if check_for_unlock then
+        check_for_unlock({type = 'balatromon_mutable_x'})
+    end
+end
+
+local function mutable_unlock(self, args)
+    return args
+        and args.type == 'balatromon_mutable_x'
+        and BM.mutable_x_count() >= 8
+end
+
+local function mutable_locked(self, info_queue, card)
+    return {vars = {BM.mutable_x_count(), 8}}
+end
+
 local lineage_cache = {}
 
 local function split_targets(value)
@@ -546,6 +601,49 @@ SMODS.Back {
             }
         })
     end
+}
+
+
+SMODS.Back {
+    key = 'mutable',
+
+    atlas = 'Deck',
+    pos = {
+        x = 4,
+        y = 0
+    },
+
+    unlocked = false,
+    discovered = true,
+
+    config = {
+        balatromon_mutable = true,
+        vouchers = {
+            'v_overstock_norm',
+            'v_magic_trick'
+        }
+    },
+
+    loc_txt = {
+        name = 'Mutable Deck',
+
+        text = {
+            'Booster Packs can contain',
+            '{C:attention}any type{} of card',
+            'All Digimon can appear in the shop',
+            'regardless of {C:attention}stage{} or {C:attention}rarity{}',
+            'Start with {C:attention}Overstock{} and {C:attention}Magic Trick{}'
+        },
+
+        unlock = {
+            'Use an {C:attention}X-Antibody{} on',
+            '{C:attention}8 different Digimon{} in one run',
+            '{C:inactive}(#1#/#2#){}'
+        }
+    },
+
+    locked_loc_vars = mutable_locked,
+    check_for_unlock = mutable_unlock
 }
 
 if get_new_boss

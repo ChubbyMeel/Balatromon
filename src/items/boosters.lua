@@ -744,3 +744,106 @@ SMODS.Booster:take_ownership(
     },
     true
 )
+
+local mutable_pack_types = {
+    'Playing Card',
+    'Tarot',
+    'Planet',
+    'Spectral',
+    'DigiItem',
+    'Crest'
+}
+
+local function mutable_digimon_key(seed)
+    local pool = {}
+
+    for _, entry in ipairs(BM.shop_joker_keys or {}) do
+        if G.P_CENTERS[entry.key] then
+            local weight = math.max(1, math.floor(entry.weight or 1))
+            for _ = 1, weight do pool[#pool + 1] = entry.key end
+        end
+    end
+
+    return #pool > 0
+        and BM.random_element(pool, seed)
+        or BM.center_key('botamon')
+end
+
+local function mutable_pack_card(pack, i)
+    local seed = 'balatromon_mutable_pack_'
+        .. tostring(pack.key)
+        .. '_'
+        .. tostring(i or 1)
+        .. '_'
+        .. tostring(G.GAME and G.GAME.round_resets and G.GAME.round_resets.ante or 0)
+
+    local kind = BM.random_element(mutable_pack_types, seed .. '_type')
+    local args = {
+        area = G.pack_cards,
+        skip_materialize = true,
+        key_append = seed
+    }
+
+    if kind == 'Crest' then
+        local tamer = BM.roll_crest_tamer
+            and BM.roll_crest_tamer(seed .. '_tamer')
+
+        if tamer then
+            args.set = 'Tamer'
+            args.key = tamer
+        else
+            args.set = 'Joker'
+            args.key = mutable_digimon_key(seed .. '_digimon')
+        end
+
+        args.soulable = false
+    else
+        args.set = kind
+        args.soulable = kind == 'Tarot'
+            or kind == 'Planet'
+            or kind == 'Spectral'
+    end
+
+    return args
+end
+
+local function mutable_select(card)
+    if card.playing_card then return 'deck' end
+
+    local set = card.ability and card.ability.set
+        or card.config and card.config.center and card.config.center.set
+
+    if set == 'Joker' then return 'jokers' end
+
+    return 'consumeables', true
+end
+
+for _, booster in ipairs(G.P_CENTER_POOLS.Booster or {}) do
+    if not booster._balatromon_mutable then
+        booster._balatromon_mutable = true
+
+        local create = booster.create_card
+        local select = booster.select_card
+
+        booster.create_card = function(self, card, i)
+            if BM.mutable_active and BM.mutable_active() then
+                return mutable_pack_card(self, i)
+            end
+
+            return create(self, card, i)
+        end
+
+        booster.select_card = function(self, card, pack)
+            if BM.mutable_active and BM.mutable_active() then
+                return mutable_select(card)
+            end
+
+            if type(select) == 'function' then
+                return select(self, card, pack)
+            end
+
+            return select
+        end
+    end
+end
+
