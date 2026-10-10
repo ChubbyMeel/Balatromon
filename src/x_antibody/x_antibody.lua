@@ -15,11 +15,15 @@ SMODS.Sticker {
         text = {
             'This Digimon has the',
             '{C:attention}X-Antibody{}',
-            '{C:inactive}(#1# rounds remaining){}'
+            '{C:inactive}(#1#){}'
         }
     },
     loc_vars = function(self, info_queue, card)
-        return { vars = { BM.get_x_antibody_rounds(card) } }
+        if BM.is_natural_x and BM.is_natural_x(card) then
+            return {vars = {'Does not expire'}}
+        end
+        local rounds = BM.get_x_antibody_rounds(card)
+        return {vars = {tostring(rounds) .. (rounds == 1 and ' round remaining' or ' rounds remaining')}}
     end,
     should_apply = function(self, card, center, area, bypass_roll)
         return false
@@ -1018,7 +1022,12 @@ BM.x_antibody_effects.herculeskabuterimon = function(card, context, base)
     return okuwamon or kuwagamon
 end
 
+function BM.is_natural_x(card)
+    return BM.is_digimon(card) and card.config.center.balatromon_natural_x == true
+end
+
 function BM.has_x_antibody(card)
+    if BM.is_natural_x(card) then return true end
     if not card or not card.ability or not card.ability.extra then
         return false
     end
@@ -1207,7 +1216,7 @@ function BM.apply_x_antibody(card)
 end
 
 function BM.remove_x_antibody(card)
-    if not card or card.REMOVED then
+    if not card or card.REMOVED or BM.is_natural_x(card) then
         return false
     end
 
@@ -1281,7 +1290,7 @@ function BM.remove_x_antibody(card)
 end
 
 function BM.x_antibody_tick(card, context)
-    if not BM.has_x_antibody(card) then
+    if BM.is_natural_x(card) or not BM.has_x_antibody(card) then
         return
     end
 

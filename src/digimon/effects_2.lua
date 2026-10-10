@@ -359,3 +359,97 @@ end
 H.amphimon = function(card, context)
     return merge_effects(H.thetismon(card, context), H.teslajellymon(card, context))
 end
+
+local function held_consumables(filter)
+    local count = 0
+    for _, held in ipairs(G.consumeables and G.consumeables.cards or {}) do
+        if not filter or filter(held) then count = count + 1 end
+    end
+    return count
+end
+
+local function tarot_or_planet(card)
+    local center = card.config and card.config.center
+    return center and (center.set == 'Tarot' or center.set == 'Planet')
+end
+
+local function non_negative(card)
+    return not (card.edition and card.edition.negative)
+end
+
+H.fufumon = function(card, context)
+    if context.joker_main then
+        local count = held_consumables(tarot_or_planet)
+        if count > 0 then return {mult = count * 2} end
+    end
+end
+
+H.kyokyomon = function(card, context)
+    if context.joker_main then
+        local count = held_consumables()
+        if count > 0 then return {mult = count * 3} end
+    end
+end
+
+H.ryudamon = function(card, context)
+    if context.joker_main then
+        local count = held_consumables(function(held) return not BM.is_food_card(held) end)
+        if count > 0 then return {mult = count * 5} end
+    end
+end
+
+H.ginryumon = function(card, context)
+    local e = card.ability.extra
+    e.mult = e.mult or 0
+    if context.end_of_round and context.main_eval and not context.blueprint then
+        local count = held_consumables(non_negative)
+        if count > 0 then
+            e.mult = e.mult + count * 6
+            return {message = '+' .. tostring(count * 6) .. ' Mult', colour = G.C.MULT}
+        end
+    end
+    if context.joker_main and e.mult > 0 then return {mult = e.mult} end
+end
+
+H.hisyaryumon = function(card, context)
+    local e = card.ability.extra
+    e.xmult = e.xmult or 1
+    if context.end_of_round and context.main_eval and not context.blueprint then
+        local total = held_consumables()
+        if total == 0 then
+            if e.xmult ~= 1 then
+                e.xmult = 1
+                return {message = 'Reset!', colour = G.C.MULT}
+            end
+            return
+        end
+        local count = held_consumables(non_negative)
+        if count > 0 then
+            e.xmult = e.xmult * (1.4 ^ count)
+            return {message = 'X' .. string.format('%.2f', e.xmult) .. ' Mult', colour = G.C.MULT}
+        end
+    end
+    if context.joker_main then return {xmult = e.xmult} end
+end
+
+H.ouryumon = function(card, context)
+    local e = card.ability.extra
+    e.emult = e.emult or 1
+    if context.end_of_round and context.main_eval and not context.blueprint then
+        local total = held_consumables()
+        if total == 0 then
+            if e.emult ~= 1 then
+                e.emult = 1
+                return {message = 'Reset!', colour = G.C.MULT}
+            end
+            return
+        end
+        local count = held_consumables(non_negative)
+        if count > 0 then
+            e.emult = e.emult * (1.04 ^ count)
+            return {message = '^' .. string.format('%.2f', e.emult) .. ' Mult', colour = G.C.MULT}
+        end
+    end
+    if context.joker_main then BM.emult(card, e.emult) end
+end
+

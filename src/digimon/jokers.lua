@@ -19,6 +19,9 @@ function BM.register_digimon(def)
         extra[key] = value
     end
 
+    local config = {extra = extra}
+    if def.natural_x then config[BM.PREFIX .. '_x_antibody'] = true end
+
     SMODS.Joker {
         key = slug,
         unlocked = def.unlocked ~= false,
@@ -27,7 +30,7 @@ function BM.register_digimon(def)
             text = {def.text, {BM.care_status_text(stage)}},
             unlock = def.unlock
         },
-        config = {extra = extra},
+        config = config,
         rarity = BM.stage_rarity(stage),
         cost = def.cost or BM.digimon_costs[stage] or 5,
         atlas = def.atlas or 'Joker',
@@ -39,6 +42,7 @@ function BM.register_digimon(def)
         balatromon_stage = stage,
         balatromon_attribute = def.attribute or def.balatromon_attribute,
         balatromon_evolves_to = def.evolves_to,
+        balatromon_natural_x = def.natural_x == true,
 
         set_badges = function(self, card, badges)
             BM.add_royal_knight_badge(slug, badges)
@@ -110,7 +114,8 @@ function BM.register_digimon(def)
         name = def.name,
         stage = stage,
         evolves_to = def.evolves_to,
-        effect = def.effect
+        effect = def.effect,
+        natural_x = def.natural_x == true
     }
 
     local weight = BM.stage_shop_weight(stage)

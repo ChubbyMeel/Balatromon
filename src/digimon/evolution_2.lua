@@ -89,3 +89,28 @@ BM.evolution_rules.teslajellymon = {
 BM.evolution_rules.thetismon = {
     amphimon = {note = 'Standard route'}
 }
+
+BM.evolution_rules.fufumon = {
+    kyokyomon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.kyokyomon = {
+    ryudamon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.ryudamon = {
+    ginryumon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.ginryumon = {
+    hisyaryumon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.hisyaryumon = {
+    ouryumon = {note = 'Standard route'}
+}
+
+BM.evolution_rules.ouryumon = {
+    alphamon_ouryuken = {device = 'golden_digivice', note = 'Beyond route'}
+}
+
