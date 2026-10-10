@@ -245,6 +245,9 @@ local function food_pack_card_def(
     }
 end
 
+local mutable_pack_card
+local mutable_select
+
 local function make_digital_pack(
     args
 )
@@ -291,6 +294,10 @@ local function make_digital_pack(
             card,
             pack
         )
+            if BM.mutable_active and BM.mutable_active() then
+                return mutable_select(card)
+            end
+
             return
                 'consumeables',
                 true
@@ -301,6 +308,9 @@ local function make_digital_pack(
             card,
             i
         )
+            if BM.mutable_active and BM.mutable_active() then
+                return mutable_pack_card(self, i)
+            end
 
             if i == total_slots then
                 return food_pack_card_def(
@@ -769,7 +779,7 @@ local function mutable_digimon_key(seed)
         or BM.center_key('botamon')
 end
 
-local function mutable_pack_card(pack, i)
+mutable_pack_card = function(pack, i)
     local seed = 'balatromon_mutable_pack_'
         .. tostring(pack.key)
         .. '_'
@@ -807,7 +817,7 @@ local function mutable_pack_card(pack, i)
     return args
 end
 
-local function mutable_select(card)
+mutable_select = function(card)
     if card.playing_card then return 'deck' end
 
     local set = card.ability and card.ability.set
