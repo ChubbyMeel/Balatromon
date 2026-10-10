@@ -302,6 +302,7 @@ BM.register_digimon({
                 'raidramon'
             )
 
+        local suit = e.target_suit
         local vars = {
             numerator,
             denominator,
