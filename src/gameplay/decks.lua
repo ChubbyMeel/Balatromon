@@ -604,6 +604,88 @@ SMODS.Back {
 }
 
 
+local base_rna = {
+    b_red = true,
+    b_blue = true,
+    b_green = true,
+    b_yellow = true,
+    b_challenge = true
+}
+
+local function rna_name(center)
+    if not center then return 'Random Deck' end
+    return localize({type = 'name_text', set = 'Back', key = center.key}) or center.name or center.key
+end
+
+local function rna_pool()
+    local pool = {}
+    local rna = 'b_' .. BM.PREFIX .. '_rna'
+    for _, center in ipairs(G.P_CENTER_POOLS.Back or {}) do
+        if center.key and center.key ~= rna and not base_rna[center.key] then
+            pool[#pool + 1] = center
+        end
+    end
+    table.sort(pool, function(a, b) return a.key < b.key end)
+    return pool
+end
+
+local function rna_center()
+    local key = G.GAME and G.GAME.balatromon_rna_back
+    return key and G.P_CENTERS[key] or nil
+end
+
+local function rna_pick()
+    local center = rna_center()
+    if center then return center end
+
+    local pool = rna_pool()
+    if #pool == 0 then return nil end
+
+    center = pseudorandom_element(pool, pseudoseed('balatromon_rna_deck', BM.rna_seed))
+    G.GAME.balatromon_rna_back = center.key
+    return center
+end
+
+local function rna_back()
+    local center = rna_center()
+    return center and Back(center) or nil
+end
+
+local function rna_apply()
+    local center = rna_pick()
+    if not center then return end
+
+    Back(center):apply_to_run()
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'after',
+        delay = 0.6,
+        blockable = false,
+        func = function()
+            if not G.deck then return false end
+            attention_text({
+                text = 'RNA: Black + ' .. rna_name(center),
+                scale = 0.7,
+                hold = 1.5,
+                align = 'cm',
+                major = G.deck,
+                offset = {x = 0, y = -1.2}
+            })
+            return true
+        end
+    }))
+end
+
+local function rna_unlock(self, args)
+    return args and args.type == 'win_stake' and get_deck_win_stake('b_black') >= 6
+end
+
+local function rna_loc_vars(self, info_queue, card)
+    local center = G.STAGE == G.STAGES.RUN and rna_center() or nil
+    return {vars = {rna_name(center)}}
+end
+
+
 SMODS.Back {
     key = 'mutable',
 
@@ -628,7 +710,7 @@ SMODS.Back {
         name = 'Mutable Deck',
 
         text = {
-            'Booster Packs can contain',
+            'Booster Packs can contain ',
             '{C:attention}any type{} of card',
             'All Digimon can appear in the shop',
             'regardless of {C:attention}stage{} or {C:attention}rarity{}',
@@ -644,6 +726,61 @@ SMODS.Back {
 
     locked_loc_vars = mutable_locked,
     check_for_unlock = mutable_unlock
+}
+
+SMODS.Back {
+    key = 'rna',
+    atlas = 'Deck',
+    pos = {x = 5, y = 0},
+    unlocked = false,
+    discovered = true,
+    config = {
+        hands = -1,
+        joker_slot = 1,
+        balatromon_rna = true
+    },
+    loc_txt = {
+        name = 'RNA Deck',
+        text = {
+            '{C:attention}+1{} Joker slot, {C:red}-1{} hand every round',
+            'Also gains the effect of a seeded random',
+            '{C:attention}non-base Deck{}',
+            '{C:inactive}Chosen: #1#{}'
+        },
+        unlock = {
+            'Win with the {C:attention}Black Deck{}',
+            'on {C:purple}Purple Stake{} or higher'
+        }
+    },
+    loc_vars = rna_loc_vars,
+    check_for_unlock = rna_unlock,
+    apply = function(self, back)
+        rna_apply()
+    end,
+    calculate = function(self, back, context)
+        local center = rna_center()
+        if not center then return end
+
+        if center.key == 'b_plasma'
+        and (context.final_scoring_step or context.context == 'final_scoring_step') then
+            return {balance = true}
+        end
+
+        if center.key == 'b_anaglyph' and context.context == 'eval' then
+            return Back(center):trigger_effect(context)
+        end
+
+        if center.calculate then
+            return center:calculate(rna_back(), context)
+        end
+    end,
+    calc_dollar_bonus = function(self, back)
+        local center = rna_center()
+        local other = center and rna_back()
+        if center and other and center.calc_dollar_bonus then
+            return center:calc_dollar_bonus(other)
+        end
+    end
 }
 
 if get_new_boss

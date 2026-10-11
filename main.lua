@@ -594,8 +594,41 @@ Game.start_run = function(self, args)
         args = BM.prepare_appmon_run(args)
     end
 
-    local loading_save = args and args.savetext ~= nil
+    args = args or {}
+    local loading_save = args.savetext ~= nil
+    local back = self.GAME.viewed_back or self.GAME.selected_back
+    local key = back and (back.effect and back.effect.center.key or back.key)
+    local old_seed
+
+    if not loading_save and key == 'b_' .. BM.PREFIX .. '_rna' then
+        local tutorial = not (G.SETTINGS.tutorial_complete or G.SETTINGS.tutorial_progress.completed_parts['big_blind'])
+        local seed = args.seed or (tutorial and 'TUTORIAL')
+        if not seed then
+            local stake = self.GAME.stake
+            self.GAME.stake = args.stake or stake or 1
+            seed = generate_starting_seed()
+            self.GAME.stake = stake
+        end
+        BM.rna_seed = seed
+        if not args.seed then
+            old_seed = generate_starting_seed
+            generate_starting_seed = function() return seed end
+        end
+    end
+
     local result = balatromon_start_run(self, args)
+    if old_seed then generate_starting_seed = old_seed end
+    BM.rna_seed = nil
+
+    if not loading_save and self.GAME.balatromon_rna_back then
+        local center = G.P_CENTERS[self.GAME.balatromon_rna_back]
+        local config = self.GAME.selected_back.effect.config
+        for k, v in pairs(center.config or {}) do
+            if config[k] == nil then
+                config[k] = type(v) == 'table' and copy_table(v) or v
+            end
+        end
+    end
 
     if BM.apply_run_mode then
         BM.apply_run_mode(loading_save)

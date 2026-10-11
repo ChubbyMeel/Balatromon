@@ -423,6 +423,7 @@ if not BM._shop_pool_patched and get_current_pool then
                 end
 
                 if #pool > 0 then
+                    table.sort(pool)
                     return pool, 'BalatromonMutableShop_' .. tostring(_rarity or 'Random')
                 end
             end
