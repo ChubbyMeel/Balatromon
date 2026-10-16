@@ -454,7 +454,7 @@ BM.register_digimon({
 
 BM.register_digimon({
     slug = 'ultraforceveedramon',
-    name = 'UltraForceVeedramon',
+    name = 'UlForceVeedramon',
     stage = 'Mega',
     evolves_to = '-',
     pos = {x = 5, y = 19},

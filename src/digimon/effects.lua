@@ -1234,7 +1234,7 @@ H.kyubimon = function(card,context)
     local e=card.ability.extra; e.payout=e.payout or 10
     if context.blind_defeated and BM.is_boss() and not context.blueprint then e.payout=e.payout+2; return {message='Payout Up!'} end
 end
-H.taomon = function(card,context) if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end end
+H.taomon = function(card,context) if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/15))} end end
 H.sakuyamon = function(card,context)
     local e=card.ability.extra; e.target_rank=BM.ensure_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
@@ -1391,8 +1391,8 @@ H.hawkmon = function(card, context)
         }
     end
 
-    if context.end_of_round
-    and context.main_eval
+    if context.blind_defeated
+    and BM.is_boss()
     and not context.blueprint
     and e.hawk_hand_size > 0 then
         G.hand:change_size(-e.hawk_hand_size)
@@ -1400,7 +1400,10 @@ H.hawkmon = function(card, context)
     end
 end
 H.biyomon = function(card,context)
-    if context.pre_discard and context.main_eval and BM.get_poker_hand_name(G.hand.highlighted)=='Four of a Kind' and not context.blueprint then ease_hands_played(2); return {message='+2 Hands'} end
+    if context.pre_discard and context.main_eval and not context.blueprint then
+        local h = BM.get_poker_hand_name(G.hand.highlighted)
+        if h == 'Four of a Kind' or h == 'Straight Flush' then ease_hands_played(2); return {message = '+2 Hands'} end
+    end
 end
 H.birdramon = function(card,context)
     local e=card.ability.extra; BM.ensure_target(card,'target_suit',BM.SUITS,'birdramon_suit')

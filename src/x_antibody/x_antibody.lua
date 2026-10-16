@@ -196,8 +196,13 @@ BM.x_antibody_effects.tyrannomon = function(card, context, base)
 end
 
 BM.x_antibody_effects.numemon = function(card, context, base)
+    local e = card.ability.extra
+    if context.discard and context.other_card and not context.blueprint then
+        e.x_numemon_discards = (e.x_numemon_discards or 0) + 1
+        return {message = 'XMult Up!', colour = G.C.MULT}
+    end
     if context.joker_main then
-        return { xmult = 2 }
+        return {xmult = 2 + 0.01 * (e.x_numemon_discards or 0)}
     end
 end
 
@@ -1402,7 +1407,13 @@ BM.x_antibody_tooltips = {
             '{C:inactive}(suit changes at end of round){}'
         }
     },
-    numemon = { name = 'Numemon X', stage = 'Champion', text = { '{X:mult,C:white}X2{} Mult' } },
+    numemon = {
+        name = 'Numemon X', stage = 'Champion', text = {
+            'Gains {X:mult,C:white}X0.01{} Mult for every',
+            'card discarded',
+            '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}'
+        }
+    },
     wargreymon = {
         name = 'WarGreymon X',
         stage = 'Mega',
@@ -1867,7 +1878,10 @@ function BM.install_x_antibody_tooltips()
 
                     local e = card.ability and card.ability.extra or {}
 
-                    if slug == 'wargreymon' then
+                    if slug == 'numemon' then
+                        result.vars[4] = 2 + 0.01 * (e.x_numemon_discards or 0)
+
+                    elseif slug == 'wargreymon' then
                         result.vars[6] = e.x_wargreymon_emult or x_inherit_exponent(e.xmult, 10)
 
                     elseif slug == 'metalgarurumon' then

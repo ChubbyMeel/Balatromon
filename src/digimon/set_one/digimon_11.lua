@@ -184,7 +184,7 @@ do
         key = slug,
         loc_txt = {name = 'Taomon', text = {
             {
-                '{X:mult,C:white}X1{} Mult for every {C:money}$10{} owned',
+                '{X:mult,C:white}X1{} Mult for every {C:money}$15{} owned',
                 '{C:inactive}(Currently {X:mult,C:white}X#4#{C:inactive} Mult){}',
             },
             {BM.care_status_text(stage)}
@@ -198,7 +198,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Sakuyamon, Piedmon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            local current = math.max(1,math.floor((G.GAME and G.GAME.dollars or 0)/10))
+            local current = math.max(1,math.floor((G.GAME and G.GAME.dollars or 0)/15))
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},current}}
         end,
@@ -214,7 +214,7 @@ elements = {BM.care_bars(e, stage)},current}}
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Taomon', stage = stage, evolves_to = 'Sakuyamon, Piedmon', effect = 'X1 Mult for every $10 owned'}
+    BM.joker_defs[slug] = {name = 'Taomon', stage = stage, evolves_to = 'Sakuyamon, Piedmon', effect = 'X1 Mult for every $15 owned'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end

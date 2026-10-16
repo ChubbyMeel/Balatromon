@@ -91,7 +91,7 @@ do
                 'Gain an extra handsize for every flush',
                 'discarded',
                 '{C:inactive}(Poromon’s effect is also applied){}',
-                '{C:inactive}(Reset every round){}',
+                '{C:inactive}(Resets after Boss Blind){}',
             },
             {BM.care_status_text(stage)}
         }},
@@ -131,8 +131,8 @@ do
         key = slug,
         loc_txt = {name = 'Biyomon', text = {
             {
-                'Gain 2 extra hands when four of a kind is',
-                'discarded',
+                'Gain {C:attention}+2{} hands when {C:attention}Four of a Kind{}',
+                'or {C:attention}Straight Flush{} is discarded',
             },
             {BM.care_status_text(stage)}
         }},
@@ -159,7 +159,7 @@ do
             return BM.run_effect(slug, card, context)
         end,
     }
-    BM.joker_defs[slug] = {name = 'Biyomon', stage = stage, evolves_to = 'Birdramon', effect = 'Gain 2 extra hands when four of a kind is discarded'}
+    BM.joker_defs[slug] = {name = 'Biyomon', stage = stage, evolves_to = 'Birdramon', effect = 'Gain 2 extra hands when Four of a Kind or Straight Flush is discarded'}
     local weight = BM.stage_shop_weight(stage)
     if weight > 0 then BM.shop_joker_keys[#BM.shop_joker_keys + 1] = {key = BM.center_key(slug), weight = weight, stage = stage} end
 end
