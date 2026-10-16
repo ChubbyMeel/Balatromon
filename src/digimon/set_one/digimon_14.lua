@@ -321,9 +321,7 @@ do
                 'j_rough_gem',
             }
             for _, center_key in ipairs(referenced_jokers) do
-                if G.P_CENTERS[center_key] then
-                    info_queue[#info_queue + 1] = G.P_CENTERS[center_key]
-                end
+                BM.add_joker_tooltip(info_queue, center_key)
             end
 
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,

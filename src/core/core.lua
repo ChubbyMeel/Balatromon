@@ -2610,6 +2610,26 @@ function BM.add_digimon_tooltip(info_queue, slug, card, x_antibody)
     info_queue[#info_queue + 1] = tooltip
 end
 
+function BM.add_joker_tooltip(info_queue, key)
+    local center = G.P_CENTERS[key]
+    if not center then return end
+    if key == 'j_bloodstone' or key == 'j_arrowhead' or key == 'j_onyx_agate' or key == 'j_rough_gem' then
+        info_queue[#info_queue + 1] = setmetatable({
+            create_fake_card = SMODS.Center.create_fake_card,
+            generate_ui = SMODS.Center.generate_ui,
+            loc_vars = function(self)
+                local e = self.config.extra
+                if key == 'j_bloodstone' then
+                    return {vars = {tostring(G.GAME and G.GAME.probabilities.normal or 1), e.odds, e.Xmult}}
+                end
+                return {vars = {e}}
+            end
+        }, {__index = center})
+    else
+        info_queue[#info_queue + 1] = center
+    end
+end
+
 function BM.add_seal_tooltip(info_queue, key)
     if not info_queue or not key then
         return

@@ -58,9 +58,7 @@ function BM.register_digimon(def)
                 BM.add_digimon_tooltip(info_queue, digimon, card)
             end
             for _, center_key in ipairs(def.joker_tooltips or {}) do
-                if G.P_CENTERS and G.P_CENTERS[center_key] then
-                    info_queue[#info_queue + 1] = G.P_CENTERS[center_key]
-                end
+                BM.add_joker_tooltip(info_queue, center_key)
             end
             if def.negative_tooltip and G.P_CENTERS and G.P_CENTERS.e_negative then
                 info_queue[#info_queue + 1] = G.P_CENTERS.e_negative
