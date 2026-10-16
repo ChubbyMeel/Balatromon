@@ -6,7 +6,9 @@ BM.royal_knights = {
     omegamon = true,
     magnamon = true,
     ultraforceveedramon = true,
-    imperialdramon_paladin_mode = true
+    imperialdramon_paladin_mode = true,
+    alphamon = true,
+    alphamon_ouryuken = true
 }
 
 BM.ROYAL_KNIGHT_BADGE_COLOUR =

@@ -453,3 +453,137 @@ H.ouryumon = function(card, context)
     if context.joker_main then BM.emult(card, e.emult) end
 end
 
+local x_key = 'c_' .. BM.PREFIX .. '_x_antibody'
+
+local function x_used()
+    return G.GAME and G.GAME.balatromon_x_used or 0
+end
+
+local exposure_targets = {dorumon = 'raptordramon', dorugamon = 'grademon', dorugreymon = 'alphamon'}
+
+local function exposure_option(card)
+    local target = exposure_targets[BM.get_card_slug(card)]
+    for _, option in ipairs(BM.get_valid_evolutions(card, 'antibody_exposure')) do
+        if option.slug == target then return option end
+    end
+end
+
+local function expose(card, context)
+    if not (context.end_of_round and context.main_eval and not context.blueprint and not context.retrigger_joker and not context.game_over) then return end
+    if card._bm_exposure or not BM.is_bond_full(card) then return end
+    if not exposure_option(card) then return end
+    for _, held in ipairs(G.consumeables and G.consumeables.cards or {}) do
+        if held.config.center.key == x_key and not held._bm_exposure then
+            card._bm_exposure = true
+            held._bm_exposure = true
+            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+                card._bm_exposure = nil
+                if not card.REMOVED and not held.REMOVED and held.area == G.consumeables then
+                    local choice = exposure_option(card)
+                    if choice and BM.perform_digivolution(card, choice, 'antibody_exposure') then
+                        G.GAME.balatromon_x_used = x_used() + 1
+                        G.consumeables:remove_card(held)
+                        held:start_dissolve()
+                    end
+                end
+                held._bm_exposure = nil
+                return true
+            end}))
+            return {message = 'Antibody Exposure!', colour = G.C.PURPLE}
+        end
+    end
+end
+
+H.dodomon = function(card, context)
+    if context.selling_self and not context.blueprint then
+        if BM.add_consumable('DigiItem', x_key) then
+            return {message = 'X-Antibody!', colour = G.C.PURPLE}
+        end
+    end
+end
+
+H.dorimon = function(card, context)
+    if context.joker_main then return {mult = card.ability.extra.mult or 3} end
+end
+
+H.dorumon = function(card, context)
+    if context.joker_main then return {mult = 5 * x_used()} end
+    return expose(card, context)
+end
+
+H.dorugamon = function(card, context)
+    if context.joker_main then return {mult = 10 * x_used()} end
+    return expose(card, context)
+end
+
+H.raptordramon = function(card, context)
+    local e = card.ability.extra
+    if context.setting_blind and context.main_eval and not context.blueprint and not context.retrigger_joker then
+        local blind = context.blind or G.GAME.blind
+        if blind and blind.boss then
+            e.active = true
+            return {message = 'Active!', colour = G.C.PURPLE}
+        end
+    end
+    if context.end_of_round and context.main_eval and not context.blueprint and not context.retrigger_joker and not context.game_over and e.active then
+        local pool = {}
+        for _, target in ipairs(G.jokers.cards) do
+            if BM.is_x_antibody_viable(target) then pool[#pool + 1] = target end
+        end
+        if #pool == 0 then return end
+        local target = BM.random_element(pool, 'raptordramon_' .. tostring(card.sort_id or 0) .. '_' .. tostring(G.GAME.round or 0))
+        if BM.apply_x_antibody(target) then
+            e.active = false
+            return {message = 'X-Antibody!', colour = G.C.PURPLE}
+        end
+    end
+end
+
+H.dorugreymon = function(card, context)
+    if context.joker_main then return {xmult = 1 + 0.3 * x_used()} end
+    return expose(card, context)
+end
+
+H.grademon = function(card, context)
+    if context.retrigger_joker_check and not context.retrigger_joker then
+        local i = BM.joker_index(card)
+        if i and i > 1 and context.other_card == G.jokers.cards[i - 1] and BM.is_digimon(context.other_card) and BM.has_x_antibody(context.other_card) then
+            return {repetitions = 1}
+        end
+    end
+    return H.raptordramon(card, context)
+end
+
+H.dorugoramon = function(card, context)
+    if context.joker_main then BM.emult(card, 1 + 0.03 * x_used()) end
+end
+
+H.alphamon = function(card, context)
+    if context.retrigger_joker_check and context.other_card ~= card and not context.retrigger_joker and BM.is_digimon(context.other_card) and BM.has_x_antibody(context.other_card) then
+        return {repetitions = 1}
+    end
+    return H.raptordramon(card, context)
+end
+
+H.alphamon_ouryuken = function(card, context)
+    if context.joker_main then
+        BM.emult(card, 1 + 0.03 * x_used())
+        local count = G.consumeables and #G.consumeables.cards or 0
+        if count > 0 then BM.echips(card, 1.05 ^ count) end
+    end
+    if not (G.consumeables and #G.consumeables.cards > 0) then
+        return H.alphamon(card, context)
+    end
+end
+
+function BM.on_x_antibody_seen(area, card)
+    if (area == G.shop_jokers or area == G.pack_cards) and card.config.center.key == x_key and not card._bm_x_seen then
+        card._bm_x_seen = true
+        for _, joker in ipairs(G.jokers.cards) do
+            if BM.get_card_slug(joker) == 'dorimon' and BM.is_active_digimon(joker) then
+                joker.ability.extra.mult = (joker.ability.extra.mult or 3) + 2
+                card_eval_status_text(joker, 'extra', nil, nil, nil, {message = '+2 Mult', colour = G.C.MULT})
+            end
+        end
+    end
+end

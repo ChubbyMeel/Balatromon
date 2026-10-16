@@ -43,7 +43,8 @@ function BM.can_x_evolve_to(slug)
         return false
     end
 
-    return BM.x_antibody_viable and BM.x_antibody_viable[slug] == true
+    return (BM.x_antibody_viable and BM.x_antibody_viable[slug] == true)
+        or (BM.joker_defs and BM.joker_defs[slug] and BM.joker_defs[slug].natural_x == true)
 end
 
 BM.x_antibody_viable = {

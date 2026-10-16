@@ -652,7 +652,18 @@ Card.use_consumeable = function(self, ...)
         BM.track_last_tarot(self)
     end
 
-    return balatromon_use_consumeable(self, ...)
+    local result = balatromon_use_consumeable(self, ...)
+    if G.GAME and self.config.center.key == 'c_' .. BM.PREFIX .. '_x_antibody' then
+        G.GAME.balatromon_x_used = (G.GAME.balatromon_x_used or 0) + 1
+    end
+    return result
+end
+
+local balatromon_emplace = CardArea.emplace
+function CardArea:emplace(card, ...)
+    local result = balatromon_emplace(self, card, ...)
+    BM.on_x_antibody_seen(self, card)
+    return result
 end
 
 local balatromon_set_cost = Card.set_cost

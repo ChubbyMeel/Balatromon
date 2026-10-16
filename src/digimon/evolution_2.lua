@@ -114,3 +114,31 @@ BM.evolution_rules.ouryumon = {
     alphamon_ouryuken = {device = 'golden_digivice', note = 'Beyond route'}
 }
 
+
+BM.evolution_rules.dodomon = {
+    dorimon = {note = 'Standard route'}
+}
+BM.evolution_rules.dorimon = {
+    dorumon = {note = 'Standard route'}
+}
+BM.evolution_rules.dorumon = {
+    dorugamon = {note = 'Standard route'},
+    raptordramon = {device = 'antibody_exposure', note = 'Antibody Exposure'}
+}
+BM.evolution_rules.dorugamon = {
+    dorugreymon = {note = 'Standard route'},
+    grademon = {device = 'antibody_exposure', note = 'Antibody Exposure'}
+}
+BM.evolution_rules.raptordramon = {
+    grademon = {note = 'Standard route'}
+}
+BM.evolution_rules.dorugreymon = {
+    dorugoramon = {note = 'Standard route'},
+    alphamon = {device = 'antibody_exposure', note = 'Antibody Exposure'}
+}
+BM.evolution_rules.grademon = {
+    alphamon = {note = 'Standard route'}
+}
+BM.evolution_rules.alphamon = {
+    alphamon_ouryuken = {device = 'golden_digivice', note = 'Beyond route'}
+}

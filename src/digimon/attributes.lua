@@ -247,6 +247,16 @@ BM.digimon_attributes = {
     ginryumon = 'Vaccine',
     hisyaryumon = 'Vaccine',
     ouryumon = 'Vaccine',
+    dodomon = 'None',
+    dorimon = 'None',
+    dorumon = 'Data',
+    dorugamon = 'Data',
+    raptordramon = 'Vaccine',
+    dorugreymon = 'Data',
+    grademon = 'Vaccine',
+    dorugoramon = 'Data',
+    alphamon = 'Vaccine',
+    alphamon_ouryuken = 'Vaccine',
 }
 
 for slug, attribute in pairs(BM.digimon_attributes) do
