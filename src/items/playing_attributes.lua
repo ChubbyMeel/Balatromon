@@ -13,15 +13,31 @@ SMODS.Atlas {
 local rows = {Virus = 0, Vaccine = 1, Data = 2, Free = 3}
 local names = {Virus = 'Infected', Vaccine = 'Protected', Data = 'Exposed', Free = 'Liberated'}
 
+function BM.count_attributed_cards()
+    local count = 0
+    for _, card in ipairs(G.playing_cards or {}) do
+        if BM.get_playing_attribute(card) then count = count + 1 end
+    end
+    return count
+end
+
+function BM.keep_playing_attribute(card)
+    return G.GAME and G.GAME.used_vouchers
+        and G.GAME.used_vouchers['v_' .. BM.PREFIX .. '_attribute_network']
+        and SMODS.pseudorandom_probability(card, 'balatromon_attribute_network', 1, 4)
+end
+
 function BM.set_playing_attribute(card, attribute)
     if not card or not card.ability or rows[attribute] == nil then return end
     if card.ability.set ~= 'Default' and card.ability.set ~= 'Enhanced' then return end
+    if card.ability.balatromon_playing_attribute and card.ability.balatromon_playing_attribute ~= attribute and BM.keep_playing_attribute(card) then return end
     if card.ability.balatromon_playing_attribute ~= attribute then
         card.ability.balatromon_exposed_triggers = nil
         card.ability.balatromon_liberated_plays = nil
         card.ability.balatromon_protected_blind = nil
     end
     card.ability.balatromon_playing_attribute = attribute
+    if BM.count_attributed_cards() >= 11 then check_for_unlock({type = 'balatromon_attribute_network'}) end
     if attribute == 'Vaccine' and card.debuff then
         local blind = G.GAME and G.GAME.blind
         card:set_debuff(false)
@@ -39,6 +55,7 @@ end
 
 function BM.clear_playing_attribute(card)
     if not card or not card.ability then return end
+    if BM.get_playing_attribute(card) and BM.keep_playing_attribute(card) then return end
     card.ability.balatromon_playing_attribute = nil
     card.ability.balatromon_exposed_triggers = nil
     card.ability.balatromon_liberated_plays = nil
@@ -224,6 +241,9 @@ function Card:add_to_deck(...)
         BM.set_playing_attribute(self, pending.attribute)
         pending.left = pending.left - 1
         if pending.left <= 0 then BM._playing_attribute_new = nil end
+    end
+    if self.playing_card and BM.get_playing_attribute(self) and BM.count_attributed_cards() >= 11 then
+        check_for_unlock({type = 'balatromon_attribute_network'})
     end
     return result
 end
@@ -512,6 +532,7 @@ function BM.calculate_playing_attribute_context(context)
         for _, card in ipairs(G.playing_cards or {}) do
             if BM.get_playing_attribute(card) == 'Vaccine' and card.ability.balatromon_protected_blind then
                 BM.clear_playing_attribute(card)
+                card.ability.balatromon_protected_blind = nil
             end
         end
     end

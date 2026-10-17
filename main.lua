@@ -729,6 +729,26 @@ Blind.debuff_card = function(self, card, ...)
     return result
 end
 
+local balatromon_set_blind = Blind.set_blind
+
+Blind.set_blind = function(self, ...)
+    local round = G.GAME.current_round
+    round.balatromon_signal_draw = nil
+    round.balatromon_network_draw = nil
+    return balatromon_set_blind(self, ...)
+end
+
+local balatromon_draw_card_from = CardArea.draw_card_from
+
+CardArea.draw_card_from = function(self, area, ...)
+    local drawn = balatromon_draw_card_from(self, area, ...)
+    if drawn and self == G.hand and area == G.deck and (G.STATE == G.STATES.DRAW_TO_HAND or G.STATE == G.STATES.SELECTING_HAND) then
+        local card = self.cards[#self.cards]
+        if BM.get_playing_attribute(card) then BM.attribute_draw() end
+    end
+    return drawn
+end
+
 local balatromon_drawn_to_hand = Blind.drawn_to_hand
 
 Blind.drawn_to_hand = function(self, ...)

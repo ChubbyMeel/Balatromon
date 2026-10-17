@@ -514,3 +514,98 @@ function BM.apply_food_stamp_after_buy(card, sort_id, bought_digimon)
         end
     })
 end
+
+
+SMODS.Voucher {
+    key = 'attribute_signal',
+    atlas = 'Voucher',
+    pos = {x = 0, y = 2},
+    cost = 10,
+    discovered = false,
+    unlocked = true,
+
+    in_pool = function(self, args)
+        return BM.count_attributed_cards() > 5
+    end,
+
+    loc_txt = {
+        name = 'Attribute Signal',
+        text = {
+            'When an {C:attention}attributed{} playing card',
+            'is drawn, draw another',
+            '{C:attention}attributed{} card from your deck',
+            '{C:inactive}(Once per Blind){}'
+        }
+    },
+
+    redeem = function(self, card)
+        G.GAME.balatromon_attribute_signal = true
+    end
+}
+
+SMODS.Voucher {
+    key = 'attribute_network',
+    atlas = 'Voucher',
+    pos = {x = 1, y = 2},
+    cost = 10,
+    discovered = false,
+    unlocked = false,
+    requires = {'v_' .. BM.PREFIX .. '_attribute_signal'},
+
+    loc_txt = {
+        name = 'Attribute Network',
+        text = {
+            'When an {C:attention}attributed{} playing card',
+            'is drawn, draw another',
+            '{C:attention}attributed{} card from your deck',
+            '{C:inactive}(Once per hand or discard){}',
+            '{C:green}1 in 4{} chance for playing cards',
+            'to keep their {C:attention}Attribute{} when',
+            'it would change or be lost'
+        },
+        unlock = {
+            'Have {C:attention}11{} attributed playing',
+            'cards in your deck at once',
+            '{C:inactive}(#1#/11 cards){}'
+        }
+    },
+
+    locked_loc_vars = function(self, info_queue, card)
+        return {vars = {math.min(11, BM.count_attributed_cards())}}
+    end,
+
+    check_for_unlock = function(self, args)
+        return BM.count_attributed_cards() >= 11
+    end,
+
+    redeem = function(self, card)
+        G.GAME.balatromon_attribute_network = true
+    end
+}
+
+function BM.attribute_draw()
+    local round = G.GAME.current_round
+    local network = voucher_active('attribute_network')
+    if not network and not voucher_active('attribute_signal') then return end
+
+    local key = round.hands_played .. '_' .. round.discards_used
+    if network and round.balatromon_network_draw == key then return end
+    if not network and round.balatromon_signal_draw then return end
+
+    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1, func = function()
+        if network and round.balatromon_network_draw == key then return true end
+        if not network and round.balatromon_signal_draw then return true end
+
+        local pool = {}
+        for _, other in ipairs(G.deck.cards) do
+            if BM.get_playing_attribute(other) then pool[#pool + 1] = other end
+        end
+        if #pool == 0 then return true end
+
+        if network then round.balatromon_network_draw = key
+        else round.balatromon_signal_draw = true end
+        local next_card = BM.random_element(pool, 'balatromon_attribute_draw')
+        draw_card(G.deck, G.hand, 100, 'up', true, next_card)
+        return true
+    end}))
+end
