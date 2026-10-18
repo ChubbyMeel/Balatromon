@@ -247,7 +247,7 @@ function()
                     ),
 
                     credit_text(
-                        'mobile game Digimon Up.',
+                        'mobile game Digimon Up and the Digivice Vital Bracelet.',
                         0.3,
                         G.C.UI.TEXT_INACTIVE
                     )
