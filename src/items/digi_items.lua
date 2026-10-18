@@ -1799,86 +1799,73 @@ SMODS.Consumable {
     end,
 }
 
+local function revivable(card)
+    local e = card.ability and card.ability.extra
+    return BM.is_digimon(card) and BM.get_card_slug(card) ~= 'recovery_digitama'
+        and e and e.permanently_disabled
+end
+
+local function needs_revival()
+    for _, card in ipairs(G.jokers and G.jokers.cards or {}) do
+        if revivable(card) then return true end
+    end
+    return false
+end
+
+local function graveyard_bonus(card)
+    if not card.seal and pseudorandom(pseudoseed('bm_graveyard_seal')) < 1 / 8 then
+        card:set_seal(SMODS.poll_seal{key = 'bm_graveyard_seal_type', guaranteed = true}, true)
+    end
+    if not card.edition and pseudorandom(pseudoseed('bm_graveyard_edition')) < 1 / 10 then
+        card:set_edition(SMODS.poll_edition{key = 'bm_graveyard_edition_type', guaranteed = true, no_negative = true}, true)
+    end
+end
+
 SMODS.Consumable {
     key = 'graveyard',
     set = 'Spectral',
-
     discovered = false,
     unlocked = true,
-
-    atlas = 'Consumable',
-    pos = {x=0,y=3},
-
+    atlas = 'Consumable', pos = {x = 0, y = 3},
     cost = 4,
-
     loc_txt = {
         name = 'Graveyard',
         text = {
-            'Bring back {C:attention}1 selected',
-            '{C:red}disabled{} Digimon as a',
-            '{C:attention}Digitama{} for {C:attention}2 rounds'
+            'Revive {C:attention}1 selected {C:red}disabled{} Digimon',
+            'as a {C:attention}Digitama{} for {C:attention}2{} rounds',
+            '{C:inactive}If none need revival, turn all cards',
+            '{C:inactive}in hand into {C:attention}Stone Cards{}',
+            '{C:inactive}Each has a {C:green}1 in 8{} chance for a {C:attention}Seal{}',
+            '{C:inactive}and {C:green}1 in 10{} chance for an {C:dark_edition}Edition{}'
         }
     },
-
-    loc_vars = function(
-        self,
-        info_queue,
-        card
-    )
-        BM.add_digimon_tooltip(
-            info_queue,
-            'recovery_digitama'
-        )
-
+    loc_vars = function(self, info_queue, card)
+        BM.add_digimon_tooltip(info_queue, 'recovery_digitama')
         return {}
     end,
-
     can_use = function(self, card)
-        local targets =
-            selected_digimon(2)
-
-        if #targets ~= 1 then
-            return false
-        end
-
-        local target =
-            targets[1]
-
-        if BM.get_card_slug(target)
-            == 'recovery_digitama' then
-            return false
-        end
-
-        local e =
-            target.ability
-            and target.ability.extra
-            or {}
-
-        return e.permanently_disabled
-            == true
+        local targets = selected_digimon(2)
+        if #targets == 1 and revivable(targets[1]) then return true end
+        return not needs_revival() and G.hand and #G.hand.cards > 0
     end,
-
-    use = function(
-        self,
-        card,
-        area,
-        copier
-    )
-        local target =
-            selected_digimon(1)[1]
-
-        if not target then
+    use = function(self, card, area, copier)
+        local target = selected_digimon(1)[1]
+        if target and revivable(target) then
+            BM.make_recovery_digitama(target)
+            G.jokers:unhighlight_all()
             return
         end
 
-        BM.make_recovery_digitama(
-            target
-        )
-
-        if G.jokers
-        and G.jokers.unhighlight_all then
-            G.jokers:unhighlight_all()
+        local changes = {}
+        for _, playing in ipairs(G.hand.cards) do
+            changes[#changes + 1] = {
+                card = playing,
+                key = 'm_stone',
+                message = 'Stone!',
+                after_set = graveyard_bonus
+            }
         end
+        BM.animate_enhancement_changes(changes)
     end,
 }
 

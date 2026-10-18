@@ -641,6 +641,16 @@ Game.start_run = function(self, args)
     return result
 end
 
+local balatromon_load_card = Card.load
+
+Card.load = function(self, ...)
+    local result = balatromon_load_card(self, ...)
+    if BM.is_digimon(self) and not BM.is_natural_x(self) and BM.has_x_antibody(self) then
+        BM.set_x_antibody_sprite(self)
+    end
+    return result
+end
+
 local balatromon_use_consumeable = Card.use_consumeable
 
 Card.use_consumeable = function(self, ...)
