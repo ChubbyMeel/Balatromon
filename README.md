@@ -2,11 +2,11 @@
 
 Special Thanks to [Lovely](https://github.com/ethangreen-dev/lovely-injector) and [Steamodded](https://github.com/Steamodded/smods)!
 
-Balatromon wouldn't be possible without the them.
+Balatromon wouldn't be possible without them.
 
 **Balatromon** is a Digimon mod for **Balatro**, built around raising, caring for, and Digivolving Digimon throughout a run.
 
-The mod currently adds **200+ Digimon Jokers** alongside branching Digivolution lines, Digi Items, Tamers, Crest Packs, X-Antibody forms, custom Boss Blinds, custom Decks, Vouchers, Tags, Seals, Enhancements, Editions, and more. We're still currently working on a lot of the art and assets for it.
+The mod currently adds **250+ Digimon Jokers** alongside branching Digivolution lines, Digi Items, Tamers, Crest Packs, X-Antibody forms, custom Boss Blinds, custom Decks, Vouchers, Tags, Seals, Enhancements, Editions, and more. We're still currently working on a lot of the art and assets for it.
 
 We have a discord community server you can join [here](https://discord.gg/jCSX9QuAXv).
 
@@ -14,10 +14,10 @@ We have a discord community server you can join [here](https://discord.gg/jCSX9Q
 
 ## Features
 
-<img width="1077" height="901" alt="image" src="https://github.com/user-attachments/assets/c4fec804-3e01-4636-ad74-f715219e89fc" />
+<img width="1053" height="877" alt="image" src="https://github.com/user-attachments/assets/23c0de3a-19c0-40db-80e2-03d84719315e" />
 
 
-- **200+ Digimon Jokers**
+- **250+ Digimon Jokers**
 - **Branching Digivolution** with multiple possible evolution routes
 - **Hunger, Bond, and Care Mistakes** that influence how your Digimon develop
 - **Digi Items and Food** for caring for your Digimon during a run
