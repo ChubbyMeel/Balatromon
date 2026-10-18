@@ -54,9 +54,8 @@ end
 
 
 local function is_x_form(card)
-    return BM.has_x_antibody
-        and BM.has_x_antibody(card)
-        or false
+    return BM.has_x_antibody and BM.has_x_antibody(card)
+        and not (BM.is_natural_x and BM.is_natural_x(card)) or false
 end
 
 local function strip_joker_text(text)
@@ -697,7 +696,7 @@ SPECIAL.monochromon = function(card, e, scoring, out)
         end
     end
 
-    out.mult = highest or 0
+    out.mult = highest and highest * 2 or 0
 end
 
 SPECIAL.gigadramon = function(card, e, scoring, out)
@@ -712,7 +711,7 @@ SPECIAL.gigadramon = function(card, e, scoring, out)
         end
     end
 
-    out.mult = lowest and lowest * 2 or 0
+    out.mult = lowest and lowest * 3 or 0
 end
 
 SPECIAL.mammothmon = function(card, e, scoring, out)
@@ -742,23 +741,16 @@ function(card, e, scoring, out)
             and G.hand.config.card_limit
             or 0
         )
-        + (
-            e.bancho_burst_chips
-            or 0
-        )
 end
 
 SPECIAL.ikkakumon = function(card, e, scoring, out)
-    local count = count_cards(
-        scoring,
-        function(c)
-            return BM.is_unenhanced
-                and BM.is_unenhanced(c)
-        end,
-        false
-    )
-
-    out.chips = 20 * count
+    local count = 0
+    for _, c in ipairs(G.hand and G.hand.highlighted or {}) do
+        if BM.is_unenhanced and BM.is_unenhanced(c) then
+            count = count + 1
+        end
+    end
+    out.chips = 13 * count
 end
 
 SPECIAL.seadramon = function(card, e, scoring, out)
@@ -770,13 +762,10 @@ SPECIAL.seadramon = function(card, e, scoring, out)
 end
 
 SPECIAL.hydramon = function(card, e, scoring, out)
-    out.mult = 20 * count_cards(
-        scoring,
-        function(c)
-            return has_enhancement(c, 'm_stone')
-        end,
-        false
-    )
+    out.chips = 25 * (BM.count_deck_enhancement and BM.count_deck_enhancement('m_stone') or 0)
+    out.mult = 20 * count_cards(scoring, function(c)
+        return has_enhancement(c, 'm_stone')
+    end, false)
 end
 
 SPECIAL.poyomon = function(card, e, scoring, out)
@@ -872,11 +861,17 @@ SPECIAL.taomon = function(card, e, scoring, out)
                 and G.GAME.dollars
                 or 0
             ) or 0
-        ) / 10
+        ) / 15
     )
 end
 
-SPECIAL.sakuyamon = SPECIAL.taomon
+SPECIAL.sakuyamon = function(card, e, scoring, out)
+    out.xmult = math.max(1, math.floor((G.GAME and G.GAME.dollars or 0) / 10))
+end
+
+SPECIAL_X.numemon = function(card, e, scoring, out)
+    out.xmult = 2 + 0.01 * (e.x_numemon_discards or 0)
+end
 
 SPECIAL.kuramon = function(card, e, scoring, out)
     out.mult = BM.count_owned_jokers
@@ -925,13 +920,13 @@ end
 SPECIAL.pumpkinmon = SPECIAL.phantomon
 
 SPECIAL.palmon = function(card, e, scoring, out)
-    out.mult = 3 * (
+    out.mult = 6 * (
         BM.count_food and BM.count_food() or 0
     )
 end
 
 SPECIAL.lalamon = function(card, e, scoring, out)
-    out.chips = 30 * (
+    out.chips = 60 * (
         BM.count_food and BM.count_food() or 0
     )
 end
@@ -940,12 +935,19 @@ SPECIAL.sunflowmon = SPECIAL.lalamon
 SPECIAL.lilamon = SPECIAL.lalamon
 
 SPECIAL.togemon = function(card, e, scoring, out)
-    out.xmult = 1 + 0.5 * (
+    out.xmult = 1 + 0.75 * (
         BM.count_food and BM.count_food() or 0
     )
 end
 
 SPECIAL.lillymon = SPECIAL.togemon
+SPECIAL.rosemon = SPECIAL.togemon
+SPECIAL.vikemon = function(card, e, scoring, out)
+    out.chips = 1100
+end
+SPECIAL.gigimon = function(card, e, scoring, out, hands)
+    out.mult = (hand_contains(hands, 'Flush') or hand_contains(hands, 'Pair')) and 16 or 0
+end
 
 SPECIAL.mushroomon = function(card, e, scoring, out)
     out.dollars = 2 * (
@@ -1064,7 +1066,306 @@ function(card, e, scoring, out)
 end
 
 
-local function target_detail(e)
+
+local function consumables(filter)
+    local n = 0
+    for _, c in ipairs(G.consumeables and G.consumeables.cards or {}) do
+        if not filter or filter(c) then n = n + 1 end
+    end
+    return n
+end
+
+local function x_used()
+    return G.GAME and G.GAME.balatromon_x_used or 0
+end
+
+SPECIAL.dorimon = function(card, e, scoring, out)
+    out.mult = e.mult or 3
+end
+
+SPECIAL.dorumon = function(card, e, scoring, out)
+    out.mult = 5 * x_used()
+end
+
+SPECIAL.dorugamon = function(card, e, scoring, out)
+    out.mult = 10 * x_used()
+end
+
+SPECIAL.dorugreymon = function(card, e, scoring, out)
+    out.xmult = 1 + 0.3 * x_used()
+end
+
+SPECIAL.dorugoramon = function(card, e, scoring, out)
+    out.emult = 1 + 0.03 * x_used()
+end
+
+SPECIAL.alphamon_ouryuken = function(card, e, scoring, out)
+    out.emult = 1 + 0.03 * x_used()
+    out.emult_chips = 1.05 ^ consumables()
+end
+
+SPECIAL.fufumon = function(card, e, scoring, out)
+    out.mult = 2 * consumables(function(c)
+        local center = c.config and c.config.center
+        return center and (center.set == 'Tarot' or center.set == 'Planet')
+    end)
+end
+
+SPECIAL.kyokyomon = function(card, e, scoring, out)
+    out.mult = 3 * consumables()
+end
+
+SPECIAL.ryudamon = function(card, e, scoring, out)
+    out.mult = 5 * consumables(function(c)
+        return not BM.is_food_card(c)
+    end)
+end
+
+SPECIAL.gulusgammamon = function(card, e, scoring, out)
+    out.mult = e.virus_mult or 0
+end
+
+SPECIAL.betelgammamon = function(card, e, scoring, out)
+    out.mult = e.vaccine_mult or 0
+end
+
+SPECIAL.kausgammamon = function(card, e, scoring, out)
+    out.chips = e.data_chips or 0
+end
+
+SPECIAL.canoweissmon = function(card, e, scoring, out)
+    out.xmult = e.vaccine_xmult or 1
+end
+
+SPECIAL.regulusmon = function(card, e, scoring, out)
+    out.xmult = e.virus_xmult or 1
+end
+
+SPECIAL.siriusmon = SPECIAL.canoweissmon
+SPECIAL.arcturusmon = SPECIAL.regulusmon
+SPECIAL.proximamon = function(card, e, scoring, out)
+    out.xmult = (e.vaccine_xmult or 1) * (e.virus_xmult or 1)
+end
+
+SPECIAL.ginryumon = function(card, e, scoring, out)
+    out.mult = e.mult or 0
+end
+
+SPECIAL.hisyaryumon = function(card, e, scoring, out)
+    out.xmult = e.xmult or 1
+end
+
+SPECIAL.ouryumon = function(card, e, scoring, out)
+    out.emult = e.emult or 1
+end
+
+SPECIAL.myotismon = function(card, e, scoring, out)
+    local n = BM.count_deck_enhancement and BM.count_deck_enhancement('m_steel') or 0
+    out.xmult = 1 + 0.25 * n
+end
+
+SPECIAL.malomyotismon = SPECIAL.myotismon
+SPECIAL.piedmon = function(card, e, scoring, out)
+    SPECIAL.myotismon(card, e, scoring, out)
+    out.xmult = (e.xmult or 1) * out.xmult
+end
+
+SPECIAL.marinebullmon = function(card, e, scoring, out)
+    out.chips = 25 * (BM.count_deck_enhancement and BM.count_deck_enhancement('m_stone') or 0)
+end
+
+SPECIAL.metalseadramon = function(card, e, scoring, out)
+    out.chips = 50 * #scoring
+end
+
+SPECIAL.megaseadramon = function(card, e, scoring, out)
+    out.chips = 30 * count_cards(scoring, is_face, false)
+end
+
+SPECIAL.gomamon = function(card, e, scoring, out, hands)
+    out.chips = (hand_contains(hands, 'Flush') and 80 or 0)
+        + (hand_contains(hands, 'Pair') and 80 or 0)
+end
+
+SPECIAL.crabmon = function(card, e, scoring, out, hands)
+    out.chips = (hand_contains(hands, 'Straight') or hand_contains(hands, 'Three of a Kind')) and 200 or 0
+end
+
+SPECIAL.zudomon = function(card, e, scoring, out, hands)
+    SPECIAL.gomamon(card, e, scoring, out, hands)
+    local total = out.chips
+    SPECIAL.crabmon(card, e, scoring, out, hands)
+    total = total + out.chips
+    SPECIAL.ikkakumon(card, e, scoring, out)
+    out.chips = total + out.chips + (e.boss_active and 100 or 0)
+end
+
+SPECIAL.guilmon = function(card, e, scoring, out, hands)
+    out.mult = (hand_contains(hands, 'Flush') or hand_contains(hands, 'Pair')) and 16 or 0
+end
+
+SPECIAL.growlmon = function(card, e, scoring, out, hands)
+    local name = JD.evaluate_hand()
+    if hand_contains(hands, 'Four of a Kind') or hand_contains(hands, 'Flush') then
+        out.mult = 23
+    elseif name == 'Pair' then
+        out.mult = 18
+    else
+        out.mult = 0
+    end
+end
+
+SPECIAL.bukamon = function(card, e, scoring, out, hands)
+    out.chips = hand_contains(hands, 'Pair') and 100 or 0
+end
+
+SPECIAL.pichimon = function(card, e, scoring, out, hands)
+    out.chips = hand_contains(hands, 'Three of a Kind') and 70 or 0
+end
+
+SPECIAL.turuiemon = function(card, e, scoring, out)
+    out.mult = e.mult or 0
+end
+
+SPECIAL.wendigomon = SPECIAL.turuiemon
+
+SPECIAL.antylamon = function(card, e, scoring, out)
+    out.xmult = e._antylamon_alignment == 'good' and (e.good_xmult or 1) or (e.evil_xmult or 1)
+end
+
+SPECIAL.omegamon = function(card, e, scoring, out)
+    out.emult = e.emult or 1
+    out.xchips = e.xchips or 1
+end
+
+SPECIAL.gallantmon_crimson_mode = function(card, e, scoring, out)
+    out.emult = e.emult or 5 / 3
+end
+
+SPECIAL_X.agumon = function(card, e, scoring, out)
+    out.xmult = 2
+end
+
+SPECIAL_X.greymon = function(card, e, scoring, out)
+    local found = false
+    for _, c in ipairs(scoring) do
+        if e.target_rank and card_has_rank(c, e.target_rank) then found = true break end
+    end
+    out.emult = found and 1.3 or 1
+end
+
+SPECIAL_X.metalgreymon = function(card, e, scoring, out)
+    out.emult = 1.5
+end
+
+SPECIAL_X.tyrannomon = function(card, e, scoring, out)
+    local found = false
+    for _, c in ipairs(scoring) do
+        if e.target_suit and card_has_suit(c, e.target_suit) then found = true break end
+    end
+    out.emult = found and 1.3 or 1
+end
+
+SPECIAL_X.wargreymon = function(card, e, scoring, out)
+    out.xmult = 1
+    out.emult = e.x_wargreymon_emult or (1 + math.max(0, (e.xmult or 1) - 1) / 10)
+end
+
+SPECIAL_X.blackwargreymon = function(card, e, scoring, out)
+    out.xmult = 1
+    out.emult = e.x_blackwargreymon_emult or (1 + math.max(0, (e.xmult or 1) - 1) / 10)
+end
+
+SPECIAL_X.gallantmon = function(card, e, scoring, out)
+    out.xmult = 1
+    out.emult = e.x_gallantmon_emult or (1 + math.max(0, (BM.gallantmon_current_xmult and BM.gallantmon_current_xmult(card) or 1) - 1) / 10)
+end
+
+SPECIAL_X.keramon = function(card, e, scoring, out)
+    out.mult = 0
+    out.xmult = (BM.empty_joker_slots and BM.empty_joker_slots({keramon = true}) or 0) * 2
+end
+
+SPECIAL_X.palmon = function(card, e, scoring, out)
+    out.mult = 0
+    out.xmult = 1 + 0.25 * (BM.count_food and BM.count_food() or 0)
+end
+
+SPECIAL_X.togemon = function(card, e, scoring, out)
+    out.xmult = 1
+    out.emult = 1 + 0.1 * (BM.count_food and BM.count_food() or 0)
+end
+
+SPECIAL_X.lillymon = SPECIAL_X.togemon
+SPECIAL_X.rosemon = SPECIAL_X.togemon
+
+SPECIAL_X.myotismon = function(card, e, scoring, out)
+    out.xmult = 1
+    out.emult = 1 + 0.05 * (BM.count_deck_enhancement and BM.count_deck_enhancement('m_steel') or 0)
+end
+
+SPECIAL_X.gomamon = function(card, e, scoring, out)
+    out.chips = 0
+    out.xchips = 1
+    for _, c in ipairs(scoring) do
+        if e.target_suit and card_has_suit(c, e.target_suit) then
+            out.xchips = 2
+            break
+        end
+    end
+end
+
+SPECIAL_X.crabmon = function(card, e, scoring, out)
+    out.chips = 0
+    out.xchips = 1
+    for _, c in ipairs(scoring) do
+        if e.target_rank and card_has_rank(c, e.target_rank) then
+            out.xchips = 2
+            break
+        end
+    end
+end
+
+SPECIAL_X.seadramon = function(card, e, scoring, out)
+    out.chips = 0
+    out.xchips = 1.5 ^ count_cards(scoring, is_face, false)
+end
+
+SPECIAL_X.megaseadramon = function(card, e, scoring, out)
+    out.chips = 0
+end
+
+SPECIAL_X.omegamon = function(card, e, scoring, out)
+    out.xchips = 1
+    out.emult = 1
+    for _, c in ipairs(scoring) do
+        if card_matches_target(c, e.target_rank, e.target_suit) then
+            out.emult = out.emult * 1.15
+        end
+    end
+end
+
+SPECIAL_X.lopmon = function(card, e, scoring, out)
+    out.xchips = e._lopmon_xchips_hand or 1
+end
+
+SPECIAL_X.guilmon = function(card, e, scoring, out, hands)
+    out.mult = 0
+    out.xmult = hand_contains(hands, 'Flush') and 3 or 1
+end
+
+SPECIAL_X.growlmon = function(card, e, scoring, out, hands)
+    out.mult = 0
+    out.xmult = hand_contains(hands, 'Four of a Kind') and 5 or 1
+end
+
+SPECIAL_X.wargrowlmon = function(card, e, scoring, out)
+    out.mult = 0
+    out.xmult = e.x_antibody_wargrowl_xmult or 1
+end
+
+
+local function target_detail(e, slug)
     local parts = {}
 
     if e.target_rank and e.target_suit then
@@ -1104,6 +1405,14 @@ local function target_detail(e)
             'Stored: X'
             .. fmt(e.stored_xchips)
             .. ' Chips'
+    end
+
+    if (slug == 'dorumon' or slug == 'dorugamon' or slug == 'dorugreymon' or slug == 'dorugoramon' or slug == 'alphamon_ouryuken') then
+        parts[#parts + 1] = 'X-Antibodies used: ' .. tostring(x_used())
+    end
+
+    if type(e.active) == 'boolean' then
+        parts[#parts + 1] = e.active and 'Active' or 'Inactive'
     end
 
     if type(e.sell_rounds) == 'number'
@@ -1159,12 +1468,12 @@ local function render_values(card, out)
 
     values.bm_chips_text =
         out.chips ~= 0
-        and ('+' .. fmt(out.chips) .. ' Chips  ')
+        and ((out.chips > 0 and '+' or '') .. fmt(out.chips) .. ' Chips  ')
         or ''
 
     values.bm_mult_text =
         out.mult ~= 0
-        and ('+' .. fmt(out.mult) .. ' Mult  ')
+        and ((out.mult > 0 and '+' or '') .. fmt(out.mult) .. ' Mult  ')
         or ''
 
     values.bm_xmult_text =
@@ -1252,10 +1561,11 @@ local function calculate_display(slug, card)
         )
     end
 
+    if e.permanently_disabled or card.debuff then out = output() end
     render_values(card, out)
 
     card.joker_display_values.bm_detail =
-        target_detail(e)
+        target_detail(e, slug)
 
     card.joker_display_values.bm_care =
         care_text(card, e)
@@ -1425,6 +1735,63 @@ RETRIGGER.dinobeemon = function(
         or 0
 end
 
+local function enhanced(card)
+    if BM.is_unenhanced then return not BM.is_unenhanced(card) end
+    local center = card.config and card.config.center
+    return center and center.key and center.key ~= 'c_base'
+end
+
+local function same_enhancement(a, b)
+    local left = SMODS.get_enhancements and SMODS.get_enhancements(a) or {}
+    local right = SMODS.get_enhancements and SMODS.get_enhancements(b) or {}
+    for key in pairs(left) do
+        if right[key] then return true end
+    end
+    if not SMODS.get_enhancements then
+        return a.config and b.config and a.config.center == b.config.center
+    end
+    return false
+end
+
+RETRIGGER.ankiromon = function(c, hand, held, joker)
+    return not held and c.seal == 'Red' and joker_triggers(joker) or 0
+end
+
+RETRIGGER.veedramon = function(c, hand, held, joker)
+    if held or not hand or #hand == 0 then return 0 end
+    return (c == hand[1] or c == hand[#hand]) and enhanced(c)
+        and 2 * joker_triggers(joker) or 0
+end
+
+local function veedramon_retrigger(c, hand, held, joker)
+    if held or not hand or not hand[1] or not enhanced(hand[1]) then return 0 end
+    return same_enhancement(hand[1], c) and 2 * joker_triggers(joker) or 0
+end
+
+RETRIGGER.aeroveedramon = veedramon_retrigger
+RETRIGGER.ultraforceveedramon = veedramon_retrigger
+RETRIGGER.imperialdramon_paladin_mode = function(c, hand, held, joker)
+    return (held and 1 or 2) * joker_triggers(joker)
+end
+
+local function x_joker_retrigger(other, joker)
+    return other and other ~= joker and BM.is_digimon(other)
+        and BM.has_x_antibody(other) and joker_triggers(joker) or 0
+end
+
+local JOKER_RETRIGGER = {
+    grademon = function(other, joker)
+        local i = BM.joker_index(joker)
+        return i and i > 1 and other == G.jokers.cards[i - 1]
+            and x_joker_retrigger(other, joker) or 0
+    end,
+    alphamon = x_joker_retrigger,
+    alphamon_ouryuken = function(other, joker)
+        if G.consumeables and #G.consumeables.cards > 0 then return 0 end
+        return x_joker_retrigger(other, joker)
+    end,
+}
+
 local BLUEPRINT = {}
 
 BLUEPRINT.gekkomon = function(card)
@@ -1547,8 +1914,9 @@ local function make_definition(slug)
     end
 
     if slug == 'digitamamon' then
-        definition.retrigger_joker_function =
-            digitamamon_retrigger
+        definition.retrigger_joker_function = digitamamon_retrigger
+    elseif JOKER_RETRIGGER[slug] then
+        definition.retrigger_joker_function = JOKER_RETRIGGER[slug]
     end
 
     return definition

@@ -837,21 +837,19 @@ local function attribute_counts()
     return counts
 end
 
-local function majority_attribute()
+local function majority_count()
     local counts = attribute_counts()
-    local best
     local amount = 0
     local tied = false
-    for attribute, count in pairs(counts) do
+    for _, count in pairs(counts) do
         if count > amount then
-            best = attribute
             amount = count
             tied = false
         elseif count == amount then
             tied = true
         end
     end
-    return not tied and best or nil
+    return tied and 0 or amount
 end
 
 local function minority_attributes()
@@ -872,18 +870,24 @@ local function minority_attributes()
     return out
 end
 
-local function unknown_trigger()
-    if not G.GAME or not G.GAME.current_round or (G.GAME.current_round.discards_left or 0) > 0 then return end
-    local majority = majority_attribute()
-    if not majority then return end
-    local doomed = {}
-    for _, card in ipairs(G.jokers and G.jokers.cards or {}) do
-        if BM.is_digimon(card) and BM.has_attribute(card, majority)
-        and SMODS.pseudorandom_probability(card, 'balatromon_unknown', 1, 3) then
-            doomed[#doomed + 1] = card
-        end
+local function unknown_size(discard)
+    local blind = G.GAME.blind
+    if blind.disabled then return end
+    local used = G.GAME.current_round.discards_used or 0
+    local factor = 1 + 0.15 * majority_count() + 0.05 * (used + (discard and 1 or 0))
+    blind.chips = blind.chips * factor / (G.GAME.balatromon_unknown_factor or 1)
+    blind.chip_text = number_format(blind.chips)
+    G.GAME.balatromon_unknown_factor = factor
+end
+
+local function unknown_clear(restore)
+    local factor = G.GAME.balatromon_unknown_factor
+    if restore and factor then
+        local blind = G.GAME.blind
+        blind.chips = blind.chips / factor
+        blind.chip_text = number_format(blind.chips)
     end
-    if #doomed > 0 then SMODS.destroy_cards(doomed, {immediate = true}) end
+    G.GAME.balatromon_unknown_factor = nil
 end
 
 local function variable_recalc(card)
@@ -1251,9 +1255,9 @@ SMODS.Blind {
     loc_txt = {
         name = 'Unknown',
         text = {
-            'If a hand is played with {C:red}no discards{} left,',
-            'Digimon of the majority Attribute each have',
-            'a {C:green}1 in 3{} chance to be destroyed'
+            'Blind size increases by {C:attention}15%{} for each',
+            'Digimon of the {C:attention}majority Attribute{}',
+            'Each discard used increases it by {C:red}5%{}'
         }
     },
     atlas = 'BossBlinds',
@@ -1263,8 +1267,22 @@ SMODS.Blind {
     mult = 2,
     boss = {showdown = true, min = 9},
     boss_colour = HEX('B7969A'),
+    set_blind = function(self)
+        G.GAME.balatromon_unknown_factor = 1
+        unknown_size()
+    end,
     press_play = function(self)
-        unknown_trigger()
+        unknown_size()
+    end,
+    calculate = function(self, a, b)
+        local context = get_context(a, b)
+        if context and context.pre_discard and context.main_eval and not context.hook then unknown_size(true) end
+    end,
+    disable = function(self)
+        unknown_clear(true)
+    end,
+    defeat = function(self)
+        unknown_clear()
     end
 }
 SMODS.Blind {
