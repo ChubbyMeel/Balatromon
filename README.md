@@ -85,7 +85,7 @@ Suggestions, balancing feedback, bug fixes, code contributions, and artwork are 
 
 **Balatromon** is created by **ChubbyMeel**.
 
-<img width="696" height="715" alt="image" src="https://github.com/user-attachments/assets/47b0daee-6017-47ce-9f00-7c211099d56f" />
+<img width="662" height="637" alt="image" src="https://github.com/user-attachments/assets/ab25a6c3-4b1c-4ff6-954b-235631295f27" />
 
 
 Special thanks to:
