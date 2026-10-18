@@ -1106,13 +1106,19 @@ H.wingdramon = function(card,context)
 end
 H.imperialdramon_dragon_mode = function(card,context) if context.repetition and context.cardarea==G.hand then return {repetitions=1} end end
 H.imperialdramon_fighter_mode = function(card,context) if context.repetition and context.cardarea==G.play then return {repetitions=2} end end
-H.gekkomon = function(card,context)
-    local i=BM.joker_index(card); local other=i and G.jokers.cards[i+1]
-    if other and other~=card then return SMODS.blueprint_effect(card,other,context) end
+H.gekkomon = function(card, context)
+    local other = BM.copy_target(card, 'gekkomon')
+    if other and other ~= card then return SMODS.blueprint_effect(card, other, context) end
 end
-H.troopmon = function(card,context) local other=G.jokers and G.jokers.cards[1]; if other and other~=card then return SMODS.blueprint_effect(card,other,context) end end
-H.digitamamon = function(card,context)
-    if context.retrigger_joker_check and G.jokers and context.other_card==G.jokers.cards[#G.jokers.cards] and context.other_card~=card and not context.retrigger_joker then return {repetitions=2} end
+H.troopmon = function(card, context)
+    local other = BM.copy_target(card, 'troopmon')
+    if other and other ~= card then return SMODS.blueprint_effect(card, other, context) end
+end
+H.digitamamon = function(card, context)
+    local other = BM.copy_target(card, 'digitamamon')
+    if context.retrigger_joker_check and other and other ~= card and context.other_card == other and not context.retrigger_joker then
+        return {repetitions = 2}
+    end
 end
 H.espimon = function(card, context)
     local e = card.ability.extra
@@ -2642,8 +2648,7 @@ H.tentomon = function(card, context)
     if context.discard
     and context.other_card
     and context.other_card.seal == 'Purple'
-    and not context.other_card.debuff
-    and not context.blueprint then
+    and not context.other_card.debuff then
         if BM.add_consumable(
             'Tarot'
         ) then
@@ -2716,7 +2721,6 @@ H.digmon = function(card, context)
 
     if context.before
     and context.main_eval
-    and not context.blueprint
     and BM.contains_hand(
         context,
         e.target_hand
@@ -2807,7 +2811,6 @@ end
 H.kuwagamon = function(card, context)
     if context.before
     and context.main_eval
-    and not context.blueprint
     and (
         context.scoring_name
             == 'Straight Flush'

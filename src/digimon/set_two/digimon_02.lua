@@ -87,7 +87,7 @@ BM.register_digimon({
     evolves_to = '-',
     atlas = atlas,
     pos = {x = 7, y = 1},
-    blueprint_compat = false,
+    blueprint_compat = true,
     digimon_tooltips = {'lamortmon', 'wezengammamon'},
     text = {
         'Applies {C:attention}Lamortmon{} and',

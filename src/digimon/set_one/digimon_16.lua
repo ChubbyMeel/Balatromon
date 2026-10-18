@@ -752,7 +752,7 @@ do
         atlas = 'Joker',
         pos = {x = 5, y = 14},
 
-        blueprint_compat = false,
+        blueprint_compat = true,
         eternal_compat = true,
         perishable_compat = true,
 
@@ -1068,7 +1068,7 @@ do
         atlas = 'Joker',
         pos = {x = 8, y = 14},
 
-        blueprint_compat = false,
+        blueprint_compat = true,
         eternal_compat = true,
         perishable_compat = true,
 
@@ -1177,7 +1177,7 @@ do
         atlas = 'Joker',
         pos = {x = 9, y = 14},
 
-        blueprint_compat = false,
+        blueprint_compat = true,
         eternal_compat = true,
         perishable_compat = true,
 

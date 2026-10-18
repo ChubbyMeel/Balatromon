@@ -92,11 +92,6 @@ local soul_pos = {
     Virus = {x = 2, y = 0}, Free = {x = 3, y = 0},
 }
 
-local digitama_pos = {
-    Data = {x = 0, y = 4}, Vaccine = {x = 1, y = 4},
-    Virus = {x = 2, y = 4}, Free = {x = 3, y = 4},
-}
-
 local function card_key(card)
     return card and card.config and card.config.center and card.config.center.key
 end
@@ -105,7 +100,6 @@ local function card_data(card)
     local key = card_key(card)
     if key == 'c_judgement' then return {any = true, tarot = true} end
     if key == 'c_soul' then return {any = true, soul = true} end
-    if key == mod_key('golden_digitama') then return {any = true, digitama = true} end
     return tarot_data[key] or planet_data[key] or spectral_data[key]
 end
 
@@ -113,7 +107,6 @@ local function attributed_pos(card, attribute)
     local key = card_key(card)
     if key == 'c_judgement' then return judgement_pos[attribute], 'Tarot' end
     if key == 'c_soul' then return soul_pos[attribute], 'SpecPlanet' end
-    if key == mod_key('golden_digitama') then return digitama_pos[attribute], 'SpecPlanet' end
     local data = tarot_data[key]
     if data then return data.pos, 'Tarot' end
     data = planet_data[key] or spectral_data[key]
@@ -177,10 +170,6 @@ local function attributed_consumable_pool(set, attribute)
     end
     if set == 'Tarot' and G.P_CENTERS.c_judgement and not G.P_CENTERS.c_judgement.hidden then
         pool[#pool + 1] = {set = 'Tarot', key = 'c_judgement', any = true}
-    end
-    local digitama = G.P_CENTERS[mod_key('golden_digitama')]
-    if set == 'Spectral' and digitama and digitama.set == 'Spectral' and not digitama.hidden then
-        pool[#pool + 1] = {set = 'Spectral', key = digitama.key, any = true}
     end
     table.sort(pool, function(a, b) return a.key < b.key end)
     return pool
@@ -426,7 +415,6 @@ for key, data in pairs(spectral_data) do
 end
 for _, attribute in ipairs(attributes) do
     register_collection_variant('c_soul', attribute, soul_pos[attribute], 'SpecPlanet')
-    register_collection_variant(mod_key('golden_digitama'), attribute, digitama_pos[attribute], 'SpecPlanet')
 end
 
 local create_card_ref = create_card
@@ -454,7 +442,6 @@ function Card:use_consumeable(area, copier)
     end
     local stage
     if attribute and key == 'c_soul' then stage = 'Mega' end
-    if attribute and key == mod_key('golden_digitama') then stage = 'Ultimate' end
     if stage then
         local center = self.config.center
         local old_use = center.use

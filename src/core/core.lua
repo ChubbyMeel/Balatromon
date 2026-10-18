@@ -2886,6 +2886,39 @@ function BM.joker_index(card)
     for i,c in ipairs(G.jokers.cards) do if c == card then return i end end
 end
 
+function BM.copy_target(card, slug)
+    if not G.jokers then return end
+    local cards = G.jokers.cards
+    if slug == 'gekkomon' then
+        local i = BM.joker_index(card)
+        return i and cards[i + 1]
+    elseif slug == 'troopmon' then
+        return cards[1]
+    elseif slug == 'digitamamon' then
+        return cards[#cards]
+    end
+end
+
+function BM.copy_status(card, slug)
+    if card.area ~= G.jokers then return end
+    local other = BM.copy_target(card, slug)
+    card.ability.blueprint_compat = other and other ~= card and not other.debuff
+        and other.config.center.blueprint_compat and not (BM.is_digimon(other)
+        and other.ability.extra.permanently_disabled) and 'compatible' or 'incompatible'
+end
+
+function BM.copy_ui(card, slug)
+    if not card or not G.jokers or card.area ~= G.jokers then return end
+    BM.copy_status(card, slug)
+    card.ability.blueprint_compat_ui = card.ability.blueprint_compat_ui or ''
+    card.ability.blueprint_compat_check = nil
+    return {{n = G.UIT.C, config = {align = 'bm', minh = 0.4}, nodes = {
+        {n = G.UIT.C, config = {ref_table = card, align = 'm', colour = G.C.JOKER_GREY, r = 0.05, padding = 0.06, func = 'blueprint_compat'}, nodes = {
+            {n = G.UIT.T, config = {ref_table = card.ability, ref_value = 'blueprint_compat_ui', colour = G.C.UI.TEXT_LIGHT, scale = 0.32 * 0.8}}
+        }}
+    }}}
+end
+
 function BM.leftmost_digimon(exclude)
     for _,c in ipairs(G.jokers and G.jokers.cards or {}) do if c ~= exclude and BM.is_digimon(c) then return c end end
 end

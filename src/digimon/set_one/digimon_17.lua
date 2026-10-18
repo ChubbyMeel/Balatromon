@@ -77,7 +77,7 @@ BM.register_digimon({
     stage = 'Rookie',
     evolves_to = 'Kabuterimon, Kuwagamon',
     pos = {x = 8, y = 15},
-    blueprint_compat = false,
+    blueprint_compat = true,
     seal_tooltips = {
         'Purple'
     },
@@ -110,7 +110,7 @@ BM.register_digimon({
     stage = 'Champion',
     evolves_to = 'MegaKabuterimon, Okuwamon',
     pos = {x = 0, y = 16},
-    blueprint_compat = false,
+    blueprint_compat = true,
     text = {
         'If played hand contains {C:attention}#5#{} and',
         'a scoring {C:attention}#4#{}, create a {C:spectral}Spectral{} card',
@@ -187,7 +187,7 @@ BM.register_digimon({
     stage = 'Champion',
     evolves_to = 'Okuwamon',
     pos = {x = 3, y = 16},
-    blueprint_compat = false,
+    blueprint_compat = true,
     text = {
         'If played poker hand is a {C:attention}Straight Flush{}',
         'or {C:attention}Flush Five{}, create a random {C:spectral}Spectral{} card',

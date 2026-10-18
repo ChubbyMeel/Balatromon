@@ -186,7 +186,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
+            return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}, main_end = BM.copy_ui(card, slug)}
         end,
         in_pool = function(self, args)
             return stage == 'Fresh' or stage == 'In-Training' or stage == 'Rookie' or stage == 'Champion' or stage == 'Rare'
@@ -194,6 +194,7 @@ do
         add_to_deck = function(self, card, from_debuff) if not from_debuff then BM.on_add(card, slug) end end,
         remove_from_deck = function(self, card, from_debuff) if not from_debuff then BM.on_remove(card, slug) end end,
         can_sell = function(self, card, context) return BM.can_sell(card, slug) end,
+        update = function(self, card) BM.copy_status(card, slug) end,
         calculate = function(self, card, context)
             BM.care_tick(card, context)
             if card.ability.extra.permanently_disabled then return end
@@ -226,7 +227,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
+            return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}, main_end = BM.copy_ui(card, slug)}
         end,
         in_pool = function(self, args)
             return stage == 'Fresh' or stage == 'In-Training' or stage == 'Rookie' or stage == 'Champion' or stage == 'Rare'
@@ -234,6 +235,7 @@ do
         add_to_deck = function(self, card, from_debuff) if not from_debuff then BM.on_add(card, slug) end end,
         remove_from_deck = function(self, card, from_debuff) if not from_debuff then BM.on_remove(card, slug) end end,
         can_sell = function(self, card, context) return BM.can_sell(card, slug) end,
+        update = function(self, card) BM.copy_status(card, slug) end,
         calculate = function(self, card, context)
             BM.care_tick(card, context)
             if card.ability.extra.permanently_disabled then return end
@@ -267,7 +269,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = '-',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}}
+            return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0, elements = {BM.care_bars(e, stage)}}, main_end = BM.copy_ui(card, slug)}
         end,
         in_pool = function(self, args)
             return stage == 'Fresh' or stage == 'In-Training' or stage == 'Rookie' or stage == 'Champion' or stage == 'Rare'
@@ -275,6 +277,7 @@ do
         add_to_deck = function(self, card, from_debuff) if not from_debuff then BM.on_add(card, slug) end end,
         remove_from_deck = function(self, card, from_debuff) if not from_debuff then BM.on_remove(card, slug) end end,
         can_sell = function(self, card, context) return BM.can_sell(card, slug) end,
+        update = function(self, card) BM.copy_status(card, slug) end,
         calculate = function(self, card, context)
             BM.care_tick(card, context)
             if card.ability.extra.permanently_disabled then return end

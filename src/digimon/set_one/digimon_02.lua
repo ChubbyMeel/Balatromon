@@ -136,7 +136,7 @@ BM.register_digimon({
     stage = 'Rare',
     evolves_to = '-',
     pos = {x = 9, y = 20},
-    blueprint_compat = false,
+    blueprint_compat = true,
     extra = {
         xchips = 1
     },
