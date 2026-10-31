@@ -818,7 +818,7 @@ mutable_pack_card = function(pack, i)
 end
 
 mutable_select = function(card)
-    if card.playing_card then return 'deck' end
+    if SMODS.is_playing_card(card) then return 'deck' end
 
     local set = card.ability and card.ability.set
         or card.config and card.config.center and card.config.center.set

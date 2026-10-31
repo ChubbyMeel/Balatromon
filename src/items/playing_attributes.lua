@@ -126,7 +126,7 @@ local function spread(card, kind, value, infected, ...)
 end
 
 local function protect(card)
-    if BM.get_playing_attribute(card) ~= 'Vaccine' then return false end
+    if BM.get_playing_attribute(card) ~= 'Vaccine' or card.getting_sliced or card.destroyed or card.shattered or card.REMOVED then return false end
     if BM._playing_attribute_targets then BM._playing_attribute_targets[card] = nil end
     BM.clear_playing_attribute(card)
     if card.juice_up then card:juice_up(0.3, 0.3) end
@@ -136,10 +136,7 @@ end
 local set_ability = Card.set_ability
 function Card:set_ability(center, ...)
     local attribute = BM.get_playing_attribute(self)
-    if attribute == 'Vaccine' and center ~= self.config.center and self.playing_card then
-        protect(self)
-        return
-    end
+    if attribute == 'Vaccine' and center ~= self.config.center and self.playing_card and protect(self) then return end
     local old = self.config.center
     local triggers = self.ability and self.ability.balatromon_exposed_triggers
     local plays = self.ability and self.ability.balatromon_liberated_plays
@@ -168,10 +165,7 @@ end
 
 local set_base = Card.set_base
 function Card:set_base(base, ...)
-    if BM.get_playing_attribute(self) == 'Vaccine' and base ~= self.config.card and self.playing_card then
-        protect(self)
-        return
-    end
+    if BM.get_playing_attribute(self) == 'Vaccine' and base ~= self.config.card and self.playing_card and protect(self) then return end
     local result = set_base(self, base, ...)
     mark(self)
     return result
@@ -209,16 +203,45 @@ function Card:set_debuff(value)
     return set_debuff(self, value)
 end
 
+local calc = SMODS.calculate_context
+function SMODS.calculate_context(context, ...)
+    local flags = calc(context, ...)
+    if context.destroy_card and flags and flags.remove and protect(context.destroy_card) then
+        flags.remove = nil
+    end
+    return flags
+end
+
+local destroy_cards = SMODS.destroy_cards
+function SMODS.destroy_cards(cards, ...)
+    if cards[1] then
+        local remaining = {}
+        for _, card in ipairs(cards) do
+            if not protect(card) then remaining[#remaining + 1] = card end
+        end
+        if #remaining == 0 then return {} end
+        return destroy_cards(remaining, ...)
+    end
+    if protect(cards) then return {} end
+    return destroy_cards(cards, ...)
+end
+
 local start_dissolve = Card.start_dissolve
 function Card:start_dissolve(...)
-    if self.playing_card and protect(self) then return end
+    if protect(self) then return false end
     return start_dissolve(self, ...)
 end
 
 local shatter = Card.shatter
 function Card:shatter(...)
-    if self.playing_card and protect(self) then return end
+    if protect(self) then return false end
     return shatter(self, ...)
+end
+
+local pinch = SMODS.pinch_and_remove
+function SMODS.pinch_and_remove(card, ...)
+    if protect(card) then return false end
+    return pinch(card, ...)
 end
 
 local copy = copy_card
