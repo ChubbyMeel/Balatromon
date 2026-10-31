@@ -47,7 +47,7 @@ end
 
 local function gurimon_effect(card, context)
     if not (context.end_of_round and context.main_eval and not context.blueprint) then return end
-    if (G.GAME.dollars or 0) <= (G.GAME.interest_cap or 25) then return end
+    if BM.big(G.GAME.dollars or 0) <= BM.big(G.GAME.interest_cap or 25) then return end
     if BM.create_attributed_consumable('Tarot', nil, 'gurimon_' .. tostring(card.sort_id or 0)) then
         return {message = 'Attributed Tarot!', colour = G.C.SECONDARY_SET.Tarot}
     end
@@ -176,26 +176,26 @@ H.pyonmon = function(card, context)
 end
 
 H.bosamon = function(card, context)
-    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and G.GAME.blind and G.GAME.blind.chips and G.GAME.chips >= G.GAME.blind.chips * 0.5 then
+    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and G.GAME.blind and G.GAME.blind.chips and BM.big(G.GAME.chips) >= BM.big(G.GAME.blind.chips) * BM.big(0.5) then
         return create_tarot_or_planet(card, 'bosamon')
     end
 end
 
 H.angoramon = function(card, context)
-    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and (G.GAME.dollars or 0) <= 0 then
+    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and BM.big(G.GAME.dollars or 0) <= BM.big(0) then
         return create_tarot_or_planet(card, 'angoramon')
     end
 end
 
 H.symbareangoramon = function(card, context)
-    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and (G.GAME.dollars or 0) <= 4 then
+    if context.after and context.main_eval and not context.blueprint and not context.retrigger_joker and BM.big(G.GAME.dollars or 0) <= BM.big(4) then
         return create_tarot_or_planet(card, 'symbareangoramon')
     end
 end
 
 H.lamortmon = function(card, context)
     local inherited = H.symbareangoramon(card, context)
-    if context.end_of_round and context.main_eval and context.game_over and not context.blueprint and not context.retrigger_joker and G.GAME.blind and G.GAME.blind.chips and G.GAME.blind.chips > 0 and G.GAME.chips >= G.GAME.blind.chips * 0.15 then
+    if context.end_of_round and context.main_eval and context.game_over and not context.blueprint and not context.retrigger_joker and G.GAME.blind and G.GAME.blind.chips and BM.big(G.GAME.blind.chips) > BM.big(0) and BM.big(G.GAME.chips) >= BM.big(G.GAME.blind.chips) * BM.big(0.15) then
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 0.1,
@@ -453,8 +453,6 @@ H.ouryumon = function(card, context)
     if context.joker_main then BM.emult(card, e.emult) end
 end
 
-local x_key = 'c_' .. BM.PREFIX .. '_x_antibody'
-
 local function x_used()
     return G.GAME and G.GAME.balatromon_x_used or 0
 end
@@ -473,7 +471,7 @@ local function expose(card, context)
     if card._bm_exposure or not BM.is_bond_full(card) then return end
     if not exposure_option(card) then return end
     for _, held in ipairs(G.consumeables and G.consumeables.cards or {}) do
-        if held.config.center.key == x_key and not held._bm_exposure then
+        if held.config.center.key == 'c_' .. BM.PREFIX .. '_x_antibody' and not held._bm_exposure then
             card._bm_exposure = true
             held._bm_exposure = true
             G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
@@ -496,7 +494,7 @@ end
 
 H.dodomon = function(card, context)
     if context.selling_self and not context.blueprint then
-        if BM.add_consumable('DigiItem', x_key) then
+        if BM.add_consumable('DigiItem', 'c_' .. BM.PREFIX .. '_x_antibody') then
             return {message = 'X-Antibody!', colour = G.C.PURPLE}
         end
     end
@@ -577,7 +575,7 @@ H.alphamon_ouryuken = function(card, context)
 end
 
 function BM.on_x_antibody_seen(area, card)
-    if (area == G.shop_jokers or area == G.pack_cards) and card.config.center.key == x_key and not card._bm_x_seen then
+    if (area == G.shop_jokers or area == G.pack_cards) and card.config.center.key == 'c_' .. BM.PREFIX .. '_x_antibody' and not card._bm_x_seen then
         card._bm_x_seen = true
         for _, joker in ipairs(G.jokers.cards) do
             if BM.get_card_slug(joker) == 'dorimon' and BM.is_active_digimon(joker) then

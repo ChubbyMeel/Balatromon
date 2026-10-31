@@ -2946,7 +2946,8 @@ function BM.apply_blind_reduction(card, context, amount, bosses)
     local mark = tostring(G.GAME.round_resets.ante) .. ':' .. tostring(G.GAME.blind.name)
     if card.ability.extra.last_reduced_blind == mark then return end
     card.ability.extra.last_reduced_blind = mark
-    G.GAME.blind.chips = math.max(1, math.floor(G.GAME.blind.chips * (1 - amount)))
+    local chips = BM.floor(BM.big(G.GAME.blind.chips) * BM.big(1 - amount))
+    G.GAME.blind.chips = chips >= BM.big(1) and chips or BM.big(1)
     G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
     SMODS.juice_up_blind()
 end

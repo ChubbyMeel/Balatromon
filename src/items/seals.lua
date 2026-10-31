@@ -252,7 +252,7 @@ local function blind_is_beaten()
         return false
     end
 
-    return G.GAME.chips >= G.GAME.blind.chips
+    return BM.big(G.GAME.chips) >= BM.big(G.GAME.blind.chips)
 end
 
 

@@ -853,20 +853,11 @@ SPECIAL.greatgrizzlymon = SPECIAL.bearmon
 SPECIAL.callismon = SPECIAL.bearmon
 
 SPECIAL.taomon = function(card, e, scoring, out)
-    out.xmult = math.max(
-        1,
-        math.floor(
-            tonumber(
-                G.GAME
-                and G.GAME.dollars
-                or 0
-            ) or 0
-        ) / 15
-    )
+    out.xmult = BM.cash_mult(15)
 end
 
 SPECIAL.sakuyamon = function(card, e, scoring, out)
-    out.xmult = math.max(1, math.floor((G.GAME and G.GAME.dollars or 0) / 10))
+    out.xmult = BM.cash_mult(10)
 end
 
 SPECIAL_X.numemon = function(card, e, scoring, out)

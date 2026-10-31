@@ -198,7 +198,7 @@ do
         balatromon_stage = stage, balatromon_evolves_to = 'Sakuyamon, Piedmon',
         loc_vars = function(self, info_queue, card)
             local e = card and card.ability and card.ability.extra or extra
-            local current = math.max(1,math.floor((G.GAME and G.GAME.dollars or 0)/15))
+            local current = BM.cash_mult(15)
             return {vars = {e.hunger or 1, e.bond or 0, e.care_mistakes or 0,
 elements = {BM.care_bars(e, stage)},current}}
         end,
@@ -288,9 +288,7 @@ do
             local current_xmult =
                 math.max(
                     1,
-                    math.floor(
-                        (G.GAME and G.GAME.dollars or 0) / 10
-                    )
+                    BM.cash_mult(10)
                 )
 
             BM.add_digimon_tooltip(info_queue, 'renamon', card)

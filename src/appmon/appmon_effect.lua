@@ -176,12 +176,13 @@ function BM.can_use_perorimon(card)
     if not G
     or not G.GAME
     or not G.consumeables
-    or not BM.has_room(G.consumeables)
-    or (tonumber(G.GAME.dollars) or 0) < 7 then
+    or not BM.has_room(G.consumeables) then
         return false
     end
 
-    return appmon_valid_last_consumable_key() ~= nil
+    local dollars = to_big and to_big(G.GAME.dollars) or G.GAME.dollars
+    local cost = to_big and to_big(7) or 7
+    return dollars >= cost and appmon_valid_last_consumable_key() ~= nil
 end
 
 function BM.use_perorimon(card)
@@ -197,7 +198,7 @@ function BM.use_perorimon(card)
     if type(ease_dollars) == 'function' then
         ease_dollars(-7)
     else
-        G.GAME.dollars = math.max(0, (tonumber(G.GAME.dollars) or 0) - 7)
+        G.GAME.dollars = BM.big(G.GAME.dollars) - BM.big(7)
     end
 
     local center = G.P_CENTERS[key]
@@ -2091,7 +2092,7 @@ local function appmon_finish_blind_if_won()
     or not G.GAME
     or not G.GAME.blind
     or not G.GAME.blind.chips
-    or G.GAME.chips < G.GAME.blind.chips
+    or BM.big(G.GAME.chips) < BM.big(G.GAME.blind.chips)
     or BM._appmon_blind_win_pending then
         return
     end
@@ -2112,7 +2113,7 @@ local function appmon_finish_blind_if_won()
                 return true
             end
 
-            if G.GAME.chips < G.GAME.blind.chips then
+            if BM.big(G.GAME.chips) < BM.big(G.GAME.blind.chips) then
                 BM._appmon_blind_win_pending = nil
                 return true
             end
@@ -2166,21 +2167,14 @@ function BM.appmon_gain_blind_score(card, numerator, denominator)
         return 0
     end
 
-    local gain = math.max(
-        0,
-        math.floor((tonumber(G.GAME.blind.chips) or 0) * numerator / denominator)
-    )
+    local gain = BM.floor(BM.big(G.GAME.blind.chips) * BM.big(numerator) / BM.big(denominator))
+    if gain <= BM.big(0) then return 0 end
 
-    if gain <= 0 then
-        return 0
-    end
-
-    local current_chips = tonumber(G.GAME.chips) or 0
-
+    local chips = BM.big(G.GAME.chips) + gain
     if type(ease_chips) == 'function' then
-        ease_chips(current_chips + gain)
+        ease_chips(chips)
     else
-        G.GAME.chips = current_chips + gain
+        G.GAME.chips = chips
     end
 
     if card and card_eval_status_text then
@@ -2443,18 +2437,14 @@ function BM.appmon_gain_full_blind_requirement(card)
         return false
     end
 
-    local gain = math.max(0, tonumber(G.GAME.blind.chips) or 0)
+    local gain = BM.big(G.GAME.blind.chips)
+    if gain <= BM.big(0) then return false end
 
-    if gain <= 0 then
-        return false
-    end
-
-    local current_chips = tonumber(G.GAME.chips) or 0
-
+    local chips = BM.big(G.GAME.chips) + gain
     if type(ease_chips) == 'function' then
-        ease_chips(current_chips + gain)
+        ease_chips(chips)
     else
-        G.GAME.chips = current_chips + gain
+        G.GAME.chips = chips
     end
 
     if card and card_eval_status_text then

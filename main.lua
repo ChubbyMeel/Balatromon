@@ -4,6 +4,17 @@ BM.MOD_ID = 'Balatromon'
 BM.PREFIX = 'DigiMeel'
 BM.MOD = BM.MOD or SMODS.current_mod
 
+BM.big = function(n) return to_big and to_big(n) or n end
+BM.floor = function(n)
+    if type(n) == 'number' then return math.floor(n) end
+    if type(n) == 'table' and n.floor then return n:floor() end
+    return n
+end
+BM.cash_mult = function(step)
+    local n = BM.floor(BM.big(G.GAME and G.GAME.dollars or 0) / BM.big(step))
+    return n >= BM.big(1) and n or BM.big(1)
+end
+
 SMODS.current_mod.optional_features = function()
     return {
         retrigger_joker = true,

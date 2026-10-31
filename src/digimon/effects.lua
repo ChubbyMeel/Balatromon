@@ -1240,12 +1240,12 @@ H.kyubimon = function(card,context)
     local e=card.ability.extra; e.payout=e.payout or 10
     if context.blind_defeated and BM.is_boss() and not context.blueprint then e.payout=e.payout+2; return {message='Payout Up!'} end
 end
-H.taomon = function(card,context) if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/15))} end end
+H.taomon = function(card,context) if context.joker_main then return {xmult=BM.cash_mult(15)} end end
 H.sakuyamon = function(card,context)
     local e=card.ability.extra; e.target_rank=BM.ensure_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank')
     if context.end_of_round and context.main_eval and not context.blueprint then e.target_rank=BM.reroll_shared_target('renamon_family_rank',BM.deck_ranks(),'renamon_rank'); return BM.target_change_return(card,'Target: '..BM.rank_name(e.target_rank),G.C.ATTENTION) end
     if context.discard and BM.card_has_rank(context.other_card,e.target_rank) then return {dollars=5} end
-    if context.joker_main then return {xmult=math.max(1,math.floor((G.GAME.dollars or 0)/10))} end
+    if context.joker_main then return {xmult=BM.cash_mult(10)} end
 end
 H.zerimon = function(card, context)
     if context.individual
