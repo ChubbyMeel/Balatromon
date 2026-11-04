@@ -941,16 +941,24 @@ end
 H.ikkakumon = function(card,context) if context.joker_main then local n=0; for _,c in ipairs(context.full_hand or {}) do if BM.is_unenhanced(c) then n=n+1 end end; if n>0 then return {chips=13*n} end end end
 H.shellmon = function(card,context) if context.setting_blind and context.main_eval and not context.blueprint then BM.add_playing_card{area=G.deck, enhancement='m_stone'}; return {message='Stone Card!'} end end
 H.seadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.is_face(context.other_card) then return {chips=30} end end
-H.zudomon = function(card,context)
-    local e=card.ability.extra
-    if context.setting_blind and context.main_eval and not context.blueprint then e.boss_active=BM.is_boss(); if e.boss_active then return {dollars=8,message='Boss Bonus!'} end end
-    if context.joker_main then
-        local chips=e.boss_active and 100 or 0
-        local effects={H.ikkakumon(card,context),H.crabmon(card,context),H.gomamon(card,context)}
-        for _,effect in ipairs(effects) do if effect and effect.chips then chips=chips+effect.chips end end
-        if chips>0 then return {chips=chips} end
+H.zudomon = function(card, context)
+    if not context.joker_main and not context.debuffed_hand then return end
+    local triggered = G.GAME.blind and G.GAME.blind.triggered
+    if context.debuffed_hand then
+        if triggered then return {dollars = 8} end
+        return
     end
+    local ikkakumon = H.ikkakumon(card, context)
+    local crabmon = H.crabmon(card, context)
+    local gomamon = H.gomamon(card, context)
+    local chips = (ikkakumon and ikkakumon.chips or 0)
+        + (crabmon and crabmon.chips or 0)
+        + (gomamon and gomamon.chips or 0)
+        + (triggered and 100 or 0)
+    if triggered then return {chips = chips, dollars = 8} end
+    if chips > 0 then return {chips = chips} end
 end
+
 H.marinebullmon = function(card,context) if context.joker_main then local n=BM.count_deck_enhancement('m_stone'); if n>0 then return {chips=25*n} end end end
 H.megaseadramon = function(card,context) if context.individual and context.cardarea==G.play and BM.is_face(context.other_card) and not context.blueprint then context.other_card.ability.perma_bonus=(context.other_card.ability.perma_bonus or 0)+30; return {chips=30,message='+30 Permanent Chips'} end end
 H.vikemon = simple_chips(1100)
@@ -971,11 +979,13 @@ H.patamon = function(card, context)
     return patamon_effect(card, context)
 end
 H.angemon = function(card,context)
+    local inherited = H.patamon(card,context)
     if context.before and context.main_eval and not context.blueprint then
         if #context.full_hand==1 then BM.set_enhancement(context.full_hand[1],'m_lucky') end
         for _,c in ipairs(context.full_hand or {}) do if BM.card_has_rank(c,7) then BM.set_enhancement(c,'m_lucky') end end
         return {message='Lucky!'}
     end
+    return inherited
 end
 H.pegasusmon = function(card, context)
     if context.mod_probability then
@@ -1021,14 +1031,15 @@ H.salamon = function(card, context)
     return salamon_effect(card, context)
 end
 H.gatomon = function(card,context)
+    local inherited = H.salamon(card,context)
     if context.before and context.main_eval and not context.blueprint then
         local single=#context.full_hand==1
         if single then BM.set_enhancement(context.full_hand[1],'m_glass') end
         for _,c in ipairs(context.full_hand or {}) do if BM.is_face(c) and not (single and c==context.full_hand[1]) then BM.set_enhancement(c,'m_glass') end end
         return {message='Changed!'}
     end
+    return inherited
 end
-
 H.angewomon = function(card,context)
     local e=card.ability.extra; e.xmult=e.xmult or 1
     if context.remove_playing_cards and not context.blueprint then local n=0; for _,c in ipairs(context.removed or {}) do if BM.has_enhancement(c,'m_glass') then n=n+1 end end; if n>0 then e.xmult=e.xmult+0.69*n; return {message='XMult Up!'} end end

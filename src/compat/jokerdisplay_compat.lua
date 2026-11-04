@@ -1318,7 +1318,7 @@ SPECIAL.zudomon = function(card, e, scoring, out, hands)
     SPECIAL.crabmon(card, e, scoring, out, hands)
     total = total + out.chips
     SPECIAL.ikkakumon(card, e, scoring, out)
-    out.chips = total + out.chips + (e.boss_active and 100 or 0)
+    out.chips = total + out.chips + (G.GAME and G.GAME.blind and G.GAME.blind.triggered and 100 or 0)
 end
 
 SPECIAL.guilmon = function(card, e, scoring, out, hands)
