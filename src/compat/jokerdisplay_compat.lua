@@ -454,98 +454,86 @@ local function apply_static_effect(
     end
 end
 
-local function apply_stored_values(
-    slug,
-    e,
-    out,
-    x_form
-)
-    if type(e.mult) == 'number' then
-        out.mult = e.mult
-    end
+local STORED = {
+    mult = {
+        'knightmon', 'guilmon', 'wargrowlmon',
+        'monochromon', 'gigadramon', 'kuramon', 'tsumemon',
+        'keramon', 'palmon', 'solarmon', 'flarerizamon',
+        'turuiemon', 'wendigomon', 'ginryumon', 'dorimon',
+        'dorumon', 'dorugamon',
+    },
+    chips = {
+        'tsunomon', 'gabumon', 'garurumon', 'leomon',
+        'weregarurumon', 'loaderleomon', 'crabmon',
+        'ikkakumon', 'zudomon', 'marinebullmon',
+        'lalamon', 'sunflowmon', 'lilamon', 'kausgammamon',
+    },
+    xmult = {
+        'skullgreymon', 'numemon', 'machinedramon',
+        'wargreymon', 'blackwargreymon', 'gallantmon',
+        'magnaangemon', 'seraphimon', 'angewomon',
+        'myotismon', 'piedmon', 'hiandromon',
+        'raremon', 'bakemon', 'phantomon', 'pumpkinmon',
+        'puppetmon', 'togemon', 'lillymon', 'rosemon',
+        'meramon', 'bluemeramon', 'canoweissmon',
+        'regulusmon', 'hisyaryumon', 'dorugreymon',
+    },
+    xchips = {
+        'gabumon_naked', 'metalgarurumon', 'heavyleomon',
+        'saberleomon', 'omegamon',
+    },
+    emult = {'ouryumon', 'dorugoramon', 'omegamon'},
+}
 
-    if type(e.chips) == 'number' then
-        out.chips = e.chips
+local FIELD = {}
+for kind, slugs in pairs(STORED) do
+    for _, slug in ipairs(slugs) do
+        FIELD[slug] = FIELD[slug] or {}
+        FIELD[slug][kind] = true
     end
+end
 
+local function apply_stored_values(slug, e, out, x_form)
     if x_form then
-        if slug == 'wargreymon'
-        or slug == 'blackwargreymon' then
-            if type(e.xmult) == 'number' then
-                out.emult = e.xmult
+        local fields = {
+            gabumon = {'xchips', 'x_gabumon_chips'},
+            garurumon = {'xchips', 'x_garurumon_chips'},
+            leomon = {'xchips', 'x_leomon_chips'},
+            weregarurumon = {'xchips', 'x_weregarurumon_chips'},
+            metalgarurumon = {'emult_chips', 'x_metalgarurumon_echips'},
+            angewomon = {'emult', 'x_angewomon_emult'},
+            wargrowlmon = {'xmult', 'x_antibody_wargrowl_xmult'},
+        }
+        local field = fields[slug]
+        if field and type(e[field[2]]) == 'number' then
+            out[field[1]] = e[field[2]]
+        end
+        return
+    end
+
+    local fields = FIELD[slug]
+    if fields then
+        for kind in pairs(fields) do
+            if type(e[kind]) == 'number' then
+                out[kind] = e[kind]
             end
-
-        elseif slug == 'metalgarurumon' then
-            if type(e.xchips) == 'number' then
-                out.xchips = 1
-                out.emult_chips = e.xchips
-            end
-
-        else
-            if type(e.xmult) == 'number' then
-                out.xmult = e.xmult
-            end
-
-            if type(e.xchips) == 'number' then
-                out.xchips = e.xchips
-            end
-        end
-
-        if type(e.x_antibody_wargrowl_xmult)
-            == 'number' then
-            out.xmult =
-                e.x_antibody_wargrowl_xmult
-        end
-
-        if type(e.x_gabumon_chips)
-            == 'number' then
-            out.xchips = e.x_gabumon_chips
-        end
-
-        if type(e.x_garurumon_chips)
-            == 'number' then
-            out.xchips = e.x_garurumon_chips
-        end
-
-        if type(e.x_leomon_chips)
-            == 'number' then
-            out.xchips = e.x_leomon_chips
-        end
-
-        if type(e.x_weregarurumon_chips)
-            == 'number' then
-            out.xchips = e.x_weregarurumon_chips
-        end
-
-        if type(e.x_angewomon_emult)
-            == 'number' then
-            out.emult = e.x_angewomon_emult
-        end
-
-    else
-        if type(e.xmult) == 'number' then
-            out.xmult = e.xmult
-        elseif type(e.round_xmult) == 'number' then
-            out.xmult = e.round_xmult
-        end
-
-        if type(e.xchips) == 'number' then
-            out.xchips = e.xchips
-        end
-
-        if type(e.previous_form_value)
-            == 'number' then
-            out.xmult =
-                e.previous_form_value / 3
         end
     end
 
-    if type(e.emult) == 'number' then
-        out.emult = e.emult
-    end
-
-    if type(e.payout) == 'number' then
-        out.dollars = e.payout
+    if slug == 'garbagemon' then
+        out.xmult = e.round_xmult or 1
+    elseif slug == 'gulusgammamon' then
+        out.mult = e.virus_mult or 0
+    elseif slug == 'betelgammamon' then
+        out.mult = e.vaccine_mult or 0
+    elseif slug == 'kausgammamon' then
+        out.chips = e.data_chips or 0
+    elseif slug == 'siriusmon' then
+        out.xmult = e.vaccine_xmult or 1
+    elseif slug == 'arcturusmon' then
+        out.xmult = e.virus_xmult or 1
+    elseif slug == 'proximamon' then
+        out.xmult = (e.vaccine_xmult or 1) * (e.virus_xmult or 1)
     end
 end
 
@@ -685,6 +673,148 @@ end
 
 local SPECIAL = {}
 local SPECIAL_X = {}
+
+local function matching(scoring, test)
+    return count_cards(scoring, test, false)
+end
+
+local function suit(s)
+    return function(c) return card_has_suit(c, s) end
+end
+
+local function boost(scoring, test, amt)
+    return amt ^ matching(scoring, test)
+end
+
+SPECIAL.triceramon = function(card, e, scoring, out, hands)
+    out.xmult = hand_contains(hands, e.target_hand) and 4 or 1
+end
+
+SPECIAL.seraphimon = function(card, e, scoring, out)
+    out.xmult = (e.xmult or 1) * (e.lucky_money_hit and 2 or 1)
+end
+
+SPECIAL.gabumon = function(card, e, scoring, out)
+    local numbered = false
+    out.chips = e.chips or 0
+    for _, c in ipairs(scoring) do
+        if is_face(c) and numbered then
+            out.chips = out.chips + 8
+            break
+        elseif not is_face(c) then
+            numbered = true
+        end
+    end
+end
+
+SPECIAL.garurumon = function(card, e, scoring, out)
+    out.chips = e.chips or 0
+    for _, c in ipairs(scoring) do
+        if is_face(c) then
+            out.chips = out.chips + 10
+            break
+        end
+    end
+end
+
+SPECIAL.leomon = function(card, e, scoring, out, hands)
+    out.chips = (e.chips or 0) + (e._elecmon_release or 0)
+    if hand_contains(hands, e.target_hand) then
+        out.chips = out.chips + 15
+    end
+end
+
+SPECIAL.elecmon = function(card, e, scoring, out)
+    out.chips = e._elecmon_release or 0
+end
+
+SPECIAL.grapleomon = function(card, e, scoring, out)
+    out.chips = e._grapleomon_release or 0
+end
+
+SPECIAL.saberleomon = function(card, e, scoring, out)
+    out.xchips = e._saberleomon_release or 1
+end
+
+SPECIAL.birdramon = function(card, e, scoring, out)
+    out.mult = 4 * matching(scoring, suit(e.target_suit))
+end
+
+SPECIAL.parrotmon = function(card, e, scoring, out)
+    out.xmult = boost(scoring, suit(e.target_suit), 1.5)
+end
+
+SPECIAL.hippogryphonmon = function(card, e, scoring, out)
+    out.xmult = boost(scoring, function(c)
+        return card_matches_target(c, e.target_rank, e.target_suit)
+    end, 2)
+end
+
+SPECIAL.valkyrimon = function(card, e, scoring, out)
+    out.xmult = boost(scoring, function(c)
+        return card_has_rank(c, 13) or card_has_rank(c, 12)
+    end, 2)
+end
+
+SPECIAL.garudamon = function(card, e, scoring, out)
+    if e.mode == 2 then
+        out.chips = 50 * matching(scoring, suit('Spades'))
+    elseif e.mode == 3 then
+        out.mult = 7 * matching(scoring, suit('Clubs'))
+    elseif e.mode == 4 then
+        out.dollars = matching(scoring, suit('Diamonds'))
+    end
+end
+
+SPECIAL.yukimibotamon = function(card, e, scoring, out)
+    out.chips = 30 * matching(scoring, function(c)
+        return has_enhancement(c, 'm_glass')
+    end)
+end
+
+local function gold(c)
+    return has_enhancement(c, 'm_gold')
+end
+
+SPECIAL.zubaeagermon = function(card, e, scoring, out)
+    out.dollars = 4 * matching(scoring, gold)
+end
+
+SPECIAL.duramon = function(card, e, scoring, out)
+    out.dollars = 6 * matching(scoring, gold)
+end
+
+SPECIAL.durandamon = function(card, e, scoring, out)
+    local n = matching(scoring, gold)
+    out.dollars = 6 * n
+    out.xmult = 1.5 ^ n
+end
+
+SPECIAL.ragnaloardmon = function(card, e, scoring, out)
+    local n = matching(scoring, gold)
+    out.dollars = 8 * n
+    out.xmult = 3 ^ n
+end
+
+SPECIAL_X.gabumon = function(card, e, scoring, out)
+    out.xchips = e.x_gabumon_chips or 1
+end
+
+SPECIAL_X.garurumon = function(card, e, scoring, out)
+    out.xchips = e.x_garurumon_chips or e.x_gabumon_chips or 1
+end
+
+SPECIAL_X.leomon = function(card, e, scoring, out)
+    out.xchips = e.x_leomon_chips or e.x_gabumon_chips or 1
+end
+
+SPECIAL_X.weregarurumon = function(card, e, scoring, out)
+    out.xchips = e.x_weregarurumon_chips or e.x_garurumon_chips or 1
+end
+
+SPECIAL_X.metalgarurumon = function(card, e, scoring, out)
+    out.emult_chips = e.x_metalgarurumon_echips or (1 + math.max(0, (e.xchips or 1) - 1) / 10)
+end
 
 SPECIAL.monochromon = function(card, e, scoring, out)
     local highest = nil
@@ -1402,6 +1532,12 @@ local function target_detail(e, slug)
         parts[#parts + 1] = 'X-Antibodies used: ' .. tostring(x_used())
     end
 
+    if slug == 'garudamon' and e.mode == 1 then
+        parts[#parts + 1] = 'Bloodstone: 1 in 2 per Heart'
+    elseif slug == 'raidramon' then
+        parts[#parts + 1] = 'X1.25 Chips: 1 in 2 per matching card'
+    end
+
     if type(e.active) == 'boolean' then
         parts[#parts + 1] = e.active and 'Active' or 'Inactive'
     end
@@ -1459,12 +1595,12 @@ local function render_values(card, out)
 
     values.bm_chips_text =
         out.chips ~= 0
-        and ((out.chips > 0 and '+' or '') .. fmt(out.chips) .. ' Chips  ')
+        and ((BM.big(out.chips) > BM.big(0) and '+' or '') .. fmt(out.chips) .. ' Chips  ')
         or ''
 
     values.bm_mult_text =
         out.mult ~= 0
-        and ((out.mult > 0 and '+' or '') .. fmt(out.mult) .. ' Mult  ')
+        and ((BM.big(out.mult) > BM.big(0) and '+' or '') .. fmt(out.mult) .. ' Mult  ')
         or ''
 
     values.bm_xmult_text =
@@ -1552,7 +1688,9 @@ local function calculate_display(slug, card)
         )
     end
 
-    if e.permanently_disabled or card.debuff then out = output() end
+    if e.permanently_disabled or card.debuff or (BM.is_tired and BM.is_tired(card)) then
+        out = output()
+    end
     render_values(card, out)
 
     card.joker_display_values.bm_detail =
